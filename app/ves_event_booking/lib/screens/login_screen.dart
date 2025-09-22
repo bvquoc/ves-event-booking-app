@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import '../widgets/login_form.dart';
 import '../widgets/signup_form.dart';
+import '../widgets/forgot_password_form.dart';
+import '../widgets/change_password_form.dart';
+
+enum AuthFormType { login, signup, forgotPassword, changePassword }
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -14,7 +18,7 @@ class _LoginScreenState extends State<LoginScreen> {
       DraggableScrollableController();
 
   bool _isExpanded = false;
-  bool _showLogin = true;
+  AuthFormType _currentForm = AuthFormType.login;
 
   @override
   void initState() {
@@ -23,7 +27,10 @@ class _LoginScreenState extends State<LoginScreen> {
       if (_sheetController.size >= 0.75 && !_isExpanded) {
         setState(() => _isExpanded = true);
       } else if (_sheetController.size < 0.75 && _isExpanded) {
-        setState(() => _isExpanded = false);
+        setState(() {
+          _isExpanded = false;
+          _currentForm = AuthFormType.login;
+        });
       }
     });
   }
@@ -71,11 +78,16 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
           if (_isExpanded)
-            const Positioned(
+            Positioned(
               top: 85,
               left: 24,
               child: Text(
-                "Mừng bạn quay lại!",
+                switch (_currentForm) {
+                  AuthFormType.login => "Mừng bạn quay lại!",
+                  AuthFormType.signup => "Tạo tài khoản mới!",
+                  AuthFormType.forgotPassword => "Quên mật khẩu?",
+                  AuthFormType.changePassword => "Đổi mật khẩu!",
+                },
                 style: TextStyle(
                   fontSize: 28,
                   color: Colors.white,
@@ -104,19 +116,54 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: SingleChildScrollView(
                   controller: scrollController,
                   padding: const EdgeInsets.all(24),
-                  child: _showLogin
-                      ? LoginForm(
-                          key: const ValueKey("login"),
-                          onSwitch: () {
-                            setState(() => _showLogin = false);
-                          },
-                        )
-                      : SignupForm(
-                          key: const ValueKey("signup"),
-                          onSwitch: () {
-                            setState(() => _showLogin = true);
-                          },
-                        ),
+                  child: Builder(
+                    builder: (context) {
+                      switch (_currentForm) {
+                        case AuthFormType.login:
+                          return LoginForm(
+                            key: const ValueKey("login"),
+                            onSwitch: () {
+                              setState(
+                                () => _currentForm = AuthFormType.signup,
+                              );
+                            },
+                            onForgotPasswordButton: () {
+                              setState(
+                                () =>
+                                    _currentForm = AuthFormType.forgotPassword,
+                              );
+                            },
+                          );
+                        case AuthFormType.signup:
+                          return SignupForm(
+                            key: const ValueKey("signup"),
+                            onSwitch: () {
+                              setState(() => _currentForm = AuthFormType.login);
+                            },
+                          );
+                        case AuthFormType.forgotPassword:
+                          return ForgotPasswordForm(
+                            key: const ValueKey("forgot"),
+                            onSwitch: () {
+                              setState(() => _currentForm = AuthFormType.login);
+                            },
+                            onNextStep: () {
+                              setState(
+                                () =>
+                                    _currentForm = AuthFormType.changePassword,
+                              );
+                            },
+                          );
+                        case AuthFormType.changePassword:
+                          return ChangePasswordForm(
+                            key: const ValueKey("change"),
+                            onSwitch: () {
+                              setState(() => _currentForm = AuthFormType.login);
+                            },
+                          );
+                      }
+                    },
+                  ),
                 ),
               );
             },

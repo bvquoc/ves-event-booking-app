@@ -1,19 +1,51 @@
 import 'package:flutter/material.dart';
-import '../widgets/dialog.dart';
+import 'dart:async';
 
-class SignupForm extends StatefulWidget {
+class ForgotPasswordForm extends StatefulWidget {
   final VoidCallback onSwitch;
-  const SignupForm({super.key, required this.onSwitch});
+  final VoidCallback onNextStep;
+  const ForgotPasswordForm({
+    super.key,
+    required this.onSwitch,
+    required this.onNextStep,
+  });
 
   @override
-  State<SignupForm> createState() => _SignupFormState();
+  State<ForgotPasswordForm> createState() => _ForgotPasswordForm();
 }
 
-class _SignupFormState extends State<SignupForm> {
-  String _name = "";
+class _ForgotPasswordForm extends State<ForgotPasswordForm> {
   String _email = "";
-  String _password = "";
-  bool _acceptPolicy = false;
+  String _otpCode = "";
+  bool _isButtonDisabled = false;
+  int _secondsRemaining = 0;
+  Timer? _timer;
+
+  void _startCountDown() {
+    setState(() {
+      _isButtonDisabled = true;
+      _secondsRemaining = 60;
+    });
+
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) return;
+      setState(() {
+        if (_secondsRemaining > 1) {
+          _secondsRemaining--;
+        } else {
+          _secondsRemaining = 0;
+          _isButtonDisabled = false;
+          _timer?.cancel();
+        }
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -33,19 +65,6 @@ class _SignupFormState extends State<SignupForm> {
         ),
         TextField(
           decoration: InputDecoration(
-            labelText: "Họ tên",
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-            labelStyle: const TextStyle(fontStyle: FontStyle.italic),
-          ),
-          onChanged: (value) {
-            setState(() {
-              _name = value;
-            });
-          },
-        ),
-        const SizedBox(height: 16),
-        TextField(
-          decoration: InputDecoration(
             labelText: "Email",
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
             labelStyle: const TextStyle(fontStyle: FontStyle.italic),
@@ -60,50 +79,44 @@ class _SignupFormState extends State<SignupForm> {
         TextField(
           obscureText: true,
           decoration: InputDecoration(
-            labelText: "Mật khẩu",
+            labelText: "Nhập mã",
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
             labelStyle: const TextStyle(fontStyle: FontStyle.italic),
+            suffixIcon: TextButton(
+              onPressed: _isButtonDisabled
+                  ? null
+                  : () {
+                      // Api get one-time-token
+                      _startCountDown();
+                    },
+              child: _isButtonDisabled
+                  ? Text(
+                      "Mã mới sau $_secondsRemaining s",
+                      style: const TextStyle(color: Colors.grey),
+                    )
+                  : const Text(
+                      "Lấy mã",
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+            ),
           ),
           onChanged: (value) {
             setState(() {
-              _password = value;
+              _otpCode = value;
             });
           },
         ),
-        const SizedBox(height: 16),
 
-        Row(
-          children: [
-            Checkbox(
-              value: _acceptPolicy,
-              onChanged: (v) {
-                setState(() {
-                  _acceptPolicy = v ?? false;
-                });
-              },
-              activeColor: Colors.green,
-            ),
-            const Text("Tôi đồng ý với các điều khoản đưa ra"),
-          ],
-        ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 24),
 
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),
           child: ElevatedButton(
             onPressed: () {
-              print("Name: $_name");
               print("Email: $_email");
-              print("Password: $_password");
-              print("Remember: $_acceptPolicy");
+              print("Password: $_otpCode");
 
-              showSuccessDialog(
-                context: context,
-                message: "Đăng ký thành công tài khoản mới",
-                icon: Icons.thumb_up_alt_outlined,
-                closeText: "Đăng nhập ngay",
-                onOk: widget.onSwitch,
-              );
+              widget.onNextStep();
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.blueAccent,
@@ -113,7 +126,7 @@ class _SignupFormState extends State<SignupForm> {
               ),
             ),
             child: const Text(
-              "Đăng ký",
+              "Tiếp theo",
               style: TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
@@ -128,7 +141,7 @@ class _SignupFormState extends State<SignupForm> {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text("Đã có tài khoản?"),
+            const Text("Thực hiện đăng nhập?"),
             TextButton(
               onPressed: widget.onSwitch,
               child: const Text(

@@ -1,19 +1,17 @@
 import 'package:flutter/material.dart';
 import '../widgets/dialog.dart';
 
-class SignupForm extends StatefulWidget {
+class ChangePasswordForm extends StatefulWidget {
   final VoidCallback onSwitch;
-  const SignupForm({super.key, required this.onSwitch});
+  const ChangePasswordForm({super.key, required this.onSwitch});
 
   @override
-  State<SignupForm> createState() => _SignupFormState();
+  State<ChangePasswordForm> createState() => _ChangePasswordForm();
 }
 
-class _SignupFormState extends State<SignupForm> {
-  String _name = "";
-  String _email = "";
-  String _password = "";
-  bool _acceptPolicy = false;
+class _ChangePasswordForm extends State<ChangePasswordForm> {
+  String _newPass = "";
+  String _confirmPass = "";
 
   @override
   Widget build(BuildContext context) {
@@ -33,26 +31,13 @@ class _SignupFormState extends State<SignupForm> {
         ),
         TextField(
           decoration: InputDecoration(
-            labelText: "Họ tên",
+            labelText: "Mật khẩu cũ",
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
             labelStyle: const TextStyle(fontStyle: FontStyle.italic),
           ),
           onChanged: (value) {
             setState(() {
-              _name = value;
-            });
-          },
-        ),
-        const SizedBox(height: 16),
-        TextField(
-          decoration: InputDecoration(
-            labelText: "Email",
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-            labelStyle: const TextStyle(fontStyle: FontStyle.italic),
-          ),
-          onChanged: (value) {
-            setState(() {
-              _email = value;
+              _newPass = value;
             });
           },
         ),
@@ -60,47 +45,30 @@ class _SignupFormState extends State<SignupForm> {
         TextField(
           obscureText: true,
           decoration: InputDecoration(
-            labelText: "Mật khẩu",
+            labelText: "Mật khẩu mới",
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
             labelStyle: const TextStyle(fontStyle: FontStyle.italic),
           ),
           onChanged: (value) {
             setState(() {
-              _password = value;
+              _confirmPass = value;
             });
           },
         ),
-        const SizedBox(height: 16),
 
-        Row(
-          children: [
-            Checkbox(
-              value: _acceptPolicy,
-              onChanged: (v) {
-                setState(() {
-                  _acceptPolicy = v ?? false;
-                });
-              },
-              activeColor: Colors.green,
-            ),
-            const Text("Tôi đồng ý với các điều khoản đưa ra"),
-          ],
-        ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 24),
 
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),
           child: ElevatedButton(
             onPressed: () {
-              print("Name: $_name");
-              print("Email: $_email");
-              print("Password: $_password");
-              print("Remember: $_acceptPolicy");
+              print("New password: $_newPass");
+              print("Confirm password: $_confirmPass");
 
               showSuccessDialog(
                 context: context,
-                message: "Đăng ký thành công tài khoản mới",
-                icon: Icons.thumb_up_alt_outlined,
+                message: "Đổi mật khẩu thành công",
+                icon: Icons.check_circle_outline,
                 closeText: "Đăng nhập ngay",
                 onOk: widget.onSwitch,
               );
@@ -113,7 +81,7 @@ class _SignupFormState extends State<SignupForm> {
               ),
             ),
             child: const Text(
-              "Đăng ký",
+              "xác nhận",
               style: TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
@@ -128,7 +96,7 @@ class _SignupFormState extends State<SignupForm> {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text("Đã có tài khoản?"),
+            const Text("Thực hiện đăng nhập?"),
             TextButton(
               onPressed: widget.onSwitch,
               child: const Text(

@@ -3,7 +3,12 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class LoginForm extends StatefulWidget {
   final VoidCallback onSwitch;
-  const LoginForm({super.key, required this.onSwitch});
+  final VoidCallback onForgotPasswordButton;
+  const LoginForm({
+    super.key,
+    required this.onSwitch,
+    required this.onForgotPasswordButton,
+  });
 
   @override
   State<LoginForm> createState() => _LoginFormState();
@@ -19,7 +24,6 @@ class _LoginFormState extends State<LoginForm> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // Thanh kéo
         Center(
           child: Container(
             width: 60,
@@ -53,7 +57,7 @@ class _LoginFormState extends State<LoginForm> {
           ),
           onChanged: (value) {
             setState(() {
-              _password = value; // cập nhật state
+              _password = value;
             });
           },
         ),
@@ -73,7 +77,7 @@ class _LoginFormState extends State<LoginForm> {
             const Text("Lưu mật khẩu"),
             const Spacer(),
             TextButton(
-              onPressed: () {},
+              onPressed: widget.onForgotPasswordButton,
               child: const Text(
                 "Quên mật khẩu?",
                 style: TextStyle(fontStyle: FontStyle.italic),
