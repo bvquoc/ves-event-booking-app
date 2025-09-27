@@ -8,7 +8,7 @@
 		<version>3.2.2</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>com.devteria</groupId>
+	<groupId>com.ves</groupId>
 	<artifactId>identity-service</artifactId>
 	<name>identity-service</name>
 	<version>0.0.1</version>
@@ -166,10 +166,10 @@
 				</executions>
 				<configuration>
 					<excludes>
-						<exclude>com/devteria/identityservice/dto/**</exclude>
-						<exclude>com/devteria/identityservice/entity/**</exclude>
-						<exclude>com/devteria/identityservice/mapper/**</exclude>
-						<exclude>com/devteria/identityservice/configuration/**</exclude>
+						<exclude>com/ves/identityservice/dto/**</exclude>
+						<exclude>com/ves/identityservice/entity/**</exclude>
+						<exclude>com/ves/identityservice/mapper/**</exclude>
+						<exclude>com/ves/identityservice/configuration/**</exclude>
 					</excludes>
 				</configuration>
 			</plugin>
