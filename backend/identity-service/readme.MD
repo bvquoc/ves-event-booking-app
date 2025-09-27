@@ -26,11 +26,11 @@ This microservice is responsible for:
 ### Push docker image to Docker Hub
 `docker image push <account>/identity-service:0.9.0`
 ### Create network:
-`docker network create devteria-network`
-### Start MySQL in devteria-network
-`docker run --network devteria-network --name mysql -p 3306:3306 -e MYSQL_ROOT_PASSWORD=root -d mysql:8.0.36-debian`
-### Run your application in devteria-network
-`docker run --name identity-service --network devteria-network -p 8080:8080 -e DBMS_CONNECTION=jdbc:mysql://mysql:3306/identity_service identity-service:0.9.0`
+`docker network create ves-network`
+### Start MySQL in ves-network
+`docker run --network ves-network --name mysql -p 3306:3306 -e MYSQL_ROOT_PASSWORD=root -d mysql:8.0.36-debian`
+### Run your application in ves-network
+`docker run --name identity-service --network ves-network -p 8080:8080 -e DBMS_CONNECTION=jdbc:mysql://mysql:3306/identity_service identity-service:0.9.0`
 
 ## Install Docker on ubuntu
 
