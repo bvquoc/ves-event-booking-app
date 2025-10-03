@@ -28,6 +28,6 @@ public class User {
     LocalDate dob;
     String lastName;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     Set<Role> roles;
 }

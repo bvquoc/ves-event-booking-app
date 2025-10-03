@@ -7,16 +7,13 @@ import java.util.Date;
 import java.util.StringJoiner;
 import java.util.UUID;
 
+import com.devteria.identityservice.dto.request.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
-import com.devteria.identityservice.dto.request.AuthenticationRequest;
-import com.devteria.identityservice.dto.request.IntrospectRequest;
-import com.devteria.identityservice.dto.request.LogoutRequest;
-import com.devteria.identityservice.dto.request.RefreshRequest;
 import com.devteria.identityservice.dto.response.AuthenticationResponse;
 import com.devteria.identityservice.dto.response.IntrospectResponse;
 import com.devteria.identityservice.entity.InvalidatedToken;
@@ -44,6 +41,7 @@ import lombok.extern.slf4j.Slf4j;
 public class AuthenticationService {
     UserRepository userRepository;
     InvalidatedTokenRepository invalidatedTokenRepository;
+    OAuth2Service oAuth2Service;
 
     @NonFinal
     @Value("${jwt.signerKey}")
@@ -175,13 +173,28 @@ public class AuthenticationService {
     private String buildScope(User user) {
         StringJoiner stringJoiner = new StringJoiner(" ");
 
-        if (!CollectionUtils.isEmpty(user.getRoles()))
-            user.getRoles().forEach(role -> {
+        var userRoles = user.getRoles();
+        if (!CollectionUtils.isEmpty(userRoles))
+            userRoles.forEach(role -> {
                 stringJoiner.add("ROLE_" + role.getName());
+                var rolePermissions = role.getPermissions();
                 if (!CollectionUtils.isEmpty(role.getPermissions()))
-                    role.getPermissions().forEach(permission -> stringJoiner.add(permission.getName()));
+                {
+                    rolePermissions.forEach(permission ->
+                            stringJoiner.add(permission.getName()));
+                }
             });
 
         return stringJoiner.toString();
+    }
+
+    public AuthenticationResponse authenticate(OAuth2Request request) {
+        var user = userRepository.findByUsername(request.getUsername());
+
+        var oauthUser = user.orElseGet(() -> oAuth2Service.createOAuthUser(request));
+
+        var token = generateToken(oauthUser);
+
+        return AuthenticationResponse.builder().token(token).authenticated(true).build();
     }
 }

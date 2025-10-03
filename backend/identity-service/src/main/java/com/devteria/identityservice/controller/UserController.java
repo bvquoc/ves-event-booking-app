@@ -1,9 +1,12 @@
 package com.devteria.identityservice.controller;
 
 import java.util.List;
+import java.util.Map;
 
 import jakarta.validation.Valid;
 
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.web.bind.annotation.*;
 
 import com.devteria.identityservice.dto.request.ApiResponse;
@@ -64,5 +67,15 @@ public class UserController {
         return ApiResponse.<UserResponse>builder()
                 .result(userService.updateUser(userId, request))
                 .build();
+    }
+
+    @GetMapping("/user/me")
+    public Map<String, Object> getUserInfo(@AuthenticationPrincipal OidcUser oidcUser) {
+        return Map.of(
+                "id", oidcUser.getSubject(),
+                "name", oidcUser.getFullName(),
+                "email", oidcUser.getEmail(),
+                "claims", oidcUser.getClaims()
+        );
     }
 }
