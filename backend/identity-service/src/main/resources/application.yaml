@@ -3,6 +3,10 @@ server:
   servlet:
     context-path: /identity
 
+app:
+  oauth2:
+    redirect-uri: http://localhost:3000/home
+
 spring:
   datasource:
     url: ${DBMS_CONNECTION:jdbc:mysql://localhost:3306/identity_service}
@@ -13,6 +17,21 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id:
+            client-secret:
+            scope:
+              - openid
+              - profile
+              - email
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+        provider:
+          google:
+            issuer-uri: https://accounts.google.com
 
 jwt:
   signerKey: "1TjXchw5FloESb63Kc+DFhTARvpWL4jUGCwfGWxuG5SIf/1y/LgJxHnMqaF6A/ij"
