@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -22,11 +23,21 @@ import org.springframework.web.filter.CorsFilter;
 @EnableMethodSecurity
 public class SecurityConfig {
     private final String[] PUBLIC_ENDPOINTS = {
-        "/users", "/auth/token", "/auth/introspect", "/auth/logout", "/auth/refresh"
+            "/users",
+            "/auth/token",
+            "/auth/introspect",
+            "/auth/logout",
+            "/auth/refresh"
     };
 
     @Autowired
     private CustomJwtDecoder customJwtDecoder;
+
+    @Autowired
+    CustomOAuth2SuccessHandler successHandler;
+
+    @Autowired
+    CustomOAuth2FailureHandler failureHandler;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
@@ -35,10 +46,18 @@ public class SecurityConfig {
                 .anyRequest()
                 .authenticated());
 
+        httpSecurity
+                .oauth2Client(Customizer.withDefaults())
+                .oauth2Login(oauth2 -> oauth2      // Enable Google Login
+                        .failureHandler(failureHandler)
+                        .successHandler(successHandler)
+                );
+
         httpSecurity.oauth2ResourceServer(oauth2 -> oauth2.jwt(jwtConfigurer -> jwtConfigurer
                         .decoder(customJwtDecoder)
                         .jwtAuthenticationConverter(jwtAuthenticationConverter()))
                 .authenticationEntryPoint(new JwtAuthenticationEntryPoint()));
+
         httpSecurity.csrf(AbstractHttpConfigurer::disable);
 
         return httpSecurity.build();
