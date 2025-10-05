@@ -2,7 +2,6 @@ package com.devteria.identityservice.controller;
 
 import java.text.ParseException;
 
-import com.devteria.identityservice.service.UserService;
 import org.springframework.web.bind.annotation.*;
 
 import com.devteria.identityservice.dto.request.*;
@@ -46,10 +45,5 @@ public class AuthenticationController {
     ApiResponse<Void> logout(@RequestBody LogoutRequest request) throws ParseException, JOSEException {
         authenticationService.logout(request);
         return ApiResponse.<Void>builder().build();
-    }
-
-    @GetMapping("/login/oauth2/fail")
-    ApiResponse<String> getOAuthFailureMessage() {
-        return ApiResponse.<String>builder().message("Login failed, please try again later").build();
     }
 }

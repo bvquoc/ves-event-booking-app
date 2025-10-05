@@ -5,7 +5,7 @@ server:
 
 app:
   oauth2:
-    redirect-uri: http://localhost:3000/home
+    redirect-uri: "http://localhost:3000"
 
 spring:
   datasource:
@@ -28,10 +28,6 @@ spring:
               - openid
               - profile
               - email
-            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
-        provider:
-          google:
-            issuer-uri: https://accounts.google.com
 
 jwt:
   signerKey: "1TjXchw5FloESb63Kc+DFhTARvpWL4jUGCwfGWxuG5SIf/1y/LgJxHnMqaF6A/ij"

@@ -23,7 +23,11 @@ import org.springframework.web.filter.CorsFilter;
 @EnableMethodSecurity
 public class SecurityConfig {
     private final String[] PUBLIC_ENDPOINTS = {
-        "/users", "/auth/token", "/auth/introspect", "/auth/logout", "/auth/refresh"
+            "/users",
+            "/auth/token",
+            "/auth/introspect",
+            "/auth/logout",
+            "/auth/refresh"
     };
 
     @Autowired
@@ -31,6 +35,9 @@ public class SecurityConfig {
 
     @Autowired
     CustomOAuth2SuccessHandler successHandler;
+
+    @Autowired
+    CustomOAuth2FailureHandler failureHandler;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
@@ -42,7 +49,7 @@ public class SecurityConfig {
         httpSecurity
                 .oauth2Client(Customizer.withDefaults())
                 .oauth2Login(oauth2 -> oauth2      // Enable Google Login
-                        .failureUrl("/auth/login/oauth2/fail")    // redirect on failure
+                        .failureHandler(failureHandler)
                         .successHandler(successHandler)
                 );
 
