@@ -1,6 +1,6 @@
 name: ves_event_booking
 description: "A new Flutter project."
-publish_to: 'none'
+publish_to: "none"
 version: 0.1.0
 
 environment:
@@ -10,6 +10,9 @@ dependencies:
   flutter:
     sdk: flutter
   font_awesome_flutter: ^10.10.0
+  flutter_web_auth_2: ^4.1.0
+  provider: ^6.1.5+1
+  dio: ^5.9.0
 
 dev_dependencies:
   flutter_test:

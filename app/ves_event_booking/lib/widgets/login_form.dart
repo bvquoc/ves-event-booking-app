@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:provider/provider.dart';
+import 'package:ves_event_booking/providers/auth_provider.dart';
 
 class LoginForm extends StatefulWidget {
   final VoidCallback onSwitch;
@@ -90,10 +92,28 @@ class _LoginFormState extends State<LoginForm> {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),
           child: ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               print("Email: $_email");
               print("Password: $_password");
               print("Remember: $_rememberMe");
+
+              /* Use these services when have API
+              try {
+                final auth = context.read<AuthProvider>();
+                await auth.login(_email, _password);
+
+                // Login -> navigation
+                if (context.mounted) {
+                  Navigator.pushReplacementNamed(context, '/home');
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Đăng nhập thất bại: $e')),
+                  );
+                }
+              }
+              */
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.blueAccent,
@@ -136,7 +156,28 @@ class _LoginFormState extends State<LoginForm> {
           children: [
             IconButton(
               icon: const FaIcon(FontAwesomeIcons.google, color: Colors.red),
-              onPressed: () {},
+              onPressed: () async {
+                final authProvider = context.read<AuthProvider>();
+
+                try {
+                  await authProvider.loginWithGoogle();
+
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text("Đăng nhập Google thành công!"),
+                      ),
+                    );
+                    Navigator.pushReplacementNamed(context, '/home');
+                  }
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text("Google login failed: $e")),
+                    );
+                  }
+                }
+              },
             ),
             IconButton(
               icon: const FaIcon(FontAwesomeIcons.facebook, color: Colors.blue),
