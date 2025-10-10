@@ -1,7 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'providers/auth_provider.dart';
+import 'screens/login_screen.dart';
 
 void main() {
-  runApp(const MainApp());
+  runApp(
+    MultiProvider(
+      providers: [ChangeNotifierProvider(create: (_) => AuthProvider())],
+      child: const MainApp(),
+    ),
+  );
+
+  /* To get User state in Provider from anywhere:
+  
+  final auth = context.watch<AuthProvider>();
+  Text = auth.currentUser!.name
+  */
 }
 
 class MainApp extends StatelessWidget {
@@ -9,8 +23,6 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      home: Scaffold(body: Center(child: Text('Hello World!'))),
-    );
+    return const MaterialApp(home: LoginScreen());
   }
 }
