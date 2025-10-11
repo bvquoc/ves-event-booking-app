@@ -32,6 +32,7 @@ class GoogleAuthService {
 
   /// Google Auth by back-end
   Future<AuthResponse?> signInWithGoogle() async {
+    print("STUCK HERE !!!");
     // === Bước 1 & 2: Lấy URL xác thực từ back-end ===
     // C -> A: GET /oauth/google/url
     final response = await _dio.get('/oauth/google/url');
