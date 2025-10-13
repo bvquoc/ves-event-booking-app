@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:ves_event_booking/screens/profile/profile_creen.dart';
 import 'providers/auth_provider.dart';
 import 'screens/login_screen.dart';
 
@@ -23,6 +24,6 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(home: LoginScreen());
+    return MaterialApp(home: ProfileScreen());
   }
 }
