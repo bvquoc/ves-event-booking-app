@@ -2,10 +2,7 @@ package com.devteria.identityservice.controller;
 
 import java.text.ParseException;
 
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.devteria.identityservice.dto.request.*;
 import com.devteria.identityservice.dto.response.AuthenticationResponse;
