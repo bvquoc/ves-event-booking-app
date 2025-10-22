@@ -6,7 +6,6 @@ import 'package:ves_event_booking/screens/profile/profile_detail_screen.dart';
 import 'package:ves_event_booking/screens/tickets_screen.dart';
 import 'package:ves_event_booking/widgets/profile_widgets.dart';
 
-
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
