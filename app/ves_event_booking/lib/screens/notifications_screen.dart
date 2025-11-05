@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:ves_event_booking/screens/explore_screen.dart';
 import 'package:ves_event_booking/screens/home_screen.dart';
 import 'package:ves_event_booking/screens/profile/profile_creen.dart';
-import 'package:ves_event_booking/screens/tickets_screen.dart';
+import 'package:ves_event_booking/screens/ticket/tickets_screen.dart';
 import 'package:ves_event_booking/widgets/profile_widgets.dart';
 
 class NotificationsScreen extends StatelessWidget {
@@ -72,8 +72,7 @@ class NotificationsScreen extends StatelessWidget {
                   NavItem(
                     icon: Icons.notifications_rounded,
                     isActive: false,
-                    onTap: () {
-                    },
+                    onTap: () {},
                   ),
                   NavItem(
                     icon: Icons.person_2_rounded,
@@ -83,7 +82,7 @@ class NotificationsScreen extends StatelessWidget {
                         context,
                         MaterialPageRoute(
                           builder: (context) => const ProfileScreen(),
-                        ),  
+                        ),
                       );
                     },
                   ),

@@ -1,24 +1,41 @@
 import 'package:flutter/material.dart';
+import 'package:ves_event_booking/models/cancelled_ticket_model.dart';
 import 'package:ves_event_booking/screens/explore_screen.dart';
 import 'package:ves_event_booking/screens/home_screen.dart';
 import 'package:ves_event_booking/screens/notifications_screen.dart';
 import 'package:ves_event_booking/screens/profile/profile_creen.dart';
 import 'package:ves_event_booking/widgets/profile_widgets.dart';
+import 'package:ves_event_booking/widgets/tickets_screen_widgets/cancelled_ticket_item/cancelled_ticket_details.dart';
 
-class TicketsScreen extends StatelessWidget {
-  const TicketsScreen({super.key});
+class CancelledTicketDetailScreen extends StatelessWidget {
+  final CancelledTicketModel ticket;
+
+  const CancelledTicketDetailScreen({super.key, required this.ticket});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_rounded, color: Colors.black),
+          onPressed: () {
+            // Có thể dùng Navigator.pop(context) nếu đây là màn hình được push
+            if (Navigator.canPop(context)) {
+              Navigator.pop(context);
+            }
+          },
+        ),
+        title: const Text(
+          'Vé đã hủy',
+          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+        ),
+        centerTitle: true,
+      ),
       body: Stack(
         children: [
-          Center(
-            child: Text(
-              'Vé của tôi',
-              style: TextStyle(fontSize: 40, color: Colors.blue),
-            ),
-          ),
+          Center(child: CancelledTicketDetail(ticket: ticket)),
           Positioned(
             left: 0,
             right: 0,
@@ -47,9 +64,8 @@ class TicketsScreen extends StatelessWidget {
                   ),
                   NavItem(
                     icon: Icons.confirmation_num_rounded,
-                    isActive: false,
-                    onTap: () {
-                    },
+                    isActive: true,
+                    onTap: () {},
                   ),
                   NavItem(
                     icon: Icons.grid_view_rounded,
@@ -71,19 +87,19 @@ class TicketsScreen extends StatelessWidget {
                         context,
                         MaterialPageRoute(
                           builder: (context) => const NotificationsScreen(),
-                        ),  
+                        ),
                       );
                     },
                   ),
                   NavItem(
                     icon: Icons.person_2_rounded,
-                    isActive: true,
+                    isActive: false,
                     onTap: () {
                       Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
                           builder: (context) => const ProfileScreen(),
-                        ),  
+                        ),
                       );
                     },
                   ),

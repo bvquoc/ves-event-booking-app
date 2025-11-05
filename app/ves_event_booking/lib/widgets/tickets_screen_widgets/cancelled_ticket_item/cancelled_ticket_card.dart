@@ -1,0 +1,127 @@
+import 'package:flutter/material.dart';
+import 'package:ves_event_booking/models/cancelled_ticket_model.dart';
+import 'package:ves_event_booking/screens/ticket/cancelled_ticket_details_screen.dart';
+import 'package:ves_event_booking/widgets/tickets_screen_widgets/cancelled_ticket_item/ticket_clipper.dart';
+
+class CancelledTicketCard extends StatelessWidget {
+  final CancelledTicketModel ticket;
+  const CancelledTicketCard({super.key, required this.ticket});
+
+  // HÀM HELPER LẤY MÀU NỀN
+  Color _getBackgroundColor(CancelStatus status) {
+    switch (status) {
+      case CancelStatus.requested:
+        return Colors.grey[600]!; // Xám
+      case CancelStatus.processing:
+        return Colors.yellow[700]!; // Vàng
+      case CancelStatus.completed:
+        return Colors.green[600]!; // Xanh lá
+    }
+  }
+
+  // HÀM HELPER LẤY VĂN BẢN
+  String _getStatusText(CancelStatus status) {
+    switch (status) {
+      case CancelStatus.requested:
+        return 'Đang xác nhận';
+      case CancelStatus.processing:
+        return 'Đang xử lý';
+      case CancelStatus.completed:
+        return 'Đã hoàn tiền';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        print('Đã nhấn vào vé hủy: ${ticket.eventName}');
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => CancelledTicketDetailScreen(ticket: ticket),
+          ),
+        );
+      },
+      child: ClipPath(
+        clipper: TicketClipper(),
+        child: Stack(
+          children: [
+            // 1. Ảnh nền (hiện chưa có link thật thay thế bằng placeholder)
+            // Image.network(
+            //   event.imageUrl,
+            //   height: 200,
+            //   width: double.infinity,
+            //   fit: BoxFit.cover,
+            // ),
+            Image.asset(
+              ticket.imageUrl,
+              height: 180,
+              width: double.infinity,
+              fit: BoxFit.cover,
+            ),
+            Positioned.fill(
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Colors.black.withOpacity(0.6), Colors.transparent],
+                    begin: Alignment.bottomCenter,
+                    end: Alignment.topCenter,
+                  ),
+                ),
+              ),
+            ),
+
+            // Nội dung
+            Positioned(
+              bottom: 16,
+              left: 26,
+              right: 26,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  // Tên sự kiện
+                  Expanded(
+                    child: Text(
+                      ticket.eventName,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      maxLines: 2,
+                    ),
+                  ),
+
+                  // --- PHẦN CẬP NHẬT TAG TRẠNG THÁI ---
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 5,
+                    ),
+                    decoration: BoxDecoration(
+                      // Dùng hàm helper
+                      color: _getBackgroundColor(ticket.status),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      // Dùng hàm helper
+                      _getStatusText(ticket.status),
+                      style: TextStyle(
+                        // Dùng hàm helper
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

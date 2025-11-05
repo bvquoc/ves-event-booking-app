@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:ves_event_booking/screens/explore_screen.dart';
 import 'package:ves_event_booking/screens/notifications_screen.dart';
 import 'package:ves_event_booking/screens/profile/profile_creen.dart';
-import 'package:ves_event_booking/screens/tickets_screen.dart';
+import 'package:ves_event_booking/screens/ticket/tickets_screen.dart';
 import 'package:ves_event_booking/widgets/profile_widgets.dart';
 
 class HomeScreen extends StatelessWidget {
