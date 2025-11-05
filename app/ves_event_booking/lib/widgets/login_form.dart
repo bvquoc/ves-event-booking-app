@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:ves_event_booking/providers/auth_provider.dart';
+import 'package:ves_event_booking/screens/home_screen.dart';
 
 class LoginForm extends StatefulWidget {
   final VoidCallback onSwitch;
@@ -104,7 +105,10 @@ class _LoginFormState extends State<LoginForm> {
 
                 // Login -> navigation
                 if (context.mounted) {
-                  Navigator.pushReplacementNamed(context, '/home');
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => const HomeScreen()),
+                  );
                 }
               } catch (e) {
                 if (context.mounted) {
@@ -114,6 +118,10 @@ class _LoginFormState extends State<LoginForm> {
                 }
               }
               */
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const HomeScreen()),
+              );
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.blueAccent,
@@ -168,7 +176,12 @@ class _LoginFormState extends State<LoginForm> {
                         content: Text("Đăng nhập Google thành công!"),
                       ),
                     );
-                    Navigator.pushReplacementNamed(context, '/home');
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const HomeScreen(),
+                      ),
+                    );
                   }
                 } catch (e) {
                   if (context.mounted) {

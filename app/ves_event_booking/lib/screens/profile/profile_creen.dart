@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ves_event_booking/screens/explore_screen.dart';
 import 'package:ves_event_booking/screens/home_screen.dart';
+import 'package:ves_event_booking/screens/login_screen.dart';
 import 'package:ves_event_booking/screens/notifications_screen.dart';
 import 'package:ves_event_booking/screens/profile/profile_detail_screen.dart';
 import 'package:ves_event_booking/screens/tickets_screen.dart';
@@ -191,7 +192,14 @@ class ProfileScreen extends StatelessWidget {
                       Container(
                         padding: EdgeInsets.symmetric(horizontal: 16),
                         child: InkWell(
-                          onTap: () {},
+                          onTap: () {
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const LoginScreen(),
+                              ),
+                            );
+                          },
                           child: Padding(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 16,
