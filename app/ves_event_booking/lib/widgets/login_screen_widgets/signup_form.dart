@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
-import '../widgets/dialog.dart';
+import '../dialog.dart';
 
-class ChangePasswordForm extends StatefulWidget {
+class SignupForm extends StatefulWidget {
   final VoidCallback onSwitch;
-  const ChangePasswordForm({super.key, required this.onSwitch});
+  const SignupForm({super.key, required this.onSwitch});
 
   @override
-  State<ChangePasswordForm> createState() => _ChangePasswordForm();
+  State<SignupForm> createState() => _SignupFormState();
 }
 
-class _ChangePasswordForm extends State<ChangePasswordForm> {
-  String _newPass = "";
-  String _confirmPass = "";
+class _SignupFormState extends State<SignupForm> {
+  String _name = "";
+  String _email = "";
+  String _password = "";
+  bool _acceptPolicy = false;
 
   @override
   Widget build(BuildContext context) {
@@ -31,13 +33,26 @@ class _ChangePasswordForm extends State<ChangePasswordForm> {
         ),
         TextField(
           decoration: InputDecoration(
-            labelText: "Mật khẩu cũ",
+            labelText: "Họ tên",
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
             labelStyle: const TextStyle(fontStyle: FontStyle.italic),
           ),
           onChanged: (value) {
             setState(() {
-              _newPass = value;
+              _name = value;
+            });
+          },
+        ),
+        const SizedBox(height: 16),
+        TextField(
+          decoration: InputDecoration(
+            labelText: "Email",
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+            labelStyle: const TextStyle(fontStyle: FontStyle.italic),
+          ),
+          onChanged: (value) {
+            setState(() {
+              _email = value;
             });
           },
         ),
@@ -45,30 +60,47 @@ class _ChangePasswordForm extends State<ChangePasswordForm> {
         TextField(
           obscureText: true,
           decoration: InputDecoration(
-            labelText: "Mật khẩu mới",
+            labelText: "Mật khẩu",
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
             labelStyle: const TextStyle(fontStyle: FontStyle.italic),
           ),
           onChanged: (value) {
             setState(() {
-              _confirmPass = value;
+              _password = value;
             });
           },
         ),
+        const SizedBox(height: 16),
 
-        const SizedBox(height: 24),
+        Row(
+          children: [
+            Checkbox(
+              value: _acceptPolicy,
+              onChanged: (v) {
+                setState(() {
+                  _acceptPolicy = v ?? false;
+                });
+              },
+              activeColor: Colors.green,
+            ),
+            const Text("Tôi đồng ý với các điều khoản đưa ra"),
+          ],
+        ),
+        const SizedBox(height: 16),
 
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),
           child: ElevatedButton(
             onPressed: () {
-              print("New password: $_newPass");
-              print("Confirm password: $_confirmPass");
+              print("Name: $_name");
+              print("Email: $_email");
+              print("Password: $_password");
+              print("Remember: $_acceptPolicy");
 
               showSuccessDialog(
                 context: context,
-                message: "Đổi mật khẩu thành công",
-                icon: Icons.check_circle_outline,
+                message: "Đăng ký thành công tài khoản mới",
+                icon: Icons.thumb_up_alt_outlined,
                 closeText: "Đăng nhập ngay",
                 onOk: widget.onSwitch,
               );
@@ -81,7 +113,7 @@ class _ChangePasswordForm extends State<ChangePasswordForm> {
               ),
             ),
             child: const Text(
-              "xác nhận",
+              "Đăng ký",
               style: TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
@@ -96,7 +128,7 @@ class _ChangePasswordForm extends State<ChangePasswordForm> {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text("Thực hiện đăng nhập?"),
+            const Text("Đã có tài khoản?"),
             TextButton(
               onPressed: widget.onSwitch,
               child: const Text(

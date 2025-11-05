@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import '../widgets/login_form.dart';
-import '../widgets/signup_form.dart';
-import '../widgets/forgot_password_form.dart';
-import '../widgets/change_password_form.dart';
+import '../widgets/login_screen_widgets/login_form.dart';
+import '../widgets/login_screen_widgets/signup_form.dart';
+import '../widgets/login_screen_widgets/forgot_password_form.dart';
+import '../widgets/login_screen_widgets/change_password_form.dart';
 
 enum AuthFormType { login, signup, forgotPassword, changePassword }
 
