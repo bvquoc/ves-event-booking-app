@@ -43,8 +43,9 @@ class CancelledTicketCard extends StatelessWidget {
           ),
         );
       },
-      child: ClipPath(
-        clipper: TicketClipper(),
+      child: ClipRect(
+        // Đổi sang ClipPath và sử dụng clipper bên dưới để tạo hình răng cưa (tạm thời vô hiệu do emulator yếu)
+        //clipper: TicketClipper(),
         child: Stack(
           children: [
             // 1. Ảnh nền (hiện chưa có link thật thay thế bằng placeholder)

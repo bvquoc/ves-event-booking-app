@@ -1,4 +1,4 @@
-class EventModel {
+class TicketModel {
   final String id;
   final String eventName;
   final String locationTag;
@@ -6,7 +6,7 @@ class EventModel {
   final DateTime eventDate;
   final bool isFavorite;
 
-  EventModel({
+  TicketModel({
     required this.id,
     required this.eventName,
     required this.locationTag,
@@ -16,30 +16,30 @@ class EventModel {
   });
 }
 
-class MockEvents {
-  final List<EventModel> mockEvents = [
-    EventModel(
+class MockTickets {
+  final List<TicketModel> mockTickets = [
+    TicketModel(
       id: '1',
       eventName: 'Van Gogh',
       locationTag: 'Quận 12',
       imageUrl: 'assets/images/event_image.jpeg',
       eventDate: DateTime(2025, 3, 3, 22, 20), // Thg3, 03, 22:20
     ),
-    EventModel(
+    TicketModel(
       id: '2',
       eventName: 'School Fest 2024',
       locationTag: 'Quận Thủ Đức',
       imageUrl: 'assets/images/event_image.jpeg',
       eventDate: DateTime(2025, 6, 15, 17, 30), // Thg6, 15, 17:30
     ),
-    EventModel(
+    TicketModel(
       id: '3',
       eventName: 'Anh Trai "Say Hi"',
       locationTag: 'Quận 7',
       imageUrl: 'assets/images/event_image.jpeg',
       eventDate: DateTime(2025, 9, 1, 18, 0), // Thg9, 01, 18:00
     ),
-    EventModel(
+    TicketModel(
       id: '4',
       eventName: 'Alan Walker Live',
       locationTag: 'Quận 2',
@@ -49,5 +49,5 @@ class MockEvents {
     // Add more mock events as needed
   ];
 
-  List<EventModel> get events => mockEvents;
+  List<TicketModel> get tickets => mockTickets;
 }

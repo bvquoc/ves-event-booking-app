@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:ves_event_booking/models/event_model.dart';
+import 'package:ves_event_booking/models/ticket_model.dart';
 import 'package:timeline_tile/timeline_tile.dart';
 import 'package:ves_event_booking/widgets/tickets_screen_widgets/ticket_item/timeline_info.dart';
 import 'package:ves_event_booking/widgets/tickets_screen_widgets/ticket_item/ticket_card_item.dart';
 
 // replace this with actual api or data source
-final List<EventModel> pastEvents = MockEvents().events;
+final List<TicketModel> pastTickets = MockTickets().tickets;
 
 class PastEventsTab extends StatelessWidget {
   const PastEventsTab({super.key});
@@ -16,11 +16,11 @@ class PastEventsTab extends StatelessWidget {
       padding: const EdgeInsets.symmetric(
         horizontal: 16.0,
       ).copyWith(top: 24.0, bottom: 80.0), // <-- Chừa không gian cho bottom nav
-      itemCount: pastEvents.length,
+      itemCount: pastTickets.length,
 
       // 3. Build item
       itemBuilder: (context, index) {
-        final event = pastEvents[index];
+        final ticket = pastTickets[index];
 
         return TimelineTile(
           // Căn chỉnh cho nội dung bên phải (endChild)
@@ -28,10 +28,10 @@ class PastEventsTab extends StatelessWidget {
           alignment: TimelineAlign.manual,
           lineXY: 0.22, // Dịch chuyển đường line sang bên trái
           // Widget trái (Ngày/Giờ)
-          startChild: TimelineInfo(date: event.eventDate),
+          startChild: TimelineInfo(date: ticket.eventDate),
 
           // Widget phải (Thẻ sự kiện)
-          endChild: RepaintBoundary(child: TicketCardItem(event: event)),
+          endChild: RepaintBoundary(child: TicketCardItem(ticket: ticket)),
 
           indicatorStyle: const IndicatorStyle(
             width: 18,
@@ -45,7 +45,7 @@ class PastEventsTab extends StatelessWidget {
 
           // Đánh dấu item đầu và cuối
           isFirst: index == 0,
-          isLast: index == pastEvents.length - 1,
+          isLast: index == pastTickets.length - 1,
         );
       },
     );
