@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:ves_event_booking/models/event_model.dart';
 
-class EventCardItem extends StatefulWidget {
+class TicketCardItem extends StatefulWidget {
   final EventModel event;
-  const EventCardItem({super.key, required this.event});
+  const TicketCardItem({super.key, required this.event});
 
   @override
-  State<EventCardItem> createState() => _EventCardItemState();
+  State<TicketCardItem> createState() => _EventCardItemState();
 }
 
-class _EventCardItemState extends State<EventCardItem> {
+class _EventCardItemState extends State<TicketCardItem> {
   late bool _isFavorite;
 
   @override

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:ves_event_booking/models/event_model.dart';
 import 'package:timeline_tile/timeline_tile.dart';
-import 'package:ves_event_booking/widgets/tickets_screen_widgets/event_item/timeline_info.dart';
-import 'package:ves_event_booking/widgets/tickets_screen_widgets/event_item/event_card_item.dart';
+import 'package:ves_event_booking/widgets/tickets_screen_widgets/ticket_item/timeline_info.dart';
+import 'package:ves_event_booking/widgets/tickets_screen_widgets/ticket_item/ticket_card_item.dart';
 
 // replace this with actual api or data source
 final List<EventModel> events = MockEvents().events;
@@ -31,7 +31,7 @@ class UpcomingEventsTab extends StatelessWidget {
           startChild: TimelineInfo(date: event.eventDate),
 
           // Widget phải (Thẻ sự kiện)
-          endChild: RepaintBoundary(child: EventCardItem(event: event)),
+          endChild: RepaintBoundary(child: TicketCardItem(event: event)),
 
           indicatorStyle: const IndicatorStyle(
             width: 18,
