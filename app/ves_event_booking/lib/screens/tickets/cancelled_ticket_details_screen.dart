@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:ves_event_booking/models/cancelled_ticket_model.dart';
 import 'package:ves_event_booking/screens/explore_screen.dart';
 import 'package:ves_event_booking/screens/home_screen.dart';
-import 'package:ves_event_booking/screens/notifications_screen.dart';
+import 'package:ves_event_booking/screens/notifications/notifications_screen.dart';
 import 'package:ves_event_booking/screens/profile/profile_creen.dart';
 import 'package:ves_event_booking/widgets/profile_widgets.dart';
 import 'package:ves_event_booking/widgets/tickets_screen_widgets/cancelled_ticket_item/cancelled_ticket_details.dart';

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:ves_event_booking/models/event_model.dart';
+import 'package:ves_event_booking/models/ticket_model.dart';
 
 class TicketCardItem extends StatefulWidget {
-  final EventModel event;
-  const TicketCardItem({super.key, required this.event});
+  final TicketModel ticket;
+  const TicketCardItem({super.key, required this.ticket});
 
   @override
   State<TicketCardItem> createState() => _EventCardItemState();
@@ -15,14 +15,14 @@ class _EventCardItemState extends State<TicketCardItem> {
   @override
   void initState() {
     super.initState();
-    _isFavorite = widget.event.isFavorite;
+    _isFavorite = widget.ticket.isFavorite;
   }
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        print('Đã nhấn vào thẻ: ${widget.event.eventName}');
+        print('Đã nhấn vào thẻ: ${widget.ticket.eventName}');
 
         // Khi có màn hình chi tiết (ví dụ: TicketDetailScreen), điều hướng ở đây
         //
@@ -47,7 +47,7 @@ class _EventCardItemState extends State<TicketCardItem> {
               //   fit: BoxFit.cover,
               // ),
               Image.asset(
-                widget.event.imageUrl,
+                widget.ticket.imageUrl,
                 height: 200,
                 width: double.infinity,
                 fit: BoxFit.cover,
@@ -101,7 +101,7 @@ class _EventCardItemState extends State<TicketCardItem> {
                   children: [
                     // Tên sự kiện
                     Text(
-                      widget.event.eventName,
+                      widget.ticket.eventName,
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 22,
@@ -131,7 +131,7 @@ class _EventCardItemState extends State<TicketCardItem> {
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            widget.event.locationTag,
+                            widget.ticket.locationTag,
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 14,

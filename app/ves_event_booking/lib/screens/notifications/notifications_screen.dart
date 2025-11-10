@@ -1,20 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:ves_event_booking/screens/explore_screen.dart';
 import 'package:ves_event_booking/screens/home_screen.dart';
-import 'package:ves_event_booking/screens/notifications_screen.dart';
 import 'package:ves_event_booking/screens/profile/profile_creen.dart';
+import 'package:ves_event_booking/screens/tickets/tickets_screen.dart';
 import 'package:ves_event_booking/widgets/profile_widgets.dart';
-import 'package:ves_event_booking/widgets/tickets_screen_widgets/cancelled_tickets_tab.dart';
-import 'package:ves_event_booking/widgets/tickets_screen_widgets/up_coming_events_tab.dart';
-import 'package:ves_event_booking/widgets/tickets_screen_widgets/past_events_tab.dart';
+import 'package:ves_event_booking/screens/notifications/events_tab.dart';
+import 'package:ves_event_booking/screens/notifications/offers_tab.dart';
 
-class TicketsScreen extends StatelessWidget {
-  const TicketsScreen({super.key});
+class NotificationsScreen extends StatelessWidget {
+  const NotificationsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 3, // <-- Số lượng tab
+      length: 2, // <-- Số lượng tab
       child: Scaffold(
         appBar: AppBar(
           backgroundColor: Colors.white,
@@ -29,7 +28,7 @@ class TicketsScreen extends StatelessWidget {
             },
           ),
           title: const Text(
-            'Vé của tôi',
+            'Thông báo',
             style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
           ),
           centerTitle: true,
@@ -43,9 +42,8 @@ class TicketsScreen extends StatelessWidget {
             // Kiểu chữ cho tab đang được chọn
             labelStyle: TextStyle(fontWeight: FontWeight.bold),
             tabs: [
-              Tab(text: 'Sắp diễn ra'),
-              Tab(text: 'Đã diễn ra'),
-              Tab(text: 'Đã hủy'),
+              Tab(text: 'Sự kiện'),
+              Tab(text: 'Ưu đãi'),
             ],
           ),
         ),
@@ -53,12 +51,10 @@ class TicketsScreen extends StatelessWidget {
           children: [
             const TabBarView(
               children: [
-                // Nội dung cho tab "Sắp diễn ra"
-                const UpcomingEventsTab(),
-                // Nội dung cho tab "Đã diễn ra"
-                const PastEventsTab(),
-                // Nội dung cho tab "Đã hủy"
-                const CancelledTicketsTab(),
+                // Nội dung cho tab "Sự kiện"
+                const EventTab(),
+                // Nội dung cho tab "Ưu đãi"
+                const OfferTab(),
               ],
             ),
             Positioned(
@@ -92,8 +88,15 @@ class TicketsScreen extends StatelessWidget {
                     ),
                     NavItem(
                       icon: Icons.confirmation_num_rounded,
-                      isActive: true,
-                      onTap: () {},
+                      isActive: false,
+                      onTap: () {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const TicketsScreen(),
+                          ),
+                        );
+                      },
                     ),
                     NavItem(
                       icon: Icons.grid_view_rounded,
@@ -109,15 +112,8 @@ class TicketsScreen extends StatelessWidget {
                     ),
                     NavItem(
                       icon: Icons.notifications_rounded,
-                      isActive: false,
-                      onTap: () {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const NotificationsScreen(),
-                          ),
-                        );
-                      },
+                      isActive: true,
+                      onTap: () {},
                     ),
                     NavItem(
                       icon: Icons.person_2_rounded,

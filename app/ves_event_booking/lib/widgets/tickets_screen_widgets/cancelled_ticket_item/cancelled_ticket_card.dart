@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ves_event_booking/models/cancelled_ticket_model.dart';
-import 'package:ves_event_booking/screens/ticket/cancelled_ticket_details_screen.dart';
+import 'package:ves_event_booking/screens/tickets/cancelled_ticket_details_screen.dart';
 import 'package:ves_event_booking/widgets/tickets_screen_widgets/cancelled_ticket_item/ticket_clipper.dart';
 
 class CancelledTicketCard extends StatelessWidget {
@@ -35,7 +35,6 @@ class CancelledTicketCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        print('Đã nhấn vào vé hủy: ${ticket.eventName}');
         Navigator.push(
           context,
           MaterialPageRoute(
