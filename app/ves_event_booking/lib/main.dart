@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:ves_event_booking/screens/profile/profile_creen.dart';
+import 'package:ves_event_booking/screens/profile/profile_screen.dart';
 import 'providers/auth_provider.dart';
 import 'screens/login_screen.dart';
 
