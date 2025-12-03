@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:ves_event_booking/models/event_model.dart';
-import 'package:ves_event_booking/screens/notifications/event_details_screen.dart';
+import 'package:ves_event_booking/models/notification_model.dart';
+import 'package:ves_event_booking/screens/notifications/notification_details_screen.dart';
 
-class EventCard extends StatelessWidget {
-  final EventModel event;
+class NotificationCard extends StatelessWidget {
+  final NotificationModel notification;
 
-  const EventCard({super.key, required this.event});
+  const NotificationCard({super.key, required this.notification});
 
   @override
   Widget build(BuildContext context) {
+    final String imageUrl = notification.data?['image'];
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
       decoration: BoxDecoration(
@@ -28,7 +30,8 @@ class EventCard extends StatelessWidget {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => EventDetailScreen(event: event),
+              builder: (context) =>
+                  NotificationDetailScreen(notification: notification),
             ),
           );
         },
@@ -40,19 +43,15 @@ class EventCard extends StatelessWidget {
                 topLeft: Radius.circular(16.0),
                 topRight: Radius.circular(16.0),
               ),
-              child:
-                  // Image.network(
-                  //   event.imageUrl,
-                  //   height: 200,
-                  //   width: double.infinity,
-                  //   fit: BoxFit.cover,
-                  // ),
-                  Image.asset(
-                    event.imageUrl,
-                    height: 180,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                  ),
+              child: Image.network(
+                // Đổi sang Image.network
+                imageUrl,
+                height: 180,
+                width: double.infinity,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) =>
+                    Container(height: 180, color: Colors.grey[300]),
+              ),
             ),
             Padding(
               padding: const EdgeInsets.all(16.0),
@@ -61,7 +60,7 @@ class EventCard extends StatelessWidget {
                 children: [
                   Expanded(
                     child: Text(
-                      event.title,
+                      notification.title,
                       style: const TextStyle(
                         fontSize: 16.0,
                         fontWeight: FontWeight.bold,

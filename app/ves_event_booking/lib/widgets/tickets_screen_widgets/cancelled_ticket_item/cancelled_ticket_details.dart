@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:ves_event_booking/models/cancelled_ticket_model.dart';
+import 'package:ves_event_booking/models/ticket_model.dart';
 import 'package:ves_event_booking/widgets/tickets_screen_widgets/cancelled_ticket_item/cancellation_status_tracker.dart';
 
 class CancelledTicketDetail extends StatelessWidget {
-  final CancelledTicketModel ticket;
+  final TicketModel ticket;
   const CancelledTicketDetail({super.key, required this.ticket});
 
   @override
@@ -38,7 +38,8 @@ class CancelledTicketDetail extends StatelessWidget {
 
   // Thẻ "Đã hủy" (màu xanh)
   Widget _buildStatusHeader(BuildContext context) {
-    final cancelDate = DateFormat('dd/MM/yyyy').format(ticket.requestDate);
+    // Hiện chưa có field cancelledDate trong model nên tạm dùng purchaseDate
+    final cancelDate = DateFormat('dd/MM/yyyy').format(ticket.purchaseDate);
 
     return Container(
       padding: const EdgeInsets.all(16.0),
@@ -94,7 +95,7 @@ class CancelledTicketDetail extends StatelessWidget {
   // Thẻ "Lý do hủy đơn" (màu trắng)
   Widget _buildReasonCard(BuildContext context) {
     return _buildWhiteCard(
-      const Column(
+      Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
@@ -107,7 +108,7 @@ class CancelledTicketDetail extends StatelessWidget {
           ),
           SizedBox(height: 8),
           Text(
-            'cancel reason',
+            ticket.cancellationReason ?? 'Không có lý do',
             style: TextStyle(color: Colors.black54, fontSize: 15),
           ),
         ],
@@ -117,12 +118,15 @@ class CancelledTicketDetail extends StatelessWidget {
 
   // Thẻ "Thành tiền" (màu trắng)
   Widget _buildTotalCard(BuildContext context) {
+    final currencyFormat = NumberFormat.currency(locale: 'vi_VN', symbol: 'đ');
+    final amount = ticket.refundAmount ?? 0;
+
     return _buildWhiteCard(
       Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           const Text(
-            'Thành tiền',
+            'Số tiền hoàn',
             style: TextStyle(
               color: Colors.black,
               fontSize: 20,
@@ -130,7 +134,7 @@ class CancelledTicketDetail extends StatelessWidget {
             ),
           ),
           Text(
-            '799.000đ',
+            currencyFormat.format(amount),
             style: TextStyle(
               color: Colors.blue[800],
               fontSize: 20,
@@ -144,30 +148,28 @@ class CancelledTicketDetail extends StatelessWidget {
 
   // Phần "Thông tin sự kiện" (ảnh + text)
   Widget _buildEventInfo(BuildContext context) {
+    final dateFormat = DateFormat('dd/MM/yyyy');
+    final timeFormat = DateFormat('HH:mm');
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Ảnh sự kiện
         ClipRRect(
           borderRadius: BorderRadius.circular(16.0),
-          // Ảnh nền (hiện chưa có link thật thay thế bằng placeholder)
-          // Image.network(
-          //   event.imageUrl,
-          //   height: 200,
-          //   width: double.infinity,
-          //   fit: BoxFit.cover,
-          // ),
-          child: Image.asset(
-            ticket.imageUrl,
+          child: Image.network(
+            ticket.event.thumbnail,
             height: 180,
             width: double.infinity,
             fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) =>
+                Container(height: 180, color: Colors.grey),
           ),
         ),
         const SizedBox(height: 16),
         // Tên sự kiện
         Text(
-          ticket.eventName,
+          ticket.event.name,
           style: const TextStyle(
             color: Colors.black,
             fontSize: 22,
@@ -178,17 +180,17 @@ class CancelledTicketDetail extends StatelessWidget {
         // Hàng 1: Ngày + Giờ
         _buildIconTextRow(
           Icons.calendar_today_outlined,
-          '16 Tháng 11, 2024',
+          dateFormat.format(ticket.event.startDate),
           Icons.access_time_outlined,
-          '19:00',
+          timeFormat.format(ticket.event.startDate),
         ),
         const SizedBox(height: 8),
         // Hàng 2: Địa điểm + Số ghế
         _buildIconTextRow(
           Icons.location_on_outlined,
-          'Nhà hát Kịch Việt Nam',
+          ticket.event.venueName,
           Icons.event_seat_outlined,
-          'A15',
+          ticket.seatNumber ?? 'Tự do',
         ),
       ],
     );
@@ -219,13 +221,21 @@ class CancelledTicketDetail extends StatelessWidget {
 
   // Thẻ "Mã đơn hàng" (màu trắng)
   Widget _buildOrderInfoCard(BuildContext context) {
+    final dateFormat = DateFormat('dd-MM-yyyy HH:mm');
+
     return _buildWhiteCard(
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildInfoRow('Mã đơn hàng', '123456789abcd'),
-          _buildInfoRow('Phương thức thanh toán', 'Chuyển khoản'),
-          _buildInfoRow('Thời gian đặt vé', '12-06-2024 18:00'),
+          _buildInfoRow('Mã đơn hàng', ticket.orderId),
+          _buildInfoRow(
+            'Phương thức thanh toán',
+            'Ví điện tử',
+          ), // Hiện model chưa có nên hardcore
+          _buildInfoRow(
+            'Thời gian đặt vé',
+            dateFormat.format(ticket.purchaseDate),
+          ),
         ],
       ),
     );

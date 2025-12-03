@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:ves_event_booking/models/cancelled_ticket_model.dart';
+import 'package:ves_event_booking/models/ticket_model.dart';
 import 'package:ves_event_booking/widgets/tickets_screen_widgets/cancelled_ticket_item/cancelled_ticket_card.dart';
 import 'package:ves_event_booking/widgets/tickets_screen_widgets/cancelled_ticket_item/cancellation_status_tracker.dart';
 
 class CancelledTicketItem extends StatelessWidget {
-  final CancelledTicketModel ticket;
+  final TicketModel ticket;
   const CancelledTicketItem({super.key, required this.ticket});
 
   @override

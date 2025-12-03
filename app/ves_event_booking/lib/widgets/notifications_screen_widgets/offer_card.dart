@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:ves_event_booking/models/offer_model.dart';
+import 'package:ves_event_booking/models/notification_model.dart';
 import 'package:ves_event_booking/screens/notifications/offer_details_screen.dart';
 
 class OfferCard extends StatelessWidget {
-  final OfferModel offer;
+  final NotificationModel notification;
 
-  const OfferCard({super.key, required this.offer});
+  const OfferCard({super.key, required this.notification});
 
   @override
   Widget build(BuildContext context) {
+    final String imageUrl = notification.data?['image'];
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
       decoration: BoxDecoration(
@@ -28,7 +30,8 @@ class OfferCard extends StatelessWidget {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => OfferDetailScreen(offer: offer),
+              builder: (context) =>
+                  OfferDetailScreen(notification: notification),
             ),
           );
         },
@@ -40,19 +43,14 @@ class OfferCard extends StatelessWidget {
                 topLeft: Radius.circular(16.0),
                 topRight: Radius.circular(16.0),
               ),
-              child:
-                  // Image.network(
-                  //   event.imageUrl,
-                  //   height: 200,
-                  //   width: double.infinity,
-                  //   fit: BoxFit.cover,
-                  // ),
-                  Image.asset(
-                    offer.imageUrl,
-                    height: 180,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                  ),
+              child: Image.network(
+                imageUrl,
+                height: 180,
+                width: double.infinity,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) =>
+                    Container(height: 180, color: Colors.grey[300]),
+              ),
             ),
             Padding(
               padding: const EdgeInsets.all(16.0),
@@ -61,7 +59,7 @@ class OfferCard extends StatelessWidget {
                 children: [
                   Expanded(
                     child: Text(
-                      offer.title,
+                      notification.title,
                       style: const TextStyle(
                         fontSize: 16.0,
                         fontWeight: FontWeight.bold,

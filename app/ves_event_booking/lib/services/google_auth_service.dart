@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:ves_event_booking/models/auth_response.dart';
+import 'package:ves_event_booking/old_models/auth_response.dart';
 import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
 
 class GoogleAuthService {

@@ -15,14 +15,14 @@ class _EventCardItemState extends State<TicketCardItem> {
   @override
   void initState() {
     super.initState();
-    _isFavorite = widget.ticket.isFavorite;
+    _isFavorite = widget.ticket.event.isFavorite;
   }
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        print('Đã nhấn vào thẻ: ${widget.ticket.eventName}');
+        print('Đã nhấn vào thẻ: ${widget.ticket.event.name}');
 
         // Khi có màn hình chi tiết (ví dụ: TicketDetailScreen), điều hướng ở đây
         //
@@ -39,18 +39,21 @@ class _EventCardItemState extends State<TicketCardItem> {
           borderRadius: BorderRadius.circular(20.0),
           child: Stack(
             children: [
-              // 1. Ảnh nền (hiện chưa có link thật thay thế bằng placeholder)
-              // Image.network(
-              //   event.imageUrl,
-              //   height: 200,
-              //   width: double.infinity,
-              //   fit: BoxFit.cover,
-              // ),
-              Image.asset(
-                widget.ticket.imageUrl,
+              // 1. Ảnh nền
+              Image.network(
+                widget.ticket.event.thumbnail,
                 height: 200,
                 width: double.infinity,
                 fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    height: 200,
+                    color: Colors.grey,
+                    child: const Center(
+                      child: Icon(Icons.broken_image, color: Colors.white),
+                    ),
+                  );
+                },
               ),
 
               // 2. Lớp phủ Gradient
@@ -101,7 +104,7 @@ class _EventCardItemState extends State<TicketCardItem> {
                   children: [
                     // Tên sự kiện
                     Text(
-                      widget.ticket.eventName,
+                      widget.ticket.event.name,
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 22,
@@ -131,7 +134,7 @@ class _EventCardItemState extends State<TicketCardItem> {
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            widget.ticket.locationTag,
+                            widget.ticket.event.city,
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 14,

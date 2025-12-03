@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:ves_event_booking/models/cancelled_ticket_model.dart';
+import 'package:ves_event_booking/models/ticket_model.dart';
 
 class CancellationStatusTracker extends StatelessWidget {
-  final CancelledTicketModel ticket;
+  final TicketModel ticket;
   const CancellationStatusTracker({super.key, required this.ticket});
 
   @override
@@ -12,8 +12,10 @@ class CancellationStatusTracker extends StatelessWidget {
 
     // Xác định trạng thái active
     final isRequested = true; // Luôn luôn active
-    final isProcessing = ticket.status.index >= CancelStatus.processing.index;
-    final isCompleted = ticket.status.index >= CancelStatus.completed.index;
+    final isProcessing =
+        ticket.refundStatus == 'processing' ||
+        ticket.refundStatus == 'completed';
+    final isCompleted = ticket.refundStatus == 'completed';
 
     // Màu sắc
     final activeColor = Colors.blue[700];
@@ -52,21 +54,21 @@ class CancellationStatusTracker extends StatelessWidget {
             // Bước 1: Yêu cầu
             _buildTrackerStep(
               icon: Icons.edit,
-              date: ticket.requestDate,
+              date: ticket.purchaseDate,
               dateFormat: dateFormat,
               isActive: isRequested,
             ),
             // Bước 2: Đang xử lý
             _buildTrackerStep(
               icon: Icons.watch_later_outlined,
-              date: ticket.processingDate,
+              date: isProcessing ? DateTime.now() : null,
               dateFormat: dateFormat,
               isActive: isProcessing,
             ),
             // Bước 3: Hoàn tất
             _buildTrackerStep(
               icon: Icons.check_circle_outline,
-              date: ticket.completedDate,
+              date: isCompleted ? DateTime.now() : null,
               dateFormat: dateFormat,
               isActive: isCompleted,
             ),

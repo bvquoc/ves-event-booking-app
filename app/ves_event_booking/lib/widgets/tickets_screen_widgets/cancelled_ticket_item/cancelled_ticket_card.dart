@@ -1,33 +1,31 @@
 import 'package:flutter/material.dart';
-import 'package:ves_event_booking/models/cancelled_ticket_model.dart';
+import 'package:ves_event_booking/models/ticket_model.dart';
 import 'package:ves_event_booking/screens/tickets/cancelled_ticket_details_screen.dart';
 import 'package:ves_event_booking/widgets/tickets_screen_widgets/cancelled_ticket_item/ticket_clipper.dart';
 
 class CancelledTicketCard extends StatelessWidget {
-  final CancelledTicketModel ticket;
+  final TicketModel ticket;
   const CancelledTicketCard({super.key, required this.ticket});
 
   // HÀM HELPER LẤY MÀU NỀN
-  Color _getBackgroundColor(CancelStatus status) {
-    switch (status) {
-      case CancelStatus.requested:
-        return Colors.grey[600]!; // Xám
-      case CancelStatus.processing:
-        return Colors.yellow[700]!; // Vàng
-      case CancelStatus.completed:
-        return Colors.green[600]!; // Xanh lá
+  Color _getBackgroundColor(String? refundStatus) {
+    if (refundStatus == 'completed') {
+      return Colors.green[600]!;
+    } else if (refundStatus == 'processing') {
+      return Colors.yellow[700]!;
+    } else {
+      return Colors.grey[600]!; // requested hoặc mặc định
     }
   }
 
   // HÀM HELPER LẤY VĂN BẢN
-  String _getStatusText(CancelStatus status) {
-    switch (status) {
-      case CancelStatus.requested:
-        return 'Đang xác nhận';
-      case CancelStatus.processing:
-        return 'Đang xử lý';
-      case CancelStatus.completed:
-        return 'Đã hoàn tiền';
+  String _getStatusText(String? refundStatus) {
+    if (refundStatus == 'completed') {
+      return 'Đã hoàn tiền';
+    } else if (refundStatus == 'processing') {
+      return 'Đang xử lý';
+    } else {
+      return 'Đang xác nhận';
     }
   }
 
@@ -47,18 +45,13 @@ class CancelledTicketCard extends StatelessWidget {
         //clipper: TicketClipper(),
         child: Stack(
           children: [
-            // 1. Ảnh nền (hiện chưa có link thật thay thế bằng placeholder)
-            // Image.network(
-            //   event.imageUrl,
-            //   height: 200,
-            //   width: double.infinity,
-            //   fit: BoxFit.cover,
-            // ),
-            Image.asset(
-              ticket.imageUrl,
+            Image.network(
+              ticket.event.thumbnail,
               height: 180,
               width: double.infinity,
               fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) =>
+                  Container(height: 180, color: Colors.grey),
             ),
             Positioned.fill(
               child: Container(
@@ -84,7 +77,7 @@ class CancelledTicketCard extends StatelessWidget {
                   // Tên sự kiện
                   Expanded(
                     child: Text(
-                      ticket.eventName,
+                      ticket.event.name,
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 22,

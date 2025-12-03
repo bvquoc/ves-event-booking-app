@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:ves_event_booking/models/event_model.dart';
+import 'package:ves_event_booking/models/notification_model.dart';
 
-class EventDetailScreen extends StatelessWidget {
-  final EventModel event;
+class NotificationDetailScreen extends StatelessWidget {
+  final NotificationModel notification;
 
-  const EventDetailScreen({super.key, required this.event});
+  const NotificationDetailScreen({super.key, required this.notification});
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +19,7 @@ class EventDetailScreen extends StatelessWidget {
           },
         ),
         title: const Text(
-          'Chi tiết sự kiện',
+          'Chi tiết thông báo',
           style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
@@ -42,7 +42,7 @@ class EventDetailScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildSectionHeader('THÔNG TIN SỰ KIỆN'),
+                    _buildSectionHeader('NỘI DUNG THÔNG BÁO'),
 
                     _buildDetailContent(),
                   ],
@@ -59,20 +59,18 @@ class EventDetailScreen extends StatelessWidget {
 
   // Widget cho Ảnh Header
   Widget _buildHeaderImage() {
+    final String imageUrl = notification.data?['image'];
+
     return Stack(
       children: [
-        // Ảnh nền (hiện chưa có link thật thay thế bằng placeholder)
-        // Image.network(
-        //   event.imageUrl,
-        //   height: 200,
-        //   width: double.infinity,
-        //   fit: BoxFit.cover,
-        // ),
-        Image.asset(
-          event.imageUrl,
+        Image.network(
+          // Đổi sang Image.network
+          imageUrl,
           height: 200,
           width: double.infinity,
           fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) =>
+              Container(height: 200, color: Colors.grey),
         ),
         // Lớp gradient mờ
         Positioned.fill(
@@ -95,7 +93,7 @@ class EventDetailScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                event.title,
+                notification.title,
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 22.0,
@@ -106,8 +104,8 @@ class EventDetailScreen extends StatelessWidget {
               ),
               const SizedBox(height: 4.0),
               // Tạm thời hardcode ngày tháng
-              const Text(
-                'Hạn: 16/11/2024',
+              Text(
+                'Ngày: ${notification.createdAt.toString().split(' ')[0]}',
                 style: TextStyle(color: Colors.white, fontSize: 14.0),
               ),
             ],
@@ -136,24 +134,6 @@ class EventDetailScreen extends StatelessWidget {
 
   // Widget cho nội dung
   Widget _buildDetailContent() {
-    // Tạm thời hardcore nội dung
-    const String thongTinLuuY =
-        'Độ tuổi tối thiểu: Sự kiện không dành cho người dưới 14 tuổi. Người từ 14 đến 18 tuổi cần có người bảo hộ đi theo.\n'
-        'Hạng vé X-Vip không dành cho người dưới 18 tuổi\n'
-        'Lối đi chuyên hạng vé thường:\n'
-        'Cổng N1 và N2: Dành cho xe ô tô\n'
-        'Cổng S3: Dành cho xe máy\n'
-        'Lối đi chuyên hạng vé XVIP:\n'
-        '  1. Cổng N2: Dành cho xe máy\n'
-        '  2. Cổng N3: Dành cho xe ô tô';
-
-    const String luuYQuanTrong =
-        'Hệ thống biển chỉ dẫn đã được lắp đặt dọc đường đi.\n'
-        'Có đội ngũ nhân sự điều phối của The Global City sẵn sàng hỗ trợ. Nếu không rành đường, hỏi các anh/chị bảo vệ.\n'
-        'Lực lượng CSGT cũng sẽ được huy động điều phối giao thông bên ngoài khu vực sự kiện.\n'
-        'Bãi giữ xe đã được bố trí thêm nhân sự, gửi xe đỡ tốn nỗ lực để dễ dàng hơn.\n'
-        'Phía chương trình đã chuẩn bị các khu vực tiếp nước và dù ở nhà đổi võng để nghỉ ngơi.';
-
     return Container(
       color: Colors.white,
       padding: const EdgeInsets.all(16.0),
@@ -169,25 +149,8 @@ class EventDetailScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8.0),
-          const Text(
-            thongTinLuuY,
-            style: TextStyle(fontSize: 15, color: Colors.black54, height: 1.5),
-          ),
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 16.0),
-            child: Divider(thickness: 1.0),
-          ),
-          const Text(
-            'LƯU Ý QUAN TRỌNG',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
-            ),
-          ),
-          const SizedBox(height: 8.0),
-          const Text(
-            luuYQuanTrong,
+          Text(
+            notification.message,
             style: TextStyle(fontSize: 15, color: Colors.black54, height: 1.5),
           ),
         ],

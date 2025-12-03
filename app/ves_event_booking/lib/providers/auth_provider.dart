@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../models/user.dart';
+import '../old_models/user.dart';
 import '../services/auth_service.dart';
 import '../services/user_service.dart';
 import '../services/google_auth_service.dart';

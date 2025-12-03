@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:ves_event_booking/models/mock_data.dart';
 import 'package:ves_event_booking/models/ticket_model.dart';
 import 'package:timeline_tile/timeline_tile.dart';
 import 'package:ves_event_booking/widgets/tickets_screen_widgets/ticket_item/timeline_info.dart';
 import 'package:ves_event_booking/widgets/tickets_screen_widgets/ticket_item/ticket_card_item.dart';
-
-// replace this with actual api or data source
-final List<TicketModel> pastTickets = MockTickets().tickets;
 
 class PastEventsTab extends StatelessWidget {
   const PastEventsTab({super.key});
 
   @override
   Widget build(BuildContext context) {
+    // replace this with actual api or data source
+    final List<TicketModel> pastTickets = mockPastTickets;
+
     return Container(
       color: Colors.white,
       child: ListView.builder(
@@ -31,7 +32,7 @@ class PastEventsTab extends StatelessWidget {
             alignment: TimelineAlign.manual,
             lineXY: 0.22, // Dịch chuyển đường line sang bên trái
             // Widget trái (Ngày/Giờ)
-            startChild: TimelineInfo(date: ticket.eventDate),
+            startChild: TimelineInfo(date: ticket.event.startDate),
 
             // Widget phải (Thẻ sự kiện)
             endChild: RepaintBoundary(child: TicketCardItem(ticket: ticket)),

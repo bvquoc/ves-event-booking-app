@@ -4,7 +4,7 @@ import 'package:ves_event_booking/screens/home_screen.dart';
 import 'package:ves_event_booking/screens/profile/profile_creen.dart';
 import 'package:ves_event_booking/screens/tickets/tickets_screen.dart';
 import 'package:ves_event_booking/widgets/profile_widgets.dart';
-import 'package:ves_event_booking/screens/notifications/events_tab.dart';
+import 'package:ves_event_booking/screens/notifications/notifications_tab.dart';
 import 'package:ves_event_booking/screens/notifications/offers_tab.dart';
 
 class NotificationsScreen extends StatelessWidget {
@@ -52,7 +52,7 @@ class NotificationsScreen extends StatelessWidget {
             const TabBarView(
               children: [
                 // Nội dung cho tab "Sự kiện"
-                const EventTab(),
+                const NotificationTab(),
                 // Nội dung cho tab "Ưu đãi"
                 const OfferTab(),
               ],
