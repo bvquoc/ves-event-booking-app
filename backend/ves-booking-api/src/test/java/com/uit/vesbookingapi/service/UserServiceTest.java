@@ -17,10 +17,15 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.TestPropertySource;
 
+import org.springframework.dao.DataIntegrityViolationException;
+
+import com.uit.vesbookingapi.constant.PredefinedRole;
 import com.uit.vesbookingapi.dto.request.UserCreationRequest;
 import com.uit.vesbookingapi.dto.response.UserResponse;
+import com.uit.vesbookingapi.entity.Role;
 import com.uit.vesbookingapi.entity.User;
 import com.uit.vesbookingapi.exception.AppException;
+import com.uit.vesbookingapi.repository.RoleRepository;
 import com.uit.vesbookingapi.repository.UserRepository;
 
 @SpringBootTest
@@ -31,6 +36,9 @@ public class UserServiceTest {
 
     @MockBean
     private UserRepository userRepository;
+
+    @MockBean
+    private RoleRepository roleRepository;
 
     private UserCreationRequest request;
     private UserResponse userResponse;
@@ -69,7 +77,13 @@ public class UserServiceTest {
     @Test
     void createUser_validRequest_success() {
         // GIVEN
+        Role userRole = Role.builder()
+                .name(PredefinedRole.USER_ROLE)
+                .description("User role")
+                .build();
+        
         when(userRepository.existsByUsername(anyString())).thenReturn(false);
+        when(roleRepository.findById(PredefinedRole.USER_ROLE)).thenReturn(Optional.of(userRole));
         when(userRepository.save(any())).thenReturn(user);
 
         // WHEN
@@ -83,7 +97,13 @@ public class UserServiceTest {
     @Test
     void createUser_userExisted_fail() {
         // GIVEN
-        when(userRepository.existsByUsername(anyString())).thenReturn(true);
+        Role userRole = Role.builder()
+                .name(PredefinedRole.USER_ROLE)
+                .description("User role")
+                .build();
+        
+        when(roleRepository.findById(PredefinedRole.USER_ROLE)).thenReturn(Optional.of(userRole));
+        when(userRepository.save(any())).thenThrow(new DataIntegrityViolationException("User already exists"));
 
         // WHEN
         var exception = assertThrows(AppException.class, () -> userService.createUser(request));
