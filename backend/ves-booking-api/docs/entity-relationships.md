@@ -1,6 +1,7 @@
 # VES Booking API - Entity Relationship Documentation
 
-**Phase 1 Complete: 12 Core Entities + 7 Enums**
+**Phase 2 Complete: 12 Core Entities + 7 Enums**
+**With Reference Data APIs (Categories, Cities)**
 
 ---
 
@@ -161,7 +162,7 @@ Event categories (Music, Sports, Theater, etc.). Enables categorization & filter
 - id: UUID (PK)
 - name: String (UNIQUE, NOT NULL) - e.g., "Music", "Sports"
 - slug: String (UNIQUE, NOT NULL) - URL-friendly
-- icon: String - Icon image URL
+- icon: String - Material Icons identifier (e.g., "sports", "music")
 
 **Relationships:**
 - events: List<Event> (1:M)
@@ -169,6 +170,12 @@ Event categories (Music, Sports, Theater, etc.). Enables categorization & filter
 **Indexes:**
 - idx_category_name (name)
 - idx_category_slug (slug)
+
+**Phase 2 Addition:**
+- API Endpoint: GET /api/categories (public, no auth required)
+- Service: CategoryService with event count calculation
+- Repository: Custom JOIN query for event counts
+- DTO: CategoryResponse with eventCount field
 
 ---
 
@@ -188,6 +195,12 @@ Geographic locations for event discovery & filtering.
 
 **Indexes:**
 - idx_city_slug (slug)
+
+**Phase 2 Addition:**
+- API Endpoint: GET /api/cities (public, no auth required)
+- Service: CityService with event count calculation
+- Repository: Custom JOIN query for event counts
+- DTO: CityResponse with eventCount field
 
 ---
 

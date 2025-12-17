@@ -1,0 +1,102 @@
+package com.uit.vesbookingapi.service;
+
+import com.uit.vesbookingapi.dto.response.RowResponse;
+import com.uit.vesbookingapi.dto.response.SeatResponse;
+import com.uit.vesbookingapi.dto.response.SectionResponse;
+import com.uit.vesbookingapi.dto.response.VenueSeatingResponse;
+import com.uit.vesbookingapi.entity.Seat;
+import com.uit.vesbookingapi.entity.Venue;
+import com.uit.vesbookingapi.enums.SeatStatus;
+import com.uit.vesbookingapi.exception.AppException;
+import com.uit.vesbookingapi.exception.ErrorCode;
+import com.uit.vesbookingapi.repository.SeatRepository;
+import com.uit.vesbookingapi.repository.VenueRepository;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
+
+@Service
+@RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+@Slf4j
+public class VenueService {
+    VenueRepository venueRepository;
+    SeatRepository seatRepository;
+
+    public VenueSeatingResponse getVenueSeating(String venueId, String eventId) {
+        // Find venue
+        Venue venue = venueRepository.findById(venueId)
+                .orElseThrow(() -> new AppException(ErrorCode.VENUE_NOT_FOUND));
+
+        // Find all seats for this venue
+        List<Seat> seats = seatRepository.findByVenueId(venueId);
+
+        // Get sold and reserved seat IDs for this event
+        List<String> soldSeatIds = seatRepository.findSoldSeatIdsByEvent(eventId);
+        List<String> reservedSeatIds = seatRepository.findReservedSeatIdsByEvent(eventId, LocalDateTime.now());
+
+        Set<String> soldSet = new HashSet<>(soldSeatIds);
+        Set<String> reservedSet = new HashSet<>(reservedSeatIds);
+
+        // Build seat status map and group by section -> row
+        Map<String, Map<String, List<SeatResponse>>> sectionRowSeats = new LinkedHashMap<>();
+
+        for (Seat seat : seats) {
+            // Calculate seat status
+            SeatStatus status;
+            if (soldSet.contains(seat.getId())) {
+                status = SeatStatus.SOLD;
+            } else if (reservedSet.contains(seat.getId())) {
+                status = SeatStatus.RESERVED;
+            } else {
+                status = SeatStatus.AVAILABLE;
+            }
+
+            // Create SeatResponse
+            SeatResponse seatResponse = SeatResponse.builder()
+                    .id(seat.getId())
+                    .seatNumber(seat.getSeatNumber())
+                    .status(status)
+                    .build();
+
+            // Group by section -> row
+            sectionRowSeats
+                    .computeIfAbsent(seat.getSectionName(), k -> new LinkedHashMap<>())
+                    .computeIfAbsent(seat.getRowName(), k -> new ArrayList<>())
+                    .add(seatResponse);
+        }
+
+        // Build nested response structure
+        List<SectionResponse> sections = sectionRowSeats.entrySet().stream()
+                .map(sectionEntry -> {
+                    String sectionName = sectionEntry.getKey();
+                    Map<String, List<SeatResponse>> rowSeats = sectionEntry.getValue();
+
+                    List<RowResponse> rows = rowSeats.entrySet().stream()
+                            .map(rowEntry -> RowResponse.builder()
+                                    .rowName(rowEntry.getKey())
+                                    .seats(rowEntry.getValue())
+                                    .build())
+                            .collect(Collectors.toList());
+
+                    return SectionResponse.builder()
+                            .sectionName(sectionName)
+                            .rows(rows)
+                            .build();
+                })
+                .collect(Collectors.toList());
+
+        return VenueSeatingResponse.builder()
+                .venueId(venue.getId())
+                .venueName(venue.getName())
+                .eventId(eventId)
+                .sections(sections)
+                .build();
+    }
+}

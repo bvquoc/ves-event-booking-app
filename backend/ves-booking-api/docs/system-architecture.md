@@ -1,6 +1,6 @@
 # VES Booking API - System Architecture
 
-**Phase 1: Foundation & Core Entities - Complete**
+**Phase 2: Reference Data APIs - Complete**
 
 ---
 
@@ -151,6 +151,8 @@ Request handling, input validation, response formatting.
 - UserController - CRUD user operations
 - RoleController - Role management
 - PermissionController - Permission management
+- CategoryController - Get all categories with event counts (public)
+- CityController - Get all cities with event counts (public)
 
 **To Implement:**
 - EventController - Event discovery, search, details
@@ -191,6 +193,18 @@ Request handling, input validation, response formatting.
 #### PermissionService ✅
 - Permission CRUD
 - Permission codes & descriptions
+
+#### CategoryService ✅
+- Get all categories
+- Retrieve event count per category
+- Performance optimized with single JOIN query
+- Prevents N+1 query problems
+
+#### CityService ✅
+- Get all cities
+- Retrieve event count per city
+- Optimized query execution
+- Returns all cities regardless of event count
 
 #### EventService 🚧 (Planned)
 - Event CRUD operations
@@ -517,6 +531,52 @@ Return paginated results with availability
   ]
 }
 ```
+
+---
+
+---
+
+## Implementation Timeline
+
+### Phase 1 (Complete)
+- ✅ All 12 entities implemented (User, Role, Permission, Event, Category, City, Venue, Seat, TicketType, Order, Ticket, Voucher, etc.)
+- ✅ All 7 enums defined (OrderStatus, TicketStatus, PaymentMethod, etc.)
+- ✅ 24 tables with relationships
+- ✅ Strategic indexing complete
+- ✅ Audit timestamps configured
+- ✅ Identity & Access Management (IAM)
+
+### Phase 2 (Current - Complete)
+- ✅ CategoryService with event counts
+- ✅ CityService with event counts
+- ✅ CategoryController (public GET endpoint)
+- ✅ CityController (public GET endpoint)
+- ✅ CategoryRepository with custom JOIN query
+- ✅ CityRepository with custom JOIN query
+- ✅ Performance optimized (single query prevents N+1)
+- ✅ Public endpoints configured in SecurityConfig
+- ✅ User entity @Table annotation
+- ✅ Category & City seeding in ApplicationInitConfig
+
+### Phase 3 (Next - Planned)
+- Event Management APIs (CRUD, search, filtering)
+- Event discovery endpoints
+- Trending events functionality
+- Event filtering by category, city, date range
+
+### Phase 4 (Planned)
+- Order Management APIs
+- Ticket generation & management
+- Booking workflows
+- Payment status tracking
+
+### Phase 5+ (Planned)
+- Voucher & promotion system
+- Organizer entity & management
+- Advanced audit logging
+- Soft delete support
+- Event series/recurring events
+- Waiting list management
 
 ---
 

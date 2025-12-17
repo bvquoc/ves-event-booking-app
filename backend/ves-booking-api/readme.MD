@@ -21,6 +21,13 @@ VES Booking API is a comprehensive Spring Boot application that provides both **
 - 🚧 Event capacity and availability tracking
 - 🚧 Booking history and reporting
 
+### Reference Data Management
+
+- ✅ Category browsing (with event counts)
+- ✅ City browsing (with event counts)
+- 🚧 Event search and discovery
+- 🚧 Event filtering (by category, city, date)
+
 ## Tech Stack
 
 - **Build Tool:** Maven >= 3.9.5
@@ -103,6 +110,8 @@ ves-booking-api/
 │   │   ├── UserController.java ✅
 │   │   ├── RoleController.java ✅
 │   │   ├── PermissionController.java ✅
+│   │   ├── CategoryController.java ✅
+│   │   ├── CityController.java ✅
 │   │   ├── EventController.java 🚧 (to be implemented)
 │   │   └── BookingController.java 🚧 (to be implemented)
 │   ├── service/            # Business logic
@@ -110,12 +119,16 @@ ves-booking-api/
 │   │   ├── UserService.java ✅
 │   │   ├── RoleService.java ✅
 │   │   ├── PermissionService.java ✅
+│   │   ├── CategoryService.java ✅
+│   │   ├── CityService.java ✅
 │   │   ├── EventService.java 🚧 (to be implemented)
 │   │   └── BookingService.java 🚧 (to be implemented)
 │   ├── repository/         # Data access layer
 │   │   ├── UserRepository.java ✅
 │   │   ├── RoleRepository.java ✅
 │   │   ├── PermissionRepository.java ✅
+│   │   ├── CategoryRepository.java ✅
+│   │   ├── CityRepository.java ✅
 │   │   ├── EventRepository.java 🚧 (to be implemented)
 │   │   └── BookingRepository.java 🚧 (to be implemented)
 │   ├── entity/             # JPA entities
@@ -203,6 +216,11 @@ Base URL: `http://localhost:8080/api`
 
 - `POST /permissions` - Create permission
 - `GET /permissions` - List all permissions
+
+### Reference Data (`/api/categories`, `/api/cities`)
+
+- ✅ `GET /categories` - List all categories with event counts (public)
+- ✅ `GET /cities` - List all cities with event counts (public)
 
 ### Event Booking (`/api/events`) - In Development
 
@@ -321,7 +339,10 @@ docker push <account>/ves-booking-api:0.9.0
 
 ## Development Resources
 
+- **API Documentation:** See [docs/api-docs.md](./docs/api-docs.md) for complete API reference
+- **System Architecture:** See [docs/system-architecture.md](./docs/system-architecture.md) for system design
+- **Entity Relationships:** See [docs/entity-relationships.md](./docs/entity-relationships.md) for data model
+- **Codebase Summary:** See [docs/codebase-summary.md](./docs/codebase-summary.md) for technical overview
 - **Local Setup Guide:** See [LOCAL_SETUP.md](./LOCAL_SETUP.md) for detailed local development instructions
 - **Postman Collection:** Import `Identity Service.postman_collection.json` for API testing
-- **API Documentation:** Check `API-DOCS.md` in parent directory
 - **Source Code:** Explore `src/main/java/com/uit/vesbookingapi/` for implementation details
