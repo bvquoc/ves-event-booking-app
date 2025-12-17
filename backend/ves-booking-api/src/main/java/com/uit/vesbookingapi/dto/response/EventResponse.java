@@ -22,6 +22,7 @@ public class EventResponse {
     LocalDateTime endDate;
     CategoryResponse category;
     CityResponse city;
+    String venueId;
     String venueName;
     String venueAddress;
     String currency;

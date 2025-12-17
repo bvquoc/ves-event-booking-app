@@ -23,6 +23,7 @@ public class EventDetailResponse {
     LocalDateTime endDate;
     CategoryResponse category;
     CityResponse city;
+    String venueId;
     VenueSeatingResponse venue;
     String venueName;
     String venueAddress;

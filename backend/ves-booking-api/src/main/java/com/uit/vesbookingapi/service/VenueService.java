@@ -1,15 +1,15 @@
 package com.uit.vesbookingapi.service;
 
-import com.uit.vesbookingapi.dto.response.RowResponse;
-import com.uit.vesbookingapi.dto.response.SeatResponse;
-import com.uit.vesbookingapi.dto.response.SectionResponse;
-import com.uit.vesbookingapi.dto.response.VenueSeatingResponse;
+import com.uit.vesbookingapi.dto.response.*;
 import com.uit.vesbookingapi.entity.Seat;
 import com.uit.vesbookingapi.entity.Venue;
 import com.uit.vesbookingapi.enums.SeatStatus;
 import com.uit.vesbookingapi.exception.AppException;
 import com.uit.vesbookingapi.exception.ErrorCode;
+import com.uit.vesbookingapi.mapper.VenueMapper;
+import com.uit.vesbookingapi.repository.EventRepository;
 import com.uit.vesbookingapi.repository.SeatRepository;
+import com.uit.vesbookingapi.repository.TicketTypeRepository;
 import com.uit.vesbookingapi.repository.VenueRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -28,11 +28,46 @@ import java.util.stream.Collectors;
 public class VenueService {
     VenueRepository venueRepository;
     SeatRepository seatRepository;
+    EventRepository eventRepository;
+    TicketTypeRepository ticketTypeRepository;
+    VenueMapper venueMapper;
+
+    public List<VenueResponse> getAllVenues() {
+        return venueRepository.findAll().stream()
+                .map(venueMapper::toVenueResponse)
+                .collect(Collectors.toList());
+    }
+
+    public VenueResponse getVenueById(String venueId) {
+        Venue venue = venueRepository.findById(venueId)
+                .orElseThrow(() -> new AppException(ErrorCode.VENUE_NOT_FOUND));
+        return venueMapper.toVenueResponse(venue);
+    }
 
     public VenueSeatingResponse getVenueSeating(String venueId, String eventId) {
         // Find venue
         Venue venue = venueRepository.findById(venueId)
                 .orElseThrow(() -> new AppException(ErrorCode.VENUE_NOT_FOUND));
+
+        // Validate event exists
+        if (!eventRepository.existsById(eventId)) {
+            throw new AppException(ErrorCode.EVENT_NOT_FOUND);
+        }
+
+        // Check if event has any ticket types that require seat selection
+        List<com.uit.vesbookingapi.entity.TicketType> ticketTypes = ticketTypeRepository.findByEventId(eventId);
+        boolean hasSeatRequiringTickets = ticketTypes.stream()
+                .anyMatch(com.uit.vesbookingapi.entity.TicketType::getRequiresSeatSelection);
+
+        // If all tickets are standing tickets (no seat selection required), return empty sections
+        if (!hasSeatRequiringTickets) {
+            return VenueSeatingResponse.builder()
+                    .venueId(venue.getId())
+                    .venueName(venue.getName())
+                    .eventId(eventId)
+                    .sections(Collections.emptyList())
+                    .build();
+        }
 
         // Find all seats for this venue
         List<Seat> seats = seatRepository.findByVenueId(venueId);

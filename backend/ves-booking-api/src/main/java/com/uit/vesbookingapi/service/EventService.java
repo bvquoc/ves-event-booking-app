@@ -326,6 +326,11 @@ public class EventService {
     }
 
     private void enrichEventResponse(EventResponse response, Event event, Set<String> favoriteEventIds) {
+        // Set venueId
+        if (event.getVenue() != null) {
+            response.setVenueId(event.getVenue().getId());
+        }
+
         // Calculate min/max price and available tickets
         Integer minPrice = ticketTypeRepository.findMinPriceByEventId(event.getId());
         Integer maxPrice = ticketTypeRepository.findMaxPriceByEventId(event.getId());
@@ -338,6 +343,11 @@ public class EventService {
     }
 
     private void enrichEventDetailResponse(EventDetailResponse response, Event event, boolean isFavorite) {
+        // Set venueId
+        if (event.getVenue() != null) {
+            response.setVenueId(event.getVenue().getId());
+        }
+
         // Calculate min/max price and available tickets
         Integer minPrice = ticketTypeRepository.findMinPriceByEventId(event.getId());
         Integer maxPrice = ticketTypeRepository.findMaxPriceByEventId(event.getId());

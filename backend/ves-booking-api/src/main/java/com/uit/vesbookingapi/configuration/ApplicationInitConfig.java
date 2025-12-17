@@ -45,7 +45,8 @@ public class ApplicationInitConfig {
             CityRepository cityRepository,
             VenueRepository venueRepository,
             EventRepository eventRepository,
-            TicketTypeRepository ticketTypeRepository) {
+            TicketTypeRepository ticketTypeRepository,
+            SeatRepository seatRepository) {
         log.info("Initializing application.....");
         return args -> {
             if (userRepository.findByUsername(ADMIN_USER_NAME).isEmpty()) {
@@ -343,6 +344,35 @@ public class ApplicationInitConfig {
                         .build());
 
                 log.info("Seeded 3 events with ticket types");
+            }
+
+            // Seed seats for venues if empty (simple: just a few seats per venue for testing)
+            if (seatRepository.count() == 0) {
+                List<Venue> allVenues = venueRepository.findAll();
+
+                for (Venue venue : allVenues) {
+                    List<Seat> seats = new ArrayList<>();
+
+                    // Simple: 2 sections, 2 rows each, 5 seats per row = 20 seats per venue
+                    String[] sections = {"VIP Section", "Standard Section"};
+                    for (String section : sections) {
+                        for (int row = 1; row <= 2; row++) {
+                            for (int seat = 1; seat <= 5; seat++) {
+                                seats.add(Seat.builder()
+                                        .venue(venue)
+                                        .sectionName(section)
+                                        .rowName(String.valueOf(row))
+                                        .seatNumber(String.valueOf(seat))
+                                        .build());
+                            }
+                        }
+                    }
+
+                    seatRepository.saveAll(seats);
+                    log.info("Seeded {} seats for venue: {}", seats.size(), venue.getName());
+                }
+
+                log.info("Seat seeding completed");
             }
 
             log.info("Application initialization completed .....");
