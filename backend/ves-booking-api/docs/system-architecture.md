@@ -23,9 +23,9 @@
 │  │ ├── PermissionController ✅                          │   │
 │  │ ├── CategoryController ✅ (Reference data)           │   │
 │  │ ├── CityController ✅ (Reference data)               │   │
-│  │ ├── TicketController ✅ (Phase 5: POST purchase)     │   │
+│  │ ├── TicketController ✅ (Phase 6: GET/PUT cancel)     │   │
 │  │ ├── EventController 🚧 (Event CRUD - Phase 3)        │   │
-│  │ ├── OrderController 🚧 (Order mgmt - Phase 6+)       │   │
+│  │ ├── OrderController 🚧 (Order mgmt - Phase 7+)       │   │
 │  │ ├── VoucherController 🚧                             │   │
 │  │ └── NotificationController 🚧                        │   │
 │  └──────────────────────────────────────────────────────┘   │
@@ -234,7 +234,25 @@ Request handling, input validation, response formatting.
 - Payment URL generation (mock)
 - Optimistic locking prevents overselling
 
-#### OrderService 🚧 (Planned - Phase 6+)
+#### TicketService ✅ (Phase 6)
+
+- List user tickets with status filter & pagination
+- Get ticket details (with ownership validation)
+- Cancel ticket with refund processing
+- Refund status tracking (PENDING → PROCESSING → COMPLETED/FAILED)
+- Status transitions (ACTIVE → CANCELLED → REFUNDED)
+- Seat release on cancellation
+
+#### CancellationService ✅ (Phase 6)
+
+- Time-based refund calculation:
+  - Greater than 48 hours before event: 80% refund
+  - 24-48 hours before event: 50% refund
+  - Less than 24 hours before event: NOT cancellable
+- Refund amount calculation based on ticket price
+- Refund percentage tracking
+
+#### OrderService 🚧 (Planned - Phase 7+)
 
 - Order completion workflow
 - Payment status tracking
@@ -242,21 +260,13 @@ Request handling, input validation, response formatting.
 - Order cancellation & refund initiation
 - Ticket generation completion
 
-#### TicketService 🚧 (Planned - Phase 6+)
-
-- Ticket CRUD & retrieval
-- QR code image generation
-- Ticket check-in validation
-- Refund processing
-- Status transitions (ACTIVE → USED → REFUNDED)
-
-#### SeatAvailabilityService 🚧 (Planned - Phase 6+)
+#### SeatAvailabilityService 🚧 (Planned - Phase 7+)
 - Real-time seat status calculation
 - Seat reservation (15 min temp hold)
 - Seat release on order expiration
 - Seat occupancy tracking per event
 
-#### VoucherService 🚧 (Planned - Phase 6+)
+#### VoucherService 🚧 (Planned - Phase 7+)
 - Voucher CRUD
 - Validity period checking
 - Usage limit enforcement
@@ -611,7 +621,7 @@ Return paginated results with availability
 - Ticket retrieval & QR code endpoints
 - Refund workflows
 
-### Phase 5 (Current - Complete)
+### Phase 5 (Complete)
 
 - ✅ BookingService with transactional guarantees
 - ✅ TicketController with POST /tickets/purchase
@@ -627,7 +637,22 @@ Return paginated results with availability
 - ✅ QR code generation (mock)
 - ✅ Order expiry (15 minutes)
 
-### Phase 6+ (Planned)
+### Phase 6 (Current - Complete)
+
+**Ticket Management & Cancellation:**
+
+- ✅ GET /tickets - List user tickets (status filter, pagination)
+- ✅ GET /tickets/{ticketId} - Get ticket details
+- ✅ PUT /tickets/{ticketId}/cancel - Cancel ticket with refund
+- ✅ CancellationService - Time-based refund policy
+- ✅ TicketService - Ticket retrieval & cancellation
+- ✅ Ownership validation - Users can only view/cancel their own tickets
+- ✅ Seat release - Cancelled tickets increment TicketType.available
+- ✅ Refund tracking - cancellationReason, cancelledAt, refundAmount, refundStatus fields
+- ✅ Ticket entity updates for cancellation workflow
+- ✅ TicketRepository extended with filter methods
+
+### Phase 7+ (Planned)
 
 - Payment gateway integration (Stripe/Paypal)
 - Order status webhooks
@@ -638,6 +663,7 @@ Return paginated results with availability
 - Event series/recurring events
 - Waiting list management
 - Real-time seat availability WebSocket
+- Notification system (Phase 8)
 
 ---
 

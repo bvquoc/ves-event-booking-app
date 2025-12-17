@@ -2,7 +2,7 @@
 
 **Base URL:** `http://localhost:8080/api`
 
-**Version:** Phase 5 - Booking & Payment Flow APIs
+**Version:** Phase 6 - Ticket Management & Cancellation APIs
 
 ---
 
@@ -612,7 +612,239 @@ Retrieve all cities with event count.
 
 ---
 
-## Booking & Ticket Purchase Endpoints
+## Ticket Management Endpoints (Phase 6)
+
+### Base Path: `/tickets`
+
+#### GET /tickets
+
+Retrieve user's tickets with optional status filter and pagination.
+
+**Authentication:** Required (authenticated users only)
+
+**Query Parameters:**
+
+- `status` (enum, optional): Filter by ticket status (ACTIVE, USED, CANCELLED, REFUNDED)
+- `page` (integer, default: 0): Page number for pagination
+- `size` (integer, default: 10): Page size for pagination
+- `sort` (string, default: purchaseDate,desc): Sort field and direction
+
+**Response (200 OK):**
+
+```json
+{
+  "statusCode": 200,
+  "message": "Success",
+  "data": {
+    "content": [
+      {
+        "id": "880e8400-e29b-41d4-a716-446655440000",
+        "orderId": "770e8400-e29b-41d4-a716-446655440000",
+        "eventId": "550e8400-e29b-41d4-a716-446655440000",
+        "eventName": "Tech Conference 2024",
+        "ticketTypeId": "660e8400-e29b-41d4-a716-446655440000",
+        "ticketTypeName": "VIP TICKET",
+        "qrCode": "QR-CODE-123456",
+        "status": "ACTIVE",
+        "purchaseDate": "2024-12-25T16:30:00Z",
+        "seatNumber": "A12"
+      },
+      {
+        "id": "880e8400-e29b-41d4-a716-446655440001",
+        "orderId": "770e8400-e29b-41d4-a716-446655440001",
+        "eventId": "550e8400-e29b-41d4-a716-446655440001",
+        "eventName": "Summer Festival 2025",
+        "ticketTypeId": "660e8400-e29b-41d4-a716-446655440001",
+        "ticketTypeName": "STANDARD TICKET",
+        "qrCode": "QR-CODE-234567",
+        "status": "CANCELLED",
+        "purchaseDate": "2024-12-20T10:15:00Z",
+        "seatNumber": null
+      }
+    ],
+    "page": 0,
+    "size": 10,
+    "totalElements": 25,
+    "totalPages": 3,
+    "hasNext": true
+  }
+}
+```
+
+**Status Codes:**
+
+- 200: Success
+- 401: Unauthorized
+- 500: Server error
+
+---
+
+#### GET /tickets/{ticketId}
+
+Retrieve detailed information about a specific ticket.
+
+**Authentication:** Required (authenticated users only)
+
+**Authorization:** User can only view their own tickets
+
+**Path Parameters:**
+
+- `ticketId` (string, UUID): Ticket ID
+
+**Response (200 OK):**
+
+```json
+{
+  "statusCode": 200,
+  "message": "Success",
+  "data": {
+    "id": "880e8400-e29b-41d4-a716-446655440000",
+    "orderId": "770e8400-e29b-41d4-a716-446655440000",
+    "eventId": "550e8400-e29b-41d4-a716-446655440000",
+    "eventName": "Tech Conference 2024",
+    "eventStartDate": "2025-01-15T09:00:00Z",
+    "ticketTypeId": "660e8400-e29b-41d4-a716-446655440000",
+    "ticketTypeName": "VIP TICKET",
+    "ticketPrice": 500000,
+    "qrCode": "QR-CODE-123456",
+    "qrCodeImage": "https://example.com/qr/QR-CODE-123456.png",
+    "status": "ACTIVE",
+    "purchaseDate": "2024-12-25T16:30:00Z",
+    "checkedInAt": null,
+    "seatId": "990e8400-e29b-41d4-a716-446655440000",
+    "seatNumber": "A12",
+    "sectionName": "VIP Section",
+    "rowName": "A",
+    "cancellationReason": null,
+    "refundAmount": null,
+    "refundStatus": null,
+    "cancelledAt": null
+  }
+}
+```
+
+**Status Codes:**
+
+- 200: Success
+- 401: Unauthorized
+- 403: Forbidden (ticket belongs to another user)
+- 404: Ticket not found
+- 500: Server error
+
+---
+
+#### PUT /tickets/{ticketId}/cancel
+
+Cancel a ticket and process refund based on time-based policy.
+
+**Authentication:** Required (authenticated users only)
+
+**Authorization:** User can only cancel their own tickets
+
+**Path Parameters:**
+
+- `ticketId` (string, UUID): Ticket ID to cancel
+
+**Request Body (optional):**
+
+```json
+{
+  "reason": "Personal reasons"
+}
+```
+
+**Request Fields:**
+
+- `reason` (string, optional): Cancellation reason provided by user
+
+**Response (200 OK):**
+
+```json
+{
+  "statusCode": 200,
+  "message": "Success",
+  "data": {
+    "ticketId": "880e8400-e29b-41d4-a716-446655440000",
+    "status": "CANCELLED",
+    "refundAmount": 400000,
+    "refundPercentage": 80,
+    "refundStatus": "PENDING",
+    "cancelledAt": "2024-12-25T17:00:00Z",
+    "message": "Ticket cancelled successfully. Refund will be processed within 3-5 business days."
+  }
+}
+```
+
+**Refund Policy (Time-based):**
+
+Based on hours remaining until event start:
+
+- Greater than 48 hours: 80% refund
+- 24-48 hours: 50% refund
+- Less than 24 hours: Cannot cancel (returns error 3005)
+
+**Example Calculations:**
+
+If event starts in 60 hours and ticket price is 500,000 VND:
+
+- Refund: 500,000 * 0.80 = 400,000 VND (80% refund)
+
+If event starts in 36 hours and ticket price is 500,000 VND:
+
+- Refund: 500,000 * 0.50 = 250,000 VND (50% refund)
+
+**Response Fields:**
+
+- `ticketId` (UUID): Cancelled ticket ID
+- `status` (enum): CANCELLED
+- `refundAmount` (integer): Calculated refund in currency units
+- `refundPercentage` (integer): Refund percentage (80 or 50)
+- `refundStatus` (enum): PENDING (refund processing status)
+- `cancelledAt` (timestamp): When cancellation was processed
+- `message` (string): Confirmation message
+
+**Side Effects:**
+
+1. Ticket status changes to CANCELLED
+2. TicketType.available incremented (seat released)
+3. Seat association cleared (if applicable)
+4. RefundStatus set to PENDING
+5. Cancellation timestamp recorded
+
+**Status Codes:**
+
+- 200: Cancellation processed successfully
+- 401: Unauthorized
+- 403: Forbidden (ticket belongs to another user)
+- 404: Ticket not found
+- 409: Conflict (ticket already cancelled, used, or refunded)
+- 500: Server error
+
+**Error Examples:**
+
+**Cannot cancel - less than 24 hours:**
+
+```json
+{
+  "statusCode": 409,
+  "message": "Ticket cannot be cancelled",
+  "errorCode": "3005"
+}
+```
+
+**Ticket already cancelled:**
+
+```json
+{
+  "statusCode": 409,
+  "message": "Ticket cannot be cancelled",
+  "errorCode": "3005"
+}
+```
+
+---
+
+## Booking & Ticket Purchase Endpoints (Phase 5)
 
 ### Base Path: `/tickets`
 
@@ -995,13 +1227,16 @@ curl -X GET http://localhost:8080/api/users/my-info \
 
 ## API Versioning
 
-Current API version: **Phase 2 - Reference Data APIs**
+Current API version: **Phase 6 - Ticket Management & Cancellation APIs**
 
 **Version History:**
 - Phase 1: Identity & Access Management
 - Phase 2: Reference Data APIs (Categories, Cities)
 - Phase 3 (Planned): Event Management APIs
-- Phase 4 (Planned): Booking & Order Management
+- Phase 4 (Planned): Order Status Tracking
+- Phase 5: Booking & Ticket Purchase APIs
+- Phase 6 (Current): Ticket Management & Cancellation APIs
+- Phase 7+ (Planned): Payment Gateway Integration
 
 ---
 
@@ -1035,7 +1270,44 @@ GET /users?page=0&size=20&sort=username,asc
 
 ## Changelog
 
-### Phase 5 Updates (Current)
+### Phase 6 Updates (Current)
+
+**New Ticket Management Endpoints:**
+
+- NEW: GET /tickets - List user tickets with status filter & pagination
+- NEW: GET /tickets/{ticketId} - Get ticket details (ownership validated)
+- NEW: PUT /tickets/{ticketId}/cancel - Cancel ticket with refund
+
+**New Services:**
+
+- NEW: TicketService - Ticket retrieval & cancellation operations
+- NEW: CancellationService - Time-based refund calculation
+  - 80% refund: >48 hours before event
+  - 50% refund: 24-48 hours before event
+  - Not cancellable: <24 hours before event
+
+**Ticket Entity Enhancements:**
+
+- NEW: cancellationReason (string) - User-provided cancellation reason
+- NEW: cancelledAt (LocalDateTime) - Cancellation timestamp
+- NEW: refundAmount (integer) - Calculated refund in currency units
+- NEW: refundStatus (RefundStatus enum) - Refund processing status
+
+**Business Logic Implementation:**
+
+- NEW: Ownership validation - Users can only view/cancel their own tickets
+- NEW: Seat release on cancellation - TicketType.available incremented
+- NEW: Refund status tracking (PENDING → PROCESSING → COMPLETED/FAILED)
+- NEW: TicketRepository extended with filter methods
+
+**DTOs:**
+
+- NEW: CancellationResponse - Cancellation result with refund details
+- NEW: TicketResponse - List view of tickets with status
+- NEW: TicketDetailResponse - Detailed ticket information
+- NEW: CancelTicketRequest - Cancellation request with optional reason
+
+### Phase 5 Updates
 
 - NEW: POST /tickets/purchase (authenticated)
 - NEW: Transactional booking with SERIALIZABLE isolation
@@ -1050,9 +1322,6 @@ GET /users?page=0&size=20&sort=username,asc
 - NEW: VoucherRepository for code lookups
 - NEW: BookingService with transactional guarantees
 - NEW: OrderMapper for Entity ↔ DTO conversion
-- MODIFIED: TicketType entity added @Version for optimistic locking
-- CHANGED: PurchaseRequest DTO with seat selection support
-- CHANGED: OrderResponse includes payment details
 
 ### Phase 2 Updates
 

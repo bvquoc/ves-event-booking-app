@@ -594,6 +594,86 @@ Refund tracking separate from ticket (clean separation).
 
 ---
 
+## Implementation Phases
+
+### Phase 1 (Complete)
+
+- ✅ 24 core database entities with relationships
+- ✅ 7 enums for status management
+- ✅ Identity & Access Management (IAM)
+- ✅ Strategic indexes on frequently queried columns
+
+### Phase 2 (Complete)
+
+- ✅ CategoryService with event counts (single JOIN query)
+- ✅ CityService with event counts
+- ✅ Public GET /categories endpoint
+- ✅ Public GET /cities endpoint
+- ✅ Performance optimized (N+1 query prevention)
+
+### Phase 3 (Planned)
+
+- Event Management APIs (CRUD, search, filtering)
+- Event discovery endpoints
+- Trending events functionality
+- Event filtering by category, city, date range
+
+### Phase 4 (Planned)
+
+- Order status tracking APIs
+- Ticket retrieval & QR code endpoints
+- Refund workflows
+
+### Phase 5 (Complete)
+
+- ✅ BookingService with transactional guarantees
+- ✅ TicketController with POST /tickets/purchase
+- ✅ SERIALIZABLE transaction isolation
+- ✅ Optimistic locking (@Version on TicketType)
+- ✅ Seat reservation logic (PENDING → SOLD)
+- ✅ Voucher validation & discount calculation
+- ✅ Mock payment URL & QR code generation
+- ✅ Order expiry (15 minutes for PENDING orders)
+
+### Phase 6 (Current - Complete)
+
+**Ticket Management & Cancellation:**
+
+- ✅ GET /tickets - List user tickets with status filter & pagination
+- ✅ GET /tickets/{ticketId} - Get ticket details
+- ✅ PUT /tickets/{ticketId}/cancel - Cancel ticket with refund
+- ✅ CancellationService - Refund calculation (time-based policy)
+- ✅ TicketService - Ticket management operations
+- ✅ Ownership validation - Users can only view/cancel their own tickets
+- ✅ Seat release - Cancelled tickets release seats to inventory
+- ✅ Available count increment - TicketType.available incremented on cancellation
+
+**Refund Policy (Time-based):**
+
+- Greater than 48 hours before event: 80% refund
+- 24-48 hours before event: 50% refund
+- Less than 24 hours before event: NOT cancellable
+
+**New Fields in Ticket Entity:**
+
+- cancellationReason (string)
+- cancelledAt (LocalDateTime)
+- refundAmount (integer)
+- refundStatus (RefundStatus enum: PENDING, PROCESSING, COMPLETED, FAILED)
+
+### Phase 7+ (Planned)
+
+- Payment gateway integration (Stripe/Paypal)
+- Order status webhooks
+- Ticket QR code image generation
+- Organizer entity & management
+- Advanced audit logging
+- Soft delete support
+- Event series/recurring events
+- Waiting list management
+- Real-time seat availability WebSocket
+- Notification system (Phase 8)
+
 ## Future Enhancements
 
 - Organizer entity (currently string organizerId)
