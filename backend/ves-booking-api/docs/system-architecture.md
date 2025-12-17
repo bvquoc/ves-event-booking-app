@@ -1,0 +1,534 @@
+# VES Booking API - System Architecture
+
+**Phase 1: Foundation & Core Entities - Complete**
+
+---
+
+## High-Level Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     CLIENT LAYER                             │
+│  (Web, Mobile, Admin Portal)                                 │
+└────────────────────┬────────────────────────────────────────┘
+                     │ HTTP/REST
+┌────────────────────▼────────────────────────────────────────┐
+│                  API LAYER                                   │
+│  Spring Boot 3.2.2 Application                              │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │ Controllers                                          │   │
+│  │ ├── AuthenticationController ✅ (Auth endpoints)     │   │
+│  │ ├── UserController ✅ (User management)              │   │
+│  │ ├── RoleController ✅ (Role RBAC)                    │   │
+│  │ ├── PermissionController ✅                          │   │
+│  │ ├── EventController 🚧 (Event CRUD)                 │   │
+│  │ ├── OrderController 🚧 (Order management)            │   │
+│  │ ├── TicketController 🚧 (Ticket operations)          │   │
+│  │ ├── VoucherController 🚧                             │   │
+│  │ └── NotificationController 🚧                        │   │
+│  └──────────────────────────────────────────────────────┘   │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │ Security Layer                                       │   │
+│  │ ├── JWT Authentication (OAuth2 Resource Server)     │   │
+│  │ ├── Role-Based Access Control (RBAC)                │   │
+│  │ ├── Request Validation & Sanitization               │   │
+│  │ └── Token Introspection & Refresh                    │   │
+│  └──────────────────────────────────────────────────────┘   │
+└────────────────────┬────────────────────────────────────────┘
+                     │
+┌────────────────────▼────────────────────────────────────────┐
+│                  SERVICE LAYER                               │
+│  Business Logic & Domain Services                           │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │ Authentication & Security                           │   │
+│  │ ├── AuthenticationService ✅                         │   │
+│  │ ├── JwtTokenProvider                                │   │
+│  │ └── PasswordEncoder (BCrypt)                         │   │
+│  └──────────────────────────────────────────────────────┘   │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │ User & Access Management                            │   │
+│  │ ├── UserService ✅                                   │   │
+│  │ ├── RoleService ✅                                   │   │
+│  │ └── PermissionService ✅                             │   │
+│  └──────────────────────────────────────────────────────┘   │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │ Event Management 🚧                                  │   │
+│  │ ├── EventService                                    │   │
+│  │ ├── CategoryService                                 │   │
+│  │ ├── CityService                                     │   │
+│  │ └── VenueService                                    │   │
+│  └──────────────────────────────────────────────────────┘   │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │ Booking & Ticket Management 🚧                       │   │
+│  │ ├── OrderService                                    │   │
+│  │ ├── TicketService                                   │   │
+│  │ ├── TicketTypeService                               │   │
+│  │ ├── SeatAvailabilityService                          │   │
+│  │ └── QRCodeGeneratorService                           │   │
+│  └──────────────────────────────────────────────────────┘   │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │ Promotions & Discounts 🚧                            │   │
+│  │ ├── VoucherService                                  │   │
+│  │ ├── VoucherValidationService                         │   │
+│  │ └── DiscountCalculationService                       │   │
+│  └──────────────────────────────────────────────────────┘   │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │ User Experience 🚧                                   │   │
+│  │ ├── NotificationService                             │   │
+│  │ ├── FavoriteService                                 │   │
+│  │ └── UserVoucherService                               │   │
+│  └──────────────────────────────────────────────────────┘   │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │ Cross-cutting Concerns                              │   │
+│  │ ├── ValidationService                               │   │
+│  │ ├── NotificationPublisher                            │   │
+│  │ └── ErrorHandler                                    │   │
+│  └──────────────────────────────────────────────────────┘   │
+└────────────────────┬────────────────────────────────────────┘
+                     │
+┌────────────────────▼────────────────────────────────────────┐
+│              REPOSITORY LAYER (Data Access)                  │
+│  JPA/Hibernate Spring Data Repositories                     │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │ Identity Repositories                               │   │
+│  │ ├── UserRepository ✅                                │   │
+│  │ ├── RoleRepository ✅                                │   │
+│  │ ├── PermissionRepository ✅                          │   │
+│  │ └── InvalidatedTokenRepository ✅                    │   │
+│  └──────────────────────────────────────────────────────┘   │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │ Event Repositories 🚧                                │   │
+│  │ ├── EventRepository                                 │   │
+│  │ ├── CategoryRepository                              │   │
+│  │ ├── CityRepository                                  │   │
+│  │ └── VenueRepository                                 │   │
+│  └──────────────────────────────────────────────────────┘   │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │ Booking Repositories 🚧                              │   │
+│  │ ├── OrderRepository                                 │   │
+│  │ ├── TicketRepository                                │   │
+│  │ ├── TicketTypeRepository                             │   │
+│  │ └── SeatRepository                                  │   │
+│  └──────────────────────────────────────────────────────┘   │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │ Promotion Repositories 🚧                            │   │
+│  │ ├── VoucherRepository                               │   │
+│  │ └── UserVoucherRepository                            │   │
+│  └──────────────────────────────────────────────────────┘   │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │ User Preference Repositories 🚧                      │   │
+│  │ ├── FavoriteRepository                              │   │
+│  │ └── NotificationRepository                          │   │
+│  └──────────────────────────────────────────────────────┘   │
+└────────────────────┬────────────────────────────────────────┘
+                     │
+┌────────────────────▼────────────────────────────────────────┐
+│                 DATABASE LAYER                               │
+│  MySQL 8.0                                                  │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │ 24 Tables with Strategic Indexes                     │   │
+│  │ ├── Identity Management (6 tables + mappings)        │   │
+│  │ ├── Event Management (4 tables + collections)        │   │
+│  │ ├── Booking & Tickets (4 tables)                     │   │
+│  │ ├── Promotions (2 tables)                            │   │
+│  │ ├── User Preferences (2 tables)                      │   │
+│  │ └── System (1 table)                                 │   │
+│  └──────────────────────────────────────────────────────┘   │
+└────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Component Details
+
+### 1. API Layer
+
+#### Controllers (Spring MVC)
+Request handling, input validation, response formatting.
+
+**Implemented:**
+- AuthenticationController - Login, refresh, introspect, logout
+- UserController - CRUD user operations
+- RoleController - Role management
+- PermissionController - Permission management
+
+**To Implement:**
+- EventController - Event discovery, search, details
+- OrderController - Order creation, status tracking
+- TicketController - Ticket details, QR codes, check-in
+- VoucherController - Voucher discovery, validation
+- NotificationController - Notification retrieval, marking read
+
+#### Security & Validation
+- JWT token extraction from Authorization header
+- RBAC enforcement via @PreAuthorize annotations
+- Input validation using Jakarta Validation
+- Custom validators for business logic
+- Exception handling & standardized error responses
+
+### 2. Service Layer
+
+#### AuthenticationService ✅
+- User login with username/password
+- Token generation (Access + Refresh tokens)
+- Token validation & introspection
+- Token refresh mechanism
+- Logout & token invalidation
+- Password verification using BCrypt
+
+#### UserService ✅
+- CRUD operations
+- Profile management
+- Batch operations
+- Role assignment
+- Active/inactive status
+
+#### RoleService ✅
+- Role creation & deletion
+- Permission assignment
+- Predefined roles initialization (ADMIN, USER)
+
+#### PermissionService ✅
+- Permission CRUD
+- Permission codes & descriptions
+
+#### EventService 🚧 (Planned)
+- Event CRUD operations
+- Event publishing workflow
+- Search & filtering (category, city, date range, trending)
+- Event capacity validation
+- Slug generation & uniqueness
+
+#### TicketTypeService 🚧 (Planned)
+- Ticket type management
+- Availability tracking
+- Price management
+- Seat requirement validation
+
+#### OrderService 🚧 (Planned)
+- Order creation with transaction management
+- Payment status tracking
+- Order expiration (15+ min timeout)
+- Order cancellation & refund initiation
+- Ticket generation from completed orders
+
+#### TicketService 🚧 (Planned)
+- Ticket CRUD
+- QR code generation & storage
+- Ticket check-in validation
+- Refund processing
+- Status transitions (ACTIVE → USED → REFUNDED)
+
+#### SeatAvailabilityService 🚧 (Planned)
+- Real-time seat status calculation
+- Seat reservation (15 min temp hold)
+- Seat release on order expiration
+- Seat occupancy tracking per event
+
+#### VoucherService 🚧 (Planned)
+- Voucher CRUD
+- Validity period checking
+- Usage limit enforcement
+- Event/category applicability
+- Discount calculation (fixed/percentage)
+- User voucher assignment
+
+#### NotificationService 🚧 (Planned)
+- Notification creation
+- Notification retrieval & filtering
+- Mark as read
+- Notification type handling (TICKET_PURCHASED, EVENT_REMINDER, etc.)
+- Scheduled reminders (24h before event)
+
+### 3. Repository Layer
+
+**Data Access Objects using Spring Data JPA**
+
+All repositories extend JpaRepository for standard CRUD + pagination support.
+
+**Custom Query Methods:**
+- findByUsername, findByEmail (User)
+- findBySlug (Event, Category, City)
+- findByCode (Voucher)
+- findByUserAndStatus (Order filtering)
+- findByEventAndStartDateBetween (Event search)
+- etc.
+
+### 4. Database Layer
+
+24 tables organized by domain:
+
+**Identity (6 tables):**
+- user, role, permission
+- user_role, role_permission (M:M mappings)
+- invalidated_token
+
+**Events (4 + collections):**
+- event (+ event_images, event_tags)
+- category, city, venue, seat
+
+**Bookings (4 tables):**
+- order, ticket, ticket_type, (+ ticket_type_benefits)
+
+**Promotions (2 tables):**
+- voucher (+ applicable_events, applicable_categories)
+- user_voucher
+
+**Preferences (2 tables):**
+- favorite, notification (+ notification_data)
+
+---
+
+## Key Architectural Patterns
+
+### 1. Layered Architecture
+Clean separation: Controller → Service → Repository → Database
+- Controllers handle HTTP
+- Services contain business logic
+- Repositories abstract data access
+- Entities define data models
+
+### 2. Dependency Injection (Spring)
+Constructor injection for testability & immutability.
+
+### 3. Data Transfer Objects (DTOs)
+Request & response DTOs separate external API contracts from internal models.
+MapStruct for automatic mapping between entities & DTOs.
+
+### 4. Repository Pattern
+Abstraction layer for data access. Supports testing with in-memory implementations.
+
+### 5. Service-Oriented Architecture
+Services encapsulate domain logic. Easy to test, reuse, and maintain.
+
+### 6. JWT-based Stateless Authentication
+No session storage. Scalable across multiple instances.
+Token structure: Header.Payload.Signature
+- Payload contains user ID, roles, permissions
+- Signature verified using secret key
+- Refresh tokens enable long sessions
+
+### 7. Role-Based Access Control (RBAC)
+- Users assigned to Roles
+- Roles have Permissions
+- @PreAuthorize("hasRole('ADMIN')") for endpoint security
+
+### 8. Error Handling Strategy
+- Centralized exception handling via @ControllerAdvice
+- Standardized error response format
+- Error codes mapped to HTTP status codes
+- Messages support parameterization
+
+---
+
+## Data Flow Examples
+
+### Authentication Flow
+```
+Client Login (username, password)
+    ↓
+AuthenticationController.login()
+    ↓
+AuthenticationService.authenticate()
+    ↓
+UserRepository.findByUsername()
+    ↓
+Password validation (BCrypt)
+    ↓
+JWT token generation
+    ↓
+Return {accessToken, refreshToken, expiresIn}
+```
+
+### Event Booking Flow (Future)
+```
+User selects event & ticket type
+    ↓
+OrderController.createOrder()
+    ↓
+OrderService.create()
+    ├─ Validate ticket availability
+    ├─ Reserve seats (if needed)
+    ├─ Calculate price with voucher discount
+    └─ Create Order (status: PENDING)
+    ↓
+Return payment URL
+    ↓
+User completes payment
+    ↓
+Payment webhook callback
+    ↓
+OrderService.completeOrder()
+    ├─ Confirm seat reservations
+    ├─ Generate QR codes
+    ├─ Create Ticket entities
+    ├─ Send confirmation notification
+    └─ Update Order status: COMPLETED
+    ↓
+User receives tickets with QR codes
+```
+
+### Event Discovery Flow (Future)
+```
+User searches events (category, city, date, keyword)
+    ↓
+EventController.search()
+    ↓
+EventService.search()
+    ├─ Filter by category_id
+    ├─ Filter by city_id
+    ├─ Filter by startDate range
+    ├─ Full-text search on name/description
+    └─ Sort by trending, startDate
+    ↓
+EventRepository.findByCriteria()
+    ↓
+Return paginated results with availability
+```
+
+---
+
+## Technical Constraints & Decisions
+
+### 1. UUID for Primary Keys
+- **Reason:** Distributed system readiness, no sequential ID leakage
+- **Trade-off:** Larger indexes, slightly slower queries
+- **Mitigation:** Strategic indexes on frequently queried columns
+
+### 2. MySQL over NoSQL
+- **Reason:** Relational data, ACID compliance needed, complex queries
+- **Use Cases:** User-Role relationships, Order-Ticket-Seat relationships
+
+### 3. JPA/Hibernate
+- **Reason:** Standard Java ORM, reduces boilerplate SQL
+- **Trade-off:** Less control over exact SQL, potential N+1 queries
+- **Mitigation:** Proper fetch strategies, query optimization
+
+### 4. JWT Stateless Auth
+- **Reason:** Scalability, no session replication needed
+- **Trade-off:** Cannot immediately invalidate token (use blacklist)
+- **Solution:** InvalidatedToken table for logout support
+
+### 5. Enum-based Error Codes
+- **Reason:** Type safety, prevents invalid codes
+- **Structure:** Range-based categorization (1xxx, 2xxx, etc.)
+
+### 6. Element Collections over Separate Tables
+- **Reason:** Simplify schema for small variable collections (tags, benefits)
+- **Trade-off:** Cannot query element values directly
+- **Mitigation:** Prefer separate tables if complex querying needed
+
+---
+
+## Security Architecture
+
+### Authentication
+1. Credentials validated against user table (BCrypt password)
+2. JWT token generated (user ID, roles, permissions in payload)
+3. Token signed with private key
+4. Token returned to client
+
+### Authorization
+1. Token sent in Authorization: Bearer <token> header
+2. TokenProvider validates signature
+3. Payload extracted (user ID, roles, permissions)
+4. @PreAuthorize checks role/permission
+
+### Password Security
+- BCrypt with strength 10 (rounds)
+- Salted hashing
+- Never stored in plaintext
+
+### Token Security
+- HTTPS/TLS in production
+- Access tokens: 1 hour expiry
+- Refresh tokens: 10 hours expiry
+- Blacklist for logout support
+
+### Input Validation
+- Jakarta Validation annotations (@NotNull, @Email, etc.)
+- Custom validators for business rules
+- Sanitization of string inputs
+
+---
+
+## Performance Considerations
+
+### Database Indexes
+- Event: slug (unique), startDate, category_id
+- Order: user_id, status
+- Notification: user_id, isRead
+- Voucher: code (unique)
+
+### Query Optimization
+- Lazy loading for relationships (avoid N+1)
+- Select specific columns when possible
+- Pagination for large result sets
+
+### Caching (Future)
+- User roles/permissions caching
+- Event metadata caching
+- Voucher validity caching
+
+### Connection Pooling
+- HikariCP (default in Spring Boot)
+- Configurable pool size based on load
+
+---
+
+## Deployment Architecture
+
+### Local Development
+- MySQL in Docker (docker-compose)
+- Spring Boot with hot reload
+- H2 in-memory for unit tests
+
+### Production
+- MySQL in managed service (AWS RDS, Azure, GCP)
+- Spring Boot JAR deployment
+- Docker containerization
+- Load balancing for horizontal scaling
+- Environment-based configuration
+
+---
+
+## API Response Format
+
+### Success Response
+```json
+{
+  "statusCode": 200,
+  "message": "Operation successful",
+  "data": {}
+}
+```
+
+### Error Response
+```json
+{
+  "statusCode": 400,
+  "message": "Field validation failed",
+  "errorCode": "INVALID_KEY",
+  "errors": [
+    {
+      "field": "email",
+      "message": "Invalid email format"
+    }
+  ]
+}
+```
+
+---
+
+## Future Enhancements
+
+1. **Event Recommendations** - ML-based personalization
+2. **Real-time Notifications** - WebSocket integration
+3. **Payment Gateway Integration** - Stripe, PayPal
+4. **Advanced Analytics** - Event performance, user behavior
+5. **Social Features** - Reviews, ratings, sharing
+6. **Organizer Platform** - Event management dashboard
+7. **Refund Workflows** - Automated refund processing
+8. **Queue Management** - High-traffic event bookings
+9. **Caching Layer** - Redis for performance
+10. **Message Queue** - RabbitMQ/Kafka for async processing
