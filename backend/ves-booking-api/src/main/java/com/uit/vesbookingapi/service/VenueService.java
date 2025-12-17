@@ -1,16 +1,15 @@
 package com.uit.vesbookingapi.service;
 
+import com.uit.vesbookingapi.dto.request.VenueRequest;
 import com.uit.vesbookingapi.dto.response.*;
+import com.uit.vesbookingapi.entity.City;
 import com.uit.vesbookingapi.entity.Seat;
 import com.uit.vesbookingapi.entity.Venue;
 import com.uit.vesbookingapi.enums.SeatStatus;
 import com.uit.vesbookingapi.exception.AppException;
 import com.uit.vesbookingapi.exception.ErrorCode;
 import com.uit.vesbookingapi.mapper.VenueMapper;
-import com.uit.vesbookingapi.repository.EventRepository;
-import com.uit.vesbookingapi.repository.SeatRepository;
-import com.uit.vesbookingapi.repository.TicketTypeRepository;
-import com.uit.vesbookingapi.repository.VenueRepository;
+import com.uit.vesbookingapi.repository.*;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -30,6 +29,7 @@ public class VenueService {
     SeatRepository seatRepository;
     EventRepository eventRepository;
     TicketTypeRepository ticketTypeRepository;
+    CityRepository cityRepository;
     VenueMapper venueMapper;
 
     public List<VenueResponse> getAllVenues() {
@@ -42,6 +42,45 @@ public class VenueService {
         Venue venue = venueRepository.findById(venueId)
                 .orElseThrow(() -> new AppException(ErrorCode.VENUE_NOT_FOUND));
         return venueMapper.toVenueResponse(venue);
+    }
+
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('ADMIN')")
+    @org.springframework.transaction.annotation.Transactional
+    public VenueResponse createVenue(VenueRequest request) {
+        // Validate city exists
+        City city = cityRepository.findById(request.getCityId())
+                .orElseThrow(() -> new AppException(ErrorCode.CITY_NOT_FOUND));
+
+        Venue venue = venueMapper.toVenue(request);
+        venue.setCity(city);
+
+        venue = venueRepository.save(venue);
+        return venueMapper.toVenueResponse(venue);
+    }
+
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('ADMIN')")
+    @org.springframework.transaction.annotation.Transactional
+    public VenueResponse updateVenue(String venueId, VenueRequest request) {
+        Venue venue = venueRepository.findById(venueId)
+                .orElseThrow(() -> new AppException(ErrorCode.VENUE_NOT_FOUND));
+
+        // Validate city exists
+        City city = cityRepository.findById(request.getCityId())
+                .orElseThrow(() -> new AppException(ErrorCode.CITY_NOT_FOUND));
+
+        venueMapper.updateVenue(venue, request);
+        venue.setCity(city);
+
+        venue = venueRepository.save(venue);
+        return venueMapper.toVenueResponse(venue);
+    }
+
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('ADMIN')")
+    public void deleteVenue(String venueId) {
+        if (!venueRepository.existsById(venueId)) {
+            throw new AppException(ErrorCode.VENUE_NOT_FOUND);
+        }
+        venueRepository.deleteById(venueId);
     }
 
     public VenueSeatingResponse getVenueSeating(String venueId, String eventId) {
