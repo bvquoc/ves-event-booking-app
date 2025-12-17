@@ -1,7 +1,6 @@
 package com.uit.vesbookingapi.service;
 
 import com.uit.vesbookingapi.dto.response.TicketTypeResponse;
-import com.uit.vesbookingapi.entity.Event;
 import com.uit.vesbookingapi.exception.AppException;
 import com.uit.vesbookingapi.exception.ErrorCode;
 import com.uit.vesbookingapi.mapper.TicketTypeMapper;
@@ -24,12 +23,12 @@ public class TicketTypeService {
     TicketTypeRepository ticketTypeRepository;
     EventRepository eventRepository;
     TicketTypeMapper ticketTypeMapper;
-    
+
     public List<TicketTypeResponse> getTicketTypesByEvent(String eventId) {
         if (!eventRepository.existsById(eventId)) {
             throw new AppException(ErrorCode.EVENT_NOT_FOUND);
         }
-        
+
         return ticketTypeRepository.findByEventId(eventId).stream()
                 .map(ticketTypeMapper::toTicketTypeResponse)
                 .collect(Collectors.toList());

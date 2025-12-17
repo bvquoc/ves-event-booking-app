@@ -1,19 +1,17 @@
 package com.uit.vesbookingapi.service;
 
-import java.util.List;
-
-import org.springframework.stereotype.Service;
-
 import com.uit.vesbookingapi.dto.request.PermissionRequest;
 import com.uit.vesbookingapi.dto.response.PermissionResponse;
 import com.uit.vesbookingapi.entity.Permission;
 import com.uit.vesbookingapi.mapper.PermissionMapper;
 import com.uit.vesbookingapi.repository.PermissionRepository;
-
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor

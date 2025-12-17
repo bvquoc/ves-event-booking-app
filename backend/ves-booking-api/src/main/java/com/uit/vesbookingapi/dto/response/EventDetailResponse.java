@@ -35,7 +35,7 @@ public class EventDetailResponse {
     String cancellationPolicy;
     List<String> tags;
     List<TicketTypeResponse> ticketTypes;
-    
+
     // Calculated fields
     Integer minPrice;
     Integer maxPrice;

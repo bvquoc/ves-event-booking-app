@@ -11,7 +11,7 @@ public interface TicketTypeMapper {
     @Mapping(target = "event", ignore = true)
     @Mapping(target = "id", ignore = true)
     TicketType toTicketType(TicketTypeRequest request);
-    
+
     TicketTypeResponse toTicketTypeResponse(TicketType ticketType);
 }
 

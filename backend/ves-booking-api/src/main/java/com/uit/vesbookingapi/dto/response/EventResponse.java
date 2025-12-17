@@ -29,7 +29,7 @@ public class EventResponse {
     String organizerName;
     String organizerLogo;
     List<String> tags;
-    
+
     // Calculated fields
     Integer minPrice;
     Integer maxPrice;

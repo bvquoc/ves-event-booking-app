@@ -12,9 +12,9 @@ import java.util.Optional;
 @Repository
 public interface FavoriteRepository extends JpaRepository<Favorite, String> {
     Optional<Favorite> findByUserIdAndEventId(String userId, String eventId);
-    
+
     boolean existsByUserIdAndEventId(String userId, String eventId);
-    
+
     @Query("SELECT f.event.id FROM Favorite f WHERE f.user.id = :userId")
     List<String> findEventIdsByUserId(@Param("userId") String userId);
 }

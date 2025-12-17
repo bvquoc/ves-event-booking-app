@@ -22,16 +22,16 @@ import org.springframework.web.filter.CorsFilter;
 @EnableMethodSecurity
 public class SecurityConfig {
     private final String[] PUBLIC_ENDPOINTS = {
-        "/users", "/auth/token", "/auth/introspect", "/auth/logout", "/auth/refresh"
+            "/users", "/auth/token", "/auth/introspect", "/auth/logout", "/auth/refresh"
     };
 
     private final String[] PUBLIC_GET_ENDPOINTS = {
-        "/categories", "/cities", "/events", "/events/**"
+            "/categories", "/cities", "/events", "/events/**"
     };
 
     // Swagger/OpenAPI endpoints
     private final String[] SWAGGER_ENDPOINTS = {
-        "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/swagger-resources/**", "/webjars/**"
+            "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/swagger-resources/**", "/webjars/**"
     };
 
     @Autowired

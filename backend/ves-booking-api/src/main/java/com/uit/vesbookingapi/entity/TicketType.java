@@ -3,6 +3,7 @@ package com.uit.vesbookingapi.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+
 import java.util.List;
 
 @Getter

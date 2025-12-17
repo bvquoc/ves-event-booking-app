@@ -1,13 +1,12 @@
 package com.uit.vesbookingapi.mapper;
 
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.MappingTarget;
-
 import com.uit.vesbookingapi.dto.request.UserCreationRequest;
 import com.uit.vesbookingapi.dto.request.UserUpdateRequest;
 import com.uit.vesbookingapi.dto.response.UserResponse;
 import com.uit.vesbookingapi.entity.User;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 
 @Mapper(componentModel = "spring")
 public interface UserMapper {

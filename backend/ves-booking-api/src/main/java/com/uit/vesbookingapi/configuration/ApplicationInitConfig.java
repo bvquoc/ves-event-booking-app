@@ -1,37 +1,23 @@
 package com.uit.vesbookingapi.configuration;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-
+import com.uit.vesbookingapi.constant.PredefinedRole;
+import com.uit.vesbookingapi.entity.*;
+import com.uit.vesbookingapi.repository.*;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
+import lombok.experimental.NonFinal;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import com.uit.vesbookingapi.constant.PredefinedRole;
-import com.uit.vesbookingapi.entity.Category;
-import com.uit.vesbookingapi.entity.City;
-import com.uit.vesbookingapi.entity.Event;
-import com.uit.vesbookingapi.entity.Role;
-import com.uit.vesbookingapi.entity.TicketType;
-import com.uit.vesbookingapi.entity.User;
-import com.uit.vesbookingapi.entity.Venue;
-import com.uit.vesbookingapi.repository.CategoryRepository;
-import com.uit.vesbookingapi.repository.CityRepository;
-import com.uit.vesbookingapi.repository.EventRepository;
-import com.uit.vesbookingapi.repository.RoleRepository;
-import com.uit.vesbookingapi.repository.TicketTypeRepository;
-import com.uit.vesbookingapi.repository.UserRepository;
-import com.uit.vesbookingapi.repository.VenueRepository;
-
-import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.FieldDefaults;
-import lombok.experimental.NonFinal;
-import lombok.extern.slf4j.Slf4j;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 
 @Configuration
 @RequiredArgsConstructor
@@ -110,7 +96,7 @@ public class ApplicationInitConfig {
                 //
                 // Current implementation uses Material Icons identifiers
                 // Frontend should render: <i class="material-icons">{icon}</i>
-                
+
                 categoryRepository.save(Category.builder()
                         .name("Thể thao")
                         .slug("the-thao")
@@ -164,28 +150,28 @@ public class ApplicationInitConfig {
                 List<City> cities = cityRepository.findAll();
                 City hcmCity = cities.stream().filter(c -> c.getSlug().equals("ho-chi-minh")).findFirst().orElse(cities.get(0));
                 City hanoiCity = cities.stream().filter(c -> c.getSlug().equals("hanoi")).findFirst().orElse(cities.get(0));
-                
+
                 venues.add(venueRepository.save(Venue.builder()
                         .name("Nhà hát Thành phố Hồ Chí Minh")
                         .address("7 Công Trường Lam Sơn, Bến Nghé, Quận 1, Hồ Chí Minh")
                         .capacity(2000)
                         .city(hcmCity)
                         .build()));
-                
+
                 venues.add(venueRepository.save(Venue.builder()
                         .name("Sân vận động Quốc gia Mỹ Đình")
                         .address("Mỹ Đình, Nam Từ Liêm, Hà Nội")
                         .capacity(40000)
                         .city(hanoiCity)
                         .build()));
-                
+
                 venues.add(venueRepository.save(Venue.builder()
                         .name("Trung tâm Hội nghị Quốc gia")
                         .address("57 Phạm Hùng, Mỹ Đình, Nam Từ Liêm, Hà Nội")
                         .capacity(3500)
                         .city(hanoiCity)
                         .build()));
-                
+
                 log.info("Seeded 3 venues");
             } else {
                 venues = venueRepository.findAll();
@@ -195,19 +181,19 @@ public class ApplicationInitConfig {
             if (eventRepository.count() == 0) {
                 List<Category> categories = categoryRepository.findAll();
                 List<City> cities = cityRepository.findAll();
-                
+
                 Category sportsCategory = categories.stream().filter(c -> c.getSlug().equals("the-thao")).findFirst().orElse(categories.get(0));
                 Category musicCategory = categories.stream().filter(c -> c.getSlug().equals("hoa-nhac")).findFirst().orElse(categories.get(0));
                 Category theaterCategory = categories.stream().filter(c -> c.getSlug().equals("san-khau-kich")).findFirst().orElse(categories.get(0));
-                
+
                 City hcmCity = cities.stream().filter(c -> c.getSlug().equals("ho-chi-minh")).findFirst().orElse(cities.get(0));
                 City hanoiCity = cities.stream().filter(c -> c.getSlug().equals("hanoi")).findFirst().orElse(cities.get(0));
-                
+
                 Venue hcmVenue = venues.stream().filter(v -> v.getName().contains("Hồ Chí Minh")).findFirst().orElse(venues.isEmpty() ? null : venues.get(0));
                 Venue hanoiVenue = venues.stream().filter(v -> v.getName().contains("Mỹ Đình")).findFirst().orElse(venues.isEmpty() ? null : venues.get(0));
-                
+
                 LocalDateTime now = LocalDateTime.now();
-                
+
                 // Event 1: Football Match
                 Event event1 = Event.builder()
                         .name("Trận đấu bóng đá: Việt Nam vs Thái Lan")
@@ -232,7 +218,7 @@ public class ApplicationInitConfig {
                         .tags(List.of("bóng đá", "thể thao", "quốc tế", "giao hữu"))
                         .build();
                 event1 = eventRepository.save(event1);
-                
+
                 // Ticket types for event1
                 ticketTypeRepository.save(TicketType.builder()
                         .event(event1)
@@ -245,7 +231,7 @@ public class ApplicationInitConfig {
                         .benefits(List.of("Chỗ ngồi tốt nhất", "Đồ uống miễn phí", "Parking miễn phí"))
                         .requiresSeatSelection(true)
                         .build());
-                
+
                 ticketTypeRepository.save(TicketType.builder()
                         .event(event1)
                         .name("Vé Thường")
@@ -257,7 +243,7 @@ public class ApplicationInitConfig {
                         .benefits(List.of("Xem trận đấu trực tiếp"))
                         .requiresSeatSelection(true)
                         .build());
-                
+
                 // Event 2: Concert
                 Event event2 = Event.builder()
                         .name("Đêm nhạc Sơn Tùng M-TP")
@@ -282,7 +268,7 @@ public class ApplicationInitConfig {
                         .tags(List.of("nhạc pop", "Sơn Tùng", "concert", "giải trí"))
                         .build();
                 event2 = eventRepository.save(event2);
-                
+
                 ticketTypeRepository.save(TicketType.builder()
                         .event(event2)
                         .name("Vé VIP")
@@ -294,7 +280,7 @@ public class ApplicationInitConfig {
                         .benefits(List.of("Chỗ ngồi gần sân khấu", "Meet & Greet", "Áo thun độc quyền"))
                         .requiresSeatSelection(true)
                         .build());
-                
+
                 ticketTypeRepository.save(TicketType.builder()
                         .event(event2)
                         .name("Vé Thường")
@@ -306,7 +292,7 @@ public class ApplicationInitConfig {
                         .benefits(List.of("Xem concert trực tiếp"))
                         .requiresSeatSelection(true)
                         .build());
-                
+
                 // Event 3: Theater
                 Event event3 = Event.builder()
                         .name("Vở kịch: Chuyện tình Romeo và Juliet")
@@ -331,7 +317,7 @@ public class ApplicationInitConfig {
                         .tags(List.of("kịch", "Shakespeare", "nghệ thuật", "văn hóa"))
                         .build();
                 event3 = eventRepository.save(event3);
-                
+
                 ticketTypeRepository.save(TicketType.builder()
                         .event(event3)
                         .name("Vé VIP")
@@ -343,7 +329,7 @@ public class ApplicationInitConfig {
                         .benefits(List.of("Chỗ ngồi tốt nhất", "Tài liệu chương trình"))
                         .requiresSeatSelection(true)
                         .build());
-                
+
                 ticketTypeRepository.save(TicketType.builder()
                         .event(event3)
                         .name("Vé Thường")
@@ -355,7 +341,7 @@ public class ApplicationInitConfig {
                         .benefits(List.of("Xem vở kịch trực tiếp"))
                         .requiresSeatSelection(true)
                         .build());
-                
+
                 log.info("Seeded 3 events with ticket types");
             }
 

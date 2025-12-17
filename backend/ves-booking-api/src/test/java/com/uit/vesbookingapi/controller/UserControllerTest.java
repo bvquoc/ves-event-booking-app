@@ -1,7 +1,11 @@
 package com.uit.vesbookingapi.controller;
 
-import java.time.LocalDate;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.uit.vesbookingapi.dto.request.UserCreationRequest;
+import com.uit.vesbookingapi.dto.response.UserResponse;
+import com.uit.vesbookingapi.service.UserService;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
@@ -16,13 +20,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
-import com.uit.vesbookingapi.dto.request.UserCreationRequest;
-import com.uit.vesbookingapi.dto.response.UserResponse;
-import com.uit.vesbookingapi.service.UserService;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-
-import lombok.extern.slf4j.Slf4j;
+import java.time.LocalDate;
 
 @Slf4j
 @SpringBootTest
@@ -62,7 +60,7 @@ class UserControllerTest {
     }
 
     @Test
-    //
+        //
     void createUser_validRequest_success() throws Exception {
         // GIVEN
         ObjectMapper objectMapper = new ObjectMapper();
@@ -81,7 +79,7 @@ class UserControllerTest {
     }
 
     @Test
-    //
+        //
     void createUser_usernameInvalid_fail() throws Exception {
         // GIVEN
         request.setUsername("joh");

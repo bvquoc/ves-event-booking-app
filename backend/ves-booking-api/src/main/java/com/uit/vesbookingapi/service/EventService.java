@@ -1,7 +1,10 @@
 package com.uit.vesbookingapi.service;
 
 import com.uit.vesbookingapi.dto.request.EventRequest;
-import com.uit.vesbookingapi.dto.response.*;
+import com.uit.vesbookingapi.dto.response.EventDetailResponse;
+import com.uit.vesbookingapi.dto.response.EventResponse;
+import com.uit.vesbookingapi.dto.response.PageResponse;
+import com.uit.vesbookingapi.dto.response.TicketTypeResponse;
 import com.uit.vesbookingapi.entity.*;
 import com.uit.vesbookingapi.exception.AppException;
 import com.uit.vesbookingapi.exception.ErrorCode;
@@ -23,7 +26,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -50,7 +56,7 @@ public class EventService {
             String search,
             String sortBy,
             Pageable pageable) {
-        
+
         // Build specification
         Specification<Event> spec = EventSpecification.combine(
                 EventSpecification.hasCategory(categoryId),
@@ -59,21 +65,21 @@ public class EventService {
                 EventSpecification.inDateRange(startDate, endDate),
                 EventSpecification.searchByKeyword(search)
         );
-        
+
         // Apply sorting
         Pageable sortedPageable = applySorting(pageable, sortBy);
-        
+
         // Query with pagination
         Page<Event> eventPage = eventRepository.findAll(spec, sortedPageable);
-        
+
         // Get current user ID if authenticated
         String currentUserId = getCurrentUserId();
-        
+
         // Get favorite event IDs for current user
-        Set<String> favoriteEventIds = currentUserId != null 
+        Set<String> favoriteEventIds = currentUserId != null
                 ? new HashSet<>(favoriteRepository.findEventIdsByUserId(currentUserId))
                 : Collections.emptySet();
-        
+
         // Map to response with calculated fields
         List<EventResponse> eventResponses = eventPage.getContent().stream()
                 .map(event -> {
@@ -82,7 +88,7 @@ public class EventService {
                     return response;
                 })
                 .collect(Collectors.toList());
-        
+
         return PageResponse.<EventResponse>builder()
                 .content(eventResponses)
                 .page(eventPage.getNumber())
@@ -93,48 +99,48 @@ public class EventService {
                 .last(eventPage.isLast())
                 .build();
     }
-    
+
     public EventDetailResponse getEventDetails(String eventId) {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new AppException(ErrorCode.EVENT_NOT_FOUND));
-        
+
         // Load ticket types
         List<TicketType> ticketTypes = ticketTypeRepository.findByEventId(eventId);
         event.setTicketTypes(ticketTypes);
-        
+
         // Get current user ID if authenticated
         String currentUserId = getCurrentUserId();
-        boolean isFavorite = currentUserId != null 
+        boolean isFavorite = currentUserId != null
                 && favoriteRepository.existsByUserIdAndEventId(currentUserId, eventId);
-        
+
         EventDetailResponse response = eventMapper.toEventDetailResponse(event);
-        
+
         // Set venue to null (VenueSeatingResponse requires VenueService call, can be added later if needed)
         response.setVenue(null);
-        
+
         // Map ticket types
         List<TicketTypeResponse> ticketTypeResponses = ticketTypes.stream()
                 .map(ticketTypeMapper::toTicketTypeResponse)
                 .collect(Collectors.toList());
         response.setTicketTypes(ticketTypeResponses);
-        
+
         // Calculate dynamic fields
         enrichEventDetailResponse(response, event, isFavorite);
-        
+
         return response;
     }
-    
+
     public List<TicketTypeResponse> getEventTickets(String eventId) {
         if (!eventRepository.existsById(eventId)) {
             throw new AppException(ErrorCode.EVENT_NOT_FOUND);
         }
-        
+
         List<TicketType> ticketTypes = ticketTypeRepository.findByEventId(eventId);
         return ticketTypes.stream()
                 .map(ticketTypeMapper::toTicketTypeResponse)
                 .collect(Collectors.toList());
     }
-    
+
     @Transactional
     @org.springframework.security.access.prepost.PreAuthorize("hasRole('ADMIN')")
     public EventDetailResponse createEvent(EventRequest request) {
@@ -142,36 +148,36 @@ public class EventService {
         if (eventRepository.existsBySlug(request.getSlug())) {
             throw new AppException(ErrorCode.EVENT_SLUG_EXISTED);
         }
-        
+
         // Validate category exists
         Category category = categoryRepository.findById(request.getCategoryId())
                 .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
-        
+
         // Validate city exists
         City city = cityRepository.findById(request.getCityId())
                 .orElseThrow(() -> new AppException(ErrorCode.CITY_NOT_FOUND));
-        
+
         // Validate venue if provided
         Venue venue = null;
         if (request.getVenueId() != null && !request.getVenueId().isEmpty()) {
             venue = venueRepository.findById(request.getVenueId())
                     .orElseThrow(() -> new AppException(ErrorCode.VENUE_NOT_FOUND));
         }
-        
+
         // Validate date range
         if (request.getEndDate() != null && request.getStartDate().isAfter(request.getEndDate())) {
             throw new AppException(ErrorCode.INVALID_EVENT_DATE);
         }
-        
+
         // Map request to entity
         Event event = eventMapper.toEvent(request);
         event.setCategory(category);
         event.setCity(city);
         event.setVenue(venue);
-        
+
         // Save event first
         Event savedEvent = eventRepository.save(event);
-        
+
         // Create ticket types
         if (request.getTicketTypes() != null && !request.getTicketTypes().isEmpty()) {
             final Event finalEvent = savedEvent;
@@ -185,14 +191,14 @@ public class EventService {
             ticketTypeRepository.saveAll(ticketTypes);
             savedEvent.setTicketTypes(ticketTypes);
         }
-        
+
         event = savedEvent;
-        
+
         EventDetailResponse response = eventMapper.toEventDetailResponse(event);
-        
+
         // Set venue to null (VenueSeatingResponse requires VenueService call, can be added later if needed)
         response.setVenue(null);
-        
+
         // Map ticket types
         if (event.getTicketTypes() != null) {
             List<TicketTypeResponse> ticketTypeResponses = event.getTicketTypes().stream()
@@ -200,49 +206,49 @@ public class EventService {
                     .collect(Collectors.toList());
             response.setTicketTypes(ticketTypeResponses);
         }
-        
+
         enrichEventDetailResponse(response, event, false);
-        
+
         return response;
     }
-    
+
     @Transactional
     @org.springframework.security.access.prepost.PreAuthorize("hasRole('ADMIN')")
     public EventDetailResponse updateEvent(String eventId, EventRequest request) {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new AppException(ErrorCode.EVENT_NOT_FOUND));
-        
+
         // Validate slug uniqueness if changed
         if (!event.getSlug().equals(request.getSlug()) && eventRepository.existsBySlug(request.getSlug())) {
             throw new AppException(ErrorCode.EVENT_SLUG_EXISTED);
         }
-        
+
         // Validate category exists
         Category category = categoryRepository.findById(request.getCategoryId())
                 .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
-        
+
         // Validate city exists
         City city = cityRepository.findById(request.getCityId())
                 .orElseThrow(() -> new AppException(ErrorCode.CITY_NOT_FOUND));
-        
+
         // Validate venue if provided
         Venue venue = null;
         if (request.getVenueId() != null && !request.getVenueId().isEmpty()) {
             venue = venueRepository.findById(request.getVenueId())
                     .orElseThrow(() -> new AppException(ErrorCode.VENUE_NOT_FOUND));
         }
-        
+
         // Validate date range
         if (request.getEndDate() != null && request.getStartDate().isAfter(request.getEndDate())) {
             throw new AppException(ErrorCode.INVALID_EVENT_DATE);
         }
-        
+
         // Update event
         eventMapper.updateEvent(event, request);
         event.setCategory(category);
         event.setCity(city);
         event.setVenue(venue);
-        
+
         // Update ticket types (delete old ones and create new ones)
         ticketTypeRepository.deleteAll(event.getTicketTypes());
         final Event finalEvent = event;
@@ -259,14 +265,14 @@ public class EventService {
         } else {
             event.setTicketTypes(Collections.emptyList());
         }
-        
+
         event = eventRepository.save(event);
-        
+
         EventDetailResponse response = eventMapper.toEventDetailResponse(event);
-        
+
         // Set venue to null (VenueSeatingResponse requires VenueService call, can be added later if needed)
         response.setVenue(null);
-        
+
         // Map ticket types
         if (event.getTicketTypes() != null) {
             List<TicketTypeResponse> ticketTypeResponses = event.getTicketTypes().stream()
@@ -274,12 +280,12 @@ public class EventService {
                     .collect(Collectors.toList());
             response.setTicketTypes(ticketTypeResponses);
         }
-        
+
         enrichEventDetailResponse(response, event, false);
-        
+
         return response;
     }
-    
+
     @org.springframework.security.access.prepost.PreAuthorize("hasRole('ADMIN')")
     public void deleteEvent(String eventId) {
         if (!eventRepository.existsById(eventId)) {
@@ -287,12 +293,12 @@ public class EventService {
         }
         eventRepository.deleteById(eventId);
     }
-    
+
     private Pageable applySorting(Pageable pageable, String sortBy) {
         if (sortBy == null || sortBy.isEmpty()) {
             return pageable;
         }
-        
+
         Sort sort;
         switch (sortBy.toLowerCase()) {
             case "date":
@@ -315,34 +321,34 @@ public class EventService {
             default:
                 sort = Sort.by(Sort.Direction.DESC, "createdAt");
         }
-        
+
         return PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
     }
-    
+
     private void enrichEventResponse(EventResponse response, Event event, Set<String> favoriteEventIds) {
         // Calculate min/max price and available tickets
         Integer minPrice = ticketTypeRepository.findMinPriceByEventId(event.getId());
         Integer maxPrice = ticketTypeRepository.findMaxPriceByEventId(event.getId());
         Integer availableTickets = ticketTypeRepository.sumAvailableTicketsByEventId(event.getId());
-        
+
         response.setMinPrice(minPrice);
         response.setMaxPrice(maxPrice);
         response.setAvailableTickets(availableTickets != null ? availableTickets : 0);
         response.setIsFavorite(favoriteEventIds.contains(event.getId()));
     }
-    
+
     private void enrichEventDetailResponse(EventDetailResponse response, Event event, boolean isFavorite) {
         // Calculate min/max price and available tickets
         Integer minPrice = ticketTypeRepository.findMinPriceByEventId(event.getId());
         Integer maxPrice = ticketTypeRepository.findMaxPriceByEventId(event.getId());
         Integer availableTickets = ticketTypeRepository.sumAvailableTicketsByEventId(event.getId());
-        
+
         response.setMinPrice(minPrice);
         response.setMaxPrice(maxPrice);
         response.setAvailableTickets(availableTickets != null ? availableTickets : 0);
         response.setIsFavorite(isFavorite);
     }
-    
+
     private String getCurrentUserId() {
         try {
             var context = SecurityContextHolder.getContext();

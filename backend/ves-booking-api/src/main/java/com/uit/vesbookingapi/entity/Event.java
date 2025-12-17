@@ -3,6 +3,7 @@ package com.uit.vesbookingapi.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -14,9 +15,9 @@ import java.util.List;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Entity
 @Table(indexes = {
-    @Index(name = "idx_event_slug", columnList = "slug"),
-    @Index(name = "idx_event_start_date", columnList = "startDate"),
-    @Index(name = "idx_event_category", columnList = "category_id")
+        @Index(name = "idx_event_slug", columnList = "slug"),
+        @Index(name = "idx_event_start_date", columnList = "startDate"),
+        @Index(name = "idx_event_category", columnList = "category_id")
 })
 public class Event {
     @Id

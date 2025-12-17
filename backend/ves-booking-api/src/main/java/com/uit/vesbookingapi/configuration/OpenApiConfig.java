@@ -16,7 +16,7 @@ public class OpenApiConfig {
     @Bean
     public OpenAPI vesBookingApiOpenAPI() {
         final String securitySchemeName = "bearerAuth";
-        
+
         return new OpenAPI()
                 .info(new Info()
                         .title("VES Booking API")

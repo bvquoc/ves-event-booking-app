@@ -1,24 +1,5 @@
 package com.uit.vesbookingapi.service;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
-
-import java.time.LocalDate;
-import java.util.Optional;
-
-import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.TestPropertySource;
-
-import org.springframework.dao.DataIntegrityViolationException;
-
 import com.uit.vesbookingapi.constant.PredefinedRole;
 import com.uit.vesbookingapi.dto.request.UserCreationRequest;
 import com.uit.vesbookingapi.dto.response.UserResponse;
@@ -27,6 +8,23 @@ import com.uit.vesbookingapi.entity.User;
 import com.uit.vesbookingapi.exception.AppException;
 import com.uit.vesbookingapi.repository.RoleRepository;
 import com.uit.vesbookingapi.repository.UserRepository;
+import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.TestPropertySource;
+
+import java.time.LocalDate;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
 
 @SpringBootTest
 @TestPropertySource("/test.properties")
@@ -81,7 +79,7 @@ public class UserServiceTest {
                 .name(PredefinedRole.USER_ROLE)
                 .description("User role")
                 .build();
-        
+
         when(userRepository.existsByUsername(anyString())).thenReturn(false);
         when(roleRepository.findById(PredefinedRole.USER_ROLE)).thenReturn(Optional.of(userRole));
         when(userRepository.save(any())).thenReturn(user);
@@ -101,7 +99,7 @@ public class UserServiceTest {
                 .name(PredefinedRole.USER_ROLE)
                 .description("User role")
                 .build();
-        
+
         when(roleRepository.findById(PredefinedRole.USER_ROLE)).thenReturn(Optional.of(userRole));
         when(userRepository.save(any())).thenThrow(new DataIntegrityViolationException("User already exists"));
 

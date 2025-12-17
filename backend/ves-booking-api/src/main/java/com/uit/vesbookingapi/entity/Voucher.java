@@ -4,6 +4,7 @@ import com.uit.vesbookingapi.enums.VoucherDiscountType;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -15,7 +16,7 @@ import java.util.List;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Entity
 @Table(indexes = {
-    @Index(name = "idx_voucher_code", columnList = "code")
+        @Index(name = "idx_voucher_code", columnList = "code")
 })
 public class Voucher {
     @Id

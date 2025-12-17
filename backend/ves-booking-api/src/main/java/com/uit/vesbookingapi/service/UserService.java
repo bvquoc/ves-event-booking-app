@@ -1,15 +1,5 @@
 package com.uit.vesbookingapi.service;
 
-import java.util.HashSet;
-import java.util.List;
-
-import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.security.access.prepost.PostAuthorize;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-
 import com.uit.vesbookingapi.constant.PredefinedRole;
 import com.uit.vesbookingapi.dto.request.UserCreationRequest;
 import com.uit.vesbookingapi.dto.request.UserUpdateRequest;
@@ -21,11 +11,19 @@ import com.uit.vesbookingapi.exception.ErrorCode;
 import com.uit.vesbookingapi.mapper.UserMapper;
 import com.uit.vesbookingapi.repository.RoleRepository;
 import com.uit.vesbookingapi.repository.UserRepository;
-
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.access.prepost.PostAuthorize;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
+import java.util.HashSet;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor

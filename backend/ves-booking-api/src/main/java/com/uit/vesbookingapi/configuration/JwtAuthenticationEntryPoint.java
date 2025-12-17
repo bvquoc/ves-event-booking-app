@@ -1,18 +1,16 @@
 package com.uit.vesbookingapi.configuration;
 
-import java.io.IOException;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.uit.vesbookingapi.dto.request.ApiResponse;
+import com.uit.vesbookingapi.exception.ErrorCode;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-
 import org.springframework.http.MediaType;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 
-import com.uit.vesbookingapi.dto.request.ApiResponse;
-import com.uit.vesbookingapi.exception.ErrorCode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
 
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
     @Override

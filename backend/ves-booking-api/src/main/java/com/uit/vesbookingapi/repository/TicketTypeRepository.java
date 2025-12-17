@@ -11,13 +11,13 @@ import java.util.List;
 @Repository
 public interface TicketTypeRepository extends JpaRepository<TicketType, String> {
     List<TicketType> findByEventId(String eventId);
-    
+
     @Query("SELECT MIN(tt.price) FROM TicketType tt WHERE tt.event.id = :eventId")
     Integer findMinPriceByEventId(@Param("eventId") String eventId);
-    
+
     @Query("SELECT MAX(tt.price) FROM TicketType tt WHERE tt.event.id = :eventId")
     Integer findMaxPriceByEventId(@Param("eventId") String eventId);
-    
+
     @Query("SELECT SUM(tt.available) FROM TicketType tt WHERE tt.event.id = :eventId")
     Integer sumAvailableTicketsByEventId(@Param("eventId") String eventId);
 }
