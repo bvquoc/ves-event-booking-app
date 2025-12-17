@@ -29,6 +29,11 @@ public class SecurityConfig {
         "/categories", "/cities"
     };
 
+    // Swagger/OpenAPI endpoints
+    private final String[] SWAGGER_ENDPOINTS = {
+        "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/swagger-resources/**", "/webjars/**"
+    };
+
     @Autowired
     private CustomJwtDecoder customJwtDecoder;
 
@@ -37,6 +42,8 @@ public class SecurityConfig {
         httpSecurity.authorizeHttpRequests(request -> request.requestMatchers(HttpMethod.POST, PUBLIC_ENDPOINTS)
                 .permitAll()
                 .requestMatchers(HttpMethod.GET, PUBLIC_GET_ENDPOINTS)
+                .permitAll()
+                .requestMatchers(SWAGGER_ENDPOINTS)
                 .permitAll()
                 .anyRequest()
                 .authenticated());
