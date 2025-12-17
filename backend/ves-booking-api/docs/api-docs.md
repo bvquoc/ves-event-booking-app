@@ -2,7 +2,7 @@
 
 **Base URL:** `http://localhost:8080/api`
 
-**Version:** Phase 2 - Reference Data APIs
+**Version:** Phase 5 - Booking & Payment Flow APIs
 
 ---
 
@@ -13,8 +13,9 @@
 3. [Role Management Endpoints](#role-management-endpoints)
 4. [Permission Management Endpoints](#permission-management-endpoints)
 5. [Reference Data Endpoints](#reference-data-endpoints)
-6. [Response Format](#response-format)
-7. [Error Handling](#error-handling)
+6. [Booking & Ticket Purchase Endpoints](#booking--ticket-purchase-endpoints)
+7. [Response Format](#response-format)
+8. [Error Handling](#error-handling)
 
 ---
 
@@ -611,6 +612,152 @@ Retrieve all cities with event count.
 
 ---
 
+## Booking & Ticket Purchase Endpoints
+
+### Base Path: `/tickets`
+
+#### POST /tickets/purchase
+
+Purchase event tickets with optional voucher discount. Creates order & reserves tickets.
+
+**Authentication:** Required (authenticated users only)
+
+**Authorization:** USER role or higher
+
+**Transaction Guarantees:**
+
+- SERIALIZABLE isolation level
+- Optimistic locking on TicketType (prevents overselling)
+- Atomic ticket reservation & order creation
+
+**Request:**
+
+```json
+{
+  "eventId": "550e8400-e29b-41d4-a716-446655440000",
+  "ticketTypeId": "660e8400-e29b-41d4-a716-446655440000",
+  "quantity": 2,
+  "seatIds": [
+    "770e8400-e29b-41d4-a716-446655440000",
+    "770e8400-e29b-41d4-a716-446655440001"
+  ],
+  "voucherCode": "SUMMER2024",
+  "paymentMethod": "CREDIT_CARD"
+}
+```
+
+**Field Descriptions:**
+
+- `eventId` (UUID): Target event ID
+- `ticketTypeId` (UUID): Ticket type to purchase
+- `quantity` (integer): Number of tickets (1-maxPerOrder)
+- `seatIds` (array, optional): Seat IDs if ticket requires seat selection. Must match quantity if provided.
+- `voucherCode` (string, optional): Valid voucher code for discount
+- `paymentMethod` (enum): CREDIT_CARD | DEBIT_CARD | E_WALLET | BANK_TRANSFER
+
+**Response (201 Created):**
+
+```json
+{
+  "statusCode": 201,
+  "message": "Success",
+  "data": {
+    "orderId": "880e8400-e29b-41d4-a716-446655440000",
+    "userId": "550e8400-e29b-41d4-a716-446655440000",
+    "eventId": "550e8400-e29b-41d4-a716-446655440000",
+    "eventName": "Tech Conference 2024",
+    "ticketTypeId": "660e8400-e29b-41d4-a716-446655440000",
+    "ticketTypeName": "VIP TICKET",
+    "quantity": 2,
+    "subtotal": 500000,
+    "discount": 50000,
+    "total": 450000,
+    "currency": "VND",
+    "voucherCode": "SUMMER2024",
+    "status": "PENDING",
+    "paymentMethod": "CREDIT_CARD",
+    "paymentUrl": "http://ves-booking.io.vn/payments/order/a1b2c3d4-e5f6-7890-abcd",
+    "expiresAt": "2024-12-25T16:45:00Z",
+    "createdAt": "2024-12-25T16:30:00Z",
+    "completedAt": null
+  }
+}
+```
+
+**Order Creation Flow:**
+
+1. Validates event exists
+2. Validates ticket type exists & belongs to event
+3. Checks ticket availability (quantity)
+4. Validates max per order limit
+5. Validates seat selection if required
+6. Validates voucher if provided
+7. Calculates pricing with discount
+8. Creates Order (status: PENDING, 15min expiry)
+9. Creates Ticket entities (status: ACTIVE)
+10. Reserves seats (if applicable)
+11. Decrements ticket availability
+12. Generates mock payment URL & QR codes
+
+**Validation Rules:**
+
+- Quantity must be ≥ 1 and ≤ maxPerOrder
+- If ticket requires seat selection: seatIds.length == quantity
+- Selected seats must be AVAILABLE
+- Voucher must be valid & applicable to event
+- Event start date must be in future
+- Order expires in 15 minutes (must complete payment)
+
+**Error Handling:**
+
+- 401: User not authenticated
+- 400: Validation failed (see errors array)
+- 404: Event, ticket type, seat, or voucher not found
+- 409: Seats already taken, tickets unavailable
+- 500: Transaction conflict (retry after brief delay)
+
+**Seat Reservation Logic:**
+
+- Seats marked as RESERVED during PENDING order
+- Auto-released if order expires (not completed within 15min)
+- Converted to SOLD on order completion (payment confirmed)
+
+**Optimistic Locking:**
+
+- TicketType.version incremented on each purchase
+- Prevents concurrent overselling via @Version annotation
+- Throws OptimisticLockingFailureException if version mismatch
+- Client should retry with exponential backoff
+
+**Pricing Calculation:**
+
+```
+subtotal = price * quantity
+discount = applyVoucher(voucher, subtotal)
+total = subtotal - discount
+discount never exceeds order amount
+```
+
+**Voucher Rules:**
+
+- Code-based lookup
+- Validity period checked (startDate ≤ now ≤ endDate)
+- Usage limit enforced (usedCount < usageLimit)
+- Min order amount validated
+- Applicable events/categories validated
+- Discount types: PERCENTAGE (capped by maxDiscount) | FIXED_AMOUNT
+
+**Status Codes:**
+
+- 201: Order created (awaiting payment)
+- 400: Invalid request or validation failed
+- 401: Unauthorized (no token or expired)
+- 404: Resource not found
+- 409: Conflict (seats taken, inventory exhausted)
+- 500: Server error (transaction failed)
+
+---
+
 ## Response Format
 
 ### Success Response Format
@@ -706,6 +853,30 @@ All successful API responses follow this structure:
 |------|---------|--------|
 | 8001 | Category not found | NOT_FOUND |
 | 8002 | City not found | NOT_FOUND |
+
+#### Ticket & Booking Errors (3xxx - 5xxx)
+
+| Code | Message                 | Status      | Cause                                   |
+|------|-------------------------|-------------|-----------------------------------------|
+| 3001 | Ticket type not found   | NOT_FOUND   | TicketType ID invalid                   |
+| 3002 | Tickets unavailable     | CONFLICT    | Insufficient inventory                  |
+| 3003 | Invalid ticket quantity | BAD_REQUEST | Quantity ≤ 0 or > maxPerOrder           |
+| 3004 | Seat selection required | BAD_REQUEST | Ticket requires seats but none provided |
+| 4001 | Seat not found          | NOT_FOUND   | Seat ID invalid                         |
+| 4002 | Seat already taken      | CONFLICT    | Seat already sold/reserved              |
+| 5001 | Order not found         | NOT_FOUND   | Order ID invalid                        |
+| 5002 | Order expired           | CONFLICT    | 15min PENDING timeout elapsed           |
+| 5003 | Order already completed | CONFLICT    | Cannot modify completed order           |
+
+#### Voucher Errors (6xxx)
+
+| Code | Message                     | Status      | Cause                      |
+|------|-----------------------------|-------------|----------------------------|
+| 6001 | Voucher not found           | NOT_FOUND   | Code invalid               |
+| 6002 | Voucher invalid             | BAD_REQUEST | Outside validity period    |
+| 6003 | Voucher usage limit reached | CONFLICT    | Max redemptions exceeded   |
+| 6004 | Voucher min order not met   | BAD_REQUEST | Order amount below minimum |
+| 6005 | Voucher not applicable      | BAD_REQUEST | Event/category mismatch    |
 
 ---
 
@@ -864,9 +1035,29 @@ GET /users?page=0&size=20&sort=username,asc
 
 ## Changelog
 
-### Phase 2 Updates (Current)
-- NEW: GET /categories (public)
-- NEW: GET /cities (public)
-- NEW: Performance-optimized event counting queries
-- NEW: Security config updated for public GET endpoints
-- CHANGED: User entity now has @Table annotation
+### Phase 5 Updates (Current)
+
+- NEW: POST /tickets/purchase (authenticated)
+- NEW: Transactional booking with SERIALIZABLE isolation
+- NEW: Optimistic locking via @Version on TicketType
+- NEW: Seat reservation logic (PENDING → SOLD)
+- NEW: Voucher validation & discount calculation
+- NEW: Mock payment URL & QR code generation
+- NEW: Order expiry (15 minutes for PENDING orders)
+- NEW: Error codes for tickets (3xxx), seats (4xxx), orders (5xxx), vouchers (6xxx)
+- NEW: OrderRepository with custom queries
+- NEW: TicketRepository with seat occupation checks
+- NEW: VoucherRepository for code lookups
+- NEW: BookingService with transactional guarantees
+- NEW: OrderMapper for Entity ↔ DTO conversion
+- MODIFIED: TicketType entity added @Version for optimistic locking
+- CHANGED: PurchaseRequest DTO with seat selection support
+- CHANGED: OrderResponse includes payment details
+
+### Phase 2 Updates
+
+- GET /categories (public)
+- GET /cities (public)
+- Performance-optimized event counting queries
+- Security config updated for public GET endpoints
+- User entity @Table annotation

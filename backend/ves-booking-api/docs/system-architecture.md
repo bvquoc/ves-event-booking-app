@@ -21,9 +21,11 @@
 │  │ ├── UserController ✅ (User management)              │   │
 │  │ ├── RoleController ✅ (Role RBAC)                    │   │
 │  │ ├── PermissionController ✅                          │   │
-│  │ ├── EventController 🚧 (Event CRUD)                 │   │
-│  │ ├── OrderController 🚧 (Order management)            │   │
-│  │ ├── TicketController 🚧 (Ticket operations)          │   │
+│  │ ├── CategoryController ✅ (Reference data)           │   │
+│  │ ├── CityController ✅ (Reference data)               │   │
+│  │ ├── TicketController ✅ (Phase 5: POST purchase)     │   │
+│  │ ├── EventController 🚧 (Event CRUD - Phase 3)        │   │
+│  │ ├── OrderController 🚧 (Order mgmt - Phase 6+)       │   │
 │  │ ├── VoucherController 🚧                             │   │
 │  │ └── NotificationController 🚧                        │   │
 │  └──────────────────────────────────────────────────────┘   │
@@ -104,16 +106,16 @@
 │  │ └── VenueRepository                                 │   │
 │  └──────────────────────────────────────────────────────┘   │
 │  ┌──────────────────────────────────────────────────────┐   │
-│  │ Booking Repositories 🚧                              │   │
-│  │ ├── OrderRepository                                 │   │
-│  │ ├── TicketRepository                                │   │
-│  │ ├── TicketTypeRepository                             │   │
-│  │ └── SeatRepository                                  │   │
+│  │ Booking Repositories ✅ (Phase 5)                    │   │
+│  │ ├── OrderRepository ✅                               │   │
+│  │ ├── TicketRepository ✅                              │   │
+│  │ ├── TicketTypeRepository ✅                          │   │
+│  │ └── SeatRepository ✅                                │   │
 │  └──────────────────────────────────────────────────────┘   │
 │  ┌──────────────────────────────────────────────────────┐   │
-│  │ Promotion Repositories 🚧                            │   │
-│  │ ├── VoucherRepository                               │   │
-│  │ └── UserVoucherRepository                            │   │
+│  │ Promotion Repositories ✅ (Phase 5)                  │   │
+│  │ ├── VoucherRepository ✅                             │   │
+│  │ └── UserVoucherRepository 🚧                         │   │
 │  └──────────────────────────────────────────────────────┘   │
 │  ┌──────────────────────────────────────────────────────┐   │
 │  │ User Preference Repositories 🚧                      │   │
@@ -219,27 +221,42 @@ Request handling, input validation, response formatting.
 - Price management
 - Seat requirement validation
 
-#### OrderService 🚧 (Planned)
-- Order creation with transaction management
-- Payment status tracking
-- Order expiration (15+ min timeout)
-- Order cancellation & refund initiation
-- Ticket generation from completed orders
+#### BookingService ✅ (Phase 5)
 
-#### TicketService 🚧 (Planned)
-- Ticket CRUD
-- QR code generation & storage
+- Purchase ticket processing
+- SERIALIZABLE transaction isolation
+- Event & ticket type validation
+- Seat availability checking & reservation
+- Voucher validation & discount calculation
+- Order creation (status: PENDING, 15min expiry)
+- Ticket generation (status: ACTIVE)
+- QR code generation (mock)
+- Payment URL generation (mock)
+- Optimistic locking prevents overselling
+
+#### OrderService 🚧 (Planned - Phase 6+)
+
+- Order completion workflow
+- Payment status tracking
+- Order expiration handling (15min timeout)
+- Order cancellation & refund initiation
+- Ticket generation completion
+
+#### TicketService 🚧 (Planned - Phase 6+)
+
+- Ticket CRUD & retrieval
+- QR code image generation
 - Ticket check-in validation
 - Refund processing
 - Status transitions (ACTIVE → USED → REFUNDED)
 
-#### SeatAvailabilityService 🚧 (Planned)
+#### SeatAvailabilityService 🚧 (Planned - Phase 6+)
 - Real-time seat status calculation
 - Seat reservation (15 min temp hold)
 - Seat release on order expiration
 - Seat occupancy tracking per event
 
-#### VoucherService 🚧 (Planned)
+#### VoucherService 🚧 (Planned - Phase 6+)
 - Voucher CRUD
 - Validity period checking
 - Usage limit enforcement
@@ -354,33 +371,57 @@ JWT token generation
 Return {accessToken, refreshToken, expiresIn}
 ```
 
-### Event Booking Flow (Future)
+### Event Booking Flow (Phase 5 - Implemented)
 ```
 User selects event & ticket type
     ↓
-OrderController.createOrder()
+TicketController.purchaseTickets(PurchaseRequest)
     ↓
-OrderService.create()
-    ├─ Validate ticket availability
-    ├─ Reserve seats (if needed)
-    ├─ Calculate price with voucher discount
-    └─ Create Order (status: PENDING)
+BookingService.purchaseTickets() [SERIALIZABLE isolation]
+    ├─ Get current authenticated user
+    ├─ Validate event exists
+    ├─ Validate & lock ticket type (@Version)
+    ├─ Check ticket availability (quantity)
+    ├─ Validate max per order limit
+    ├─ Handle seat selection if required
+    │  ├─ Validate seat count matches quantity
+    │  ├─ Check seats not already occupied
+    │  └─ Load seat entities
+    ├─ Validate voucher if provided
+    │  ├─ Check validity period
+    │  ├─ Check usage limit
+    │  ├─ Check min order amount
+    │  └─ Check event/category applicability
+    ├─ Calculate pricing with discount
+    ├─ Create Order (status: PENDING, 15min expiry)
+    ├─ Create Ticket entities (status: ACTIVE)
+    ├─ Reserve seats (if applicable)
+    ├─ Decrement available count (optimistic lock prevents overselling)
+    └─ Generate mock payment URL & QR codes
     ↓
-Return payment URL
+Return OrderResponse with payment details
     ↓
-User completes payment
+User completes payment (external gateway)
     ↓
-Payment webhook callback
+Payment webhook callback [Future Phase]
     ↓
-OrderService.completeOrder()
-    ├─ Confirm seat reservations
-    ├─ Generate QR codes
-    ├─ Create Ticket entities
+OrderService.completeOrder() [Future]
+    ├─ Confirm seat reservations → SOLD
+    ├─ Generate QR code images [Future]
     ├─ Send confirmation notification
     └─ Update Order status: COMPLETED
     ↓
 User receives tickets with QR codes
 ```
+
+**Transaction Safety:**
+
+- SERIALIZABLE isolation prevents dirty reads & phantom reads
+- Optimistic locking (@Version) prevents concurrent overselling
+- If concurrent purchase: OptimisticLockingFailureException thrown
+- Client retries with exponential backoff
+- Seats marked RESERVED during PENDING phase
+- Auto-released if order expires (not completed within 15min)
 
 ### Event Discovery Flow (Future)
 ```
@@ -546,7 +587,7 @@ Return paginated results with availability
 - ✅ Audit timestamps configured
 - ✅ Identity & Access Management (IAM)
 
-### Phase 2 (Current - Complete)
+### Phase 2 (Complete)
 - ✅ CategoryService with event counts
 - ✅ CityService with event counts
 - ✅ CategoryController (public GET endpoint)
@@ -558,25 +599,45 @@ Return paginated results with availability
 - ✅ User entity @Table annotation
 - ✅ Category & City seeding in ApplicationInitConfig
 
-### Phase 3 (Next - Planned)
+### Phase 3 (Planned)
 - Event Management APIs (CRUD, search, filtering)
 - Event discovery endpoints
 - Trending events functionality
 - Event filtering by category, city, date range
 
 ### Phase 4 (Planned)
-- Order Management APIs
-- Ticket generation & management
-- Booking workflows
-- Payment status tracking
 
-### Phase 5+ (Planned)
-- Voucher & promotion system
+- Order status tracking APIs
+- Ticket retrieval & QR code endpoints
+- Refund workflows
+
+### Phase 5 (Current - Complete)
+
+- ✅ BookingService with transactional guarantees
+- ✅ TicketController with POST /tickets/purchase
+- ✅ OrderRepository with order queries
+- ✅ TicketRepository with seat occupation queries
+- ✅ VoucherRepository for code-based lookups
+- ✅ OrderMapper for Entity ↔ DTO conversion
+- ✅ TicketType optimistic locking (@Version)
+- ✅ SERIALIZABLE transaction isolation
+- ✅ Seat reservation logic (PENDING → SOLD)
+- ✅ Voucher validation & discount calculation
+- ✅ Mock payment URL generation
+- ✅ QR code generation (mock)
+- ✅ Order expiry (15 minutes)
+
+### Phase 6+ (Planned)
+
+- Payment gateway integration (Stripe/Paypal)
+- Order status webhooks
+- Ticket QR code image generation
 - Organizer entity & management
 - Advanced audit logging
 - Soft delete support
 - Event series/recurring events
 - Waiting list management
+- Real-time seat availability WebSocket
 
 ---
 

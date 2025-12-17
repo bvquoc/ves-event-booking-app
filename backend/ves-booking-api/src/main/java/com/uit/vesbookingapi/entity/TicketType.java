@@ -45,4 +45,7 @@ public class TicketType {
 
     @Column(nullable = false)
     Boolean requiresSeatSelection;
+
+    @Version
+    Long version; // Optimistic locking for concurrent ticket purchases
 }
