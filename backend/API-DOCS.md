@@ -1,6 +1,7 @@
 # TKGDND API Documentation
 
 ## Table of Contents
+
 1. [Overview](#overview)
 2. [Authentication](#authentication)
 3. [API Endpoints](#api-endpoints)
@@ -15,11 +16,12 @@
 ## Overview
 
 ### Base URL
-- Production: `https://api.tkgdnd.com/v1`
-- Staging: `https://staging-api.tkgdnd.com/v1`
+
+- Production: `https://ves-booking.io.vn/v1`
 - Development: `http://localhost:3000/v1`
 
 ### API Design Principles
+
 - RESTful architecture
 - JSON request/response format
 - JWT-based authentication
@@ -28,23 +30,28 @@
 - Filter and search capabilities
 
 ### Supported HTTP Methods
+
 - `GET` - Retrieve resources
 - `POST` - Create new resources
 - `PUT` - Update existing resources
 - `DELETE` - Remove resources
 
 ### Response Format
+
 All API responses follow this structure:
 
 ```json
 {
   "success": true,
-  "data": { /* response data */ },
+  "data": {
+    /* response data */
+  },
   "error": null
 }
 ```
 
 For errors:
+
 ```json
 {
   "success": false,
@@ -52,7 +59,9 @@ For errors:
   "error": {
     "code": "ERROR_CODE",
     "message": "Human-readable error message",
-    "details": [/* optional additional details */]
+    "details": [
+      /* optional additional details */
+    ]
   }
 }
 ```
@@ -68,6 +77,7 @@ The API uses JWT (JSON Web Tokens) for authentication. After successful login or
 #### Token Types
 
 1. **Access Token**
+
    - Short-lived (1 hour)
    - Used for API requests
    - Include in `Authorization` header
@@ -90,6 +100,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 When access token expires (401 error), use refresh token to get a new one:
 
 **Request:**
+
 ```http
 POST /v1/auth/refresh
 Content-Type: application/json
@@ -100,6 +111,7 @@ Content-Type: application/json
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -123,6 +135,7 @@ Content-Type: application/json
 **Description:** Create a new user account
 
 **Request Body:**
+
 ```json
 {
   "email": "user@example.com",
@@ -134,6 +147,7 @@ Content-Type: application/json
 ```
 
 **Response (201 Created):**
+
 ```json
 {
   "success": true,
@@ -156,6 +170,7 @@ Content-Type: application/json
 ```
 
 **Validation Rules:**
+
 - Email: Valid email format, unique
 - Password: Minimum 8 characters, must include uppercase, lowercase, and number
 - Phone: 10 digits, Vietnamese format
@@ -170,6 +185,7 @@ Content-Type: application/json
 **Description:** Authenticate user and receive tokens
 
 **Request Body:**
+
 ```json
 {
   "email": "user@example.com",
@@ -178,6 +194,7 @@ Content-Type: application/json
 ```
 
 **Response (200 OK):**
+
 ```json
 {
   "success": true,
@@ -197,6 +214,7 @@ Content-Type: application/json
 ```
 
 **Error Response (401 Unauthorized):**
+
 ```json
 {
   "success": false,
@@ -218,6 +236,7 @@ Content-Type: application/json
 **Description:** Invalidate user's access token
 
 **Response (200 OK):**
+
 ```json
 {
   "success": true,
@@ -249,11 +268,13 @@ Content-Type: application/json
 | search | string | No | Search in name/description | `?search=Van+Gogh` |
 
 **Example Request:**
+
 ```http
 GET /v1/events?category=exhibition&city=Ho+Chi+Minh&page=1&limit=10&sortBy=date
 ```
 
 **Response (200 OK):**
+
 ```json
 {
   "success": true,
@@ -300,14 +321,17 @@ GET /v1/events?category=exhibition&city=Ho+Chi+Minh&page=1&limit=10&sortBy=date
 **Description:** Get detailed information about a specific event
 
 **Path Parameters:**
+
 - `eventId` (string, required) - Event ID
 
 **Example Request:**
+
 ```http
 GET /v1/events/evt_123456
 ```
 
 **Response (200 OK):**
+
 ```json
 {
   "success": true,
@@ -409,6 +433,7 @@ GET /v1/events/evt_123456
 | limit | integer | No | Items per page |
 
 **Example Request:**
+
 ```http
 GET /v1/events/search?q=concert&page=1&limit=20
 ```
@@ -426,14 +451,17 @@ GET /v1/events/search?q=concert&page=1&limit=20
 **Description:** Get all available ticket types for a specific event
 
 **Path Parameters:**
+
 - `eventId` (string, required) - Event ID
 
 **Example Request:**
+
 ```http
 GET /v1/events/evt_123456/tickets
 ```
 
 **Response (200 OK):**
+
 ```json
 {
   "success": true,
@@ -469,6 +497,7 @@ GET /v1/events/evt_123456/tickets
 **Description:** Create a ticket purchase order
 
 **Request Body:**
+
 ```json
 {
   "eventId": "evt_123456",
@@ -481,6 +510,7 @@ GET /v1/events/evt_123456/tickets
 ```
 
 **Field Descriptions:**
+
 - `eventId` (required) - Event ID
 - `ticketTypeId` (required) - Selected ticket type ID
 - `quantity` (required) - Number of tickets (1-10)
@@ -489,6 +519,7 @@ GET /v1/events/evt_123456/tickets
 - `paymentMethod` (required) - Payment method: `credit_card`, `debit_card`, `e_wallet`, `bank_transfer`
 
 **Response (201 Created):**
+
 ```json
 {
   "success": true,
@@ -515,6 +546,7 @@ GET /v1/events/evt_123456/tickets
 ```
 
 **Payment Flow:**
+
 1. Client calls `/tickets/purchase` endpoint
 2. Server creates order and returns `paymentUrl`
 3. Client redirects user to `paymentUrl`
@@ -575,11 +607,13 @@ GET /v1/events/evt_123456/tickets
 | limit | integer | Items per page |
 
 **Example Request:**
+
 ```http
 GET /v1/tickets?status=upcoming&page=1&limit=20
 ```
 
 **Response (200 OK):**
+
 ```json
 {
   "success": true,
@@ -631,11 +665,13 @@ GET /v1/tickets?status=upcoming&page=1&limit=20
 **Description:** Get detailed information about a specific ticket
 
 **Example Request:**
+
 ```http
 GET /v1/tickets/tkt_789012
 ```
 
 **Response (200 OK):**
+
 ```json
 {
   "success": true,
@@ -683,6 +719,7 @@ GET /v1/tickets/tkt_789012
 **Description:** Cancel a purchased ticket (within cancellation policy)
 
 **Request Body:**
+
 ```json
 {
   "reason": "Unable to attend due to personal reasons"
@@ -690,6 +727,7 @@ GET /v1/tickets/tkt_789012
 ```
 
 **Response (200 OK):**
+
 ```json
 {
   "success": true,
@@ -704,6 +742,7 @@ GET /v1/tickets/tkt_789012
 ```
 
 **Error Response (400 Bad Request):**
+
 ```json
 {
   "success": false,
@@ -729,14 +768,17 @@ GET /v1/tickets/tkt_789012
 **Description:** Get venue seating layout and seat availability
 
 **Query Parameters:**
+
 - `eventId` (required) - Event ID to check seat availability
 
 **Example Request:**
+
 ```http
 GET /v1/venues/ven_789/seats?eventId=evt_123456
 ```
 
 **Response (200 OK):**
+
 ```json
 {
   "success": true,
@@ -786,6 +828,7 @@ GET /v1/venues/ven_789/seats?eventId=evt_123456
 ```
 
 **Seat Status Values:**
+
 - `available` - Can be purchased
 - `reserved` - Temporarily held during someone's purchase flow
 - `sold` - Already purchased
@@ -802,6 +845,7 @@ GET /v1/venues/ven_789/seats?eventId=evt_123456
 **Authentication Required:** Yes
 
 **Example Response:**
+
 ```json
 {
   "success": true,
@@ -838,6 +882,7 @@ GET /v1/venues/ven_789/seats?eventId=evt_123456
 **Authentication Required:** Yes
 
 **Response (201 Created):**
+
 ```json
 {
   "success": true,
@@ -854,6 +899,7 @@ GET /v1/venues/ven_789/seats?eventId=evt_123456
 **Authentication Required:** Yes
 
 **Response (200 OK):**
+
 ```json
 {
   "success": true,
@@ -872,6 +918,7 @@ GET /v1/venues/ven_789/seats?eventId=evt_123456
 **Description:** Get all public and available vouchers
 
 **Response (200 OK):**
+
 ```json
 {
   "success": true,
@@ -915,9 +962,11 @@ GET /v1/venues/ven_789/seats?eventId=evt_123456
 **Authentication Required:** Yes
 
 **Query Parameters:**
+
 - `status` - Filter: `all`, `active`, `used`, `expired` (default: `active`)
 
 **Response (200 OK):**
+
 ```json
 {
   "success": true,
@@ -960,6 +1009,7 @@ GET /v1/venues/ven_789/seats?eventId=evt_123456
 **Description:** Check if voucher is valid and calculate discount
 
 **Request Body:**
+
 ```json
 {
   "code": "SUMMER2024",
@@ -970,6 +1020,7 @@ GET /v1/venues/ven_789/seats?eventId=evt_123456
 ```
 
 **Response (200 OK):**
+
 ```json
 {
   "success": true,
@@ -990,6 +1041,7 @@ GET /v1/venues/ven_789/seats?eventId=evt_123456
 ```
 
 **Error Response (400 Bad Request):**
+
 ```json
 {
   "success": false,
@@ -1011,11 +1063,13 @@ GET /v1/venues/ven_789/seats?eventId=evt_123456
 **Authentication Required:** Yes
 
 **Query Parameters:**
+
 - `page` - Page number
 - `limit` - Items per page
 - `unreadOnly` - Boolean, return only unread (default: false)
 
 **Response (200 OK):**
+
 ```json
 {
   "success": true,
@@ -1062,6 +1116,7 @@ GET /v1/venues/ven_789/seats?eventId=evt_123456
 ```
 
 **Notification Types:**
+
 - `ticket_purchased` - Ticket purchase confirmation
 - `event_reminder` - Upcoming event reminder
 - `event_cancelled` - Event cancellation
@@ -1077,6 +1132,7 @@ GET /v1/venues/ven_789/seats?eventId=evt_123456
 **Authentication Required:** Yes
 
 **Response (200 OK):**
+
 ```json
 {
   "success": true,
@@ -1093,6 +1149,7 @@ GET /v1/venues/ven_789/seats?eventId=evt_123456
 **Authentication Required:** Yes
 
 **Response (200 OK):**
+
 ```json
 {
   "success": true,
@@ -1111,6 +1168,7 @@ GET /v1/venues/ven_789/seats?eventId=evt_123456
 **Authentication:** Not required
 
 **Response (200 OK):**
+
 ```json
 {
   "success": true,
@@ -1156,6 +1214,7 @@ GET /v1/venues/ven_789/seats?eventId=evt_123456
 **Authentication:** Not required
 
 **Response (200 OK):**
+
 ```json
 {
   "success": true,
@@ -1203,37 +1262,37 @@ All errors follow this structure:
 
 ### HTTP Status Codes
 
-| Status Code | Description |
-|-------------|-------------|
-| 200 | OK - Request successful |
-| 201 | Created - Resource created successfully |
-| 400 | Bad Request - Invalid request parameters |
-| 401 | Unauthorized - Authentication required or failed |
-| 403 | Forbidden - Access denied |
-| 404 | Not Found - Resource not found |
-| 409 | Conflict - Resource conflict (e.g., duplicate) |
-| 422 | Unprocessable Entity - Validation error |
-| 429 | Too Many Requests - Rate limit exceeded |
-| 500 | Internal Server Error - Server error |
-| 503 | Service Unavailable - Server maintenance |
+| Status Code | Description                                      |
+| ----------- | ------------------------------------------------ |
+| 200         | OK - Request successful                          |
+| 201         | Created - Resource created successfully          |
+| 400         | Bad Request - Invalid request parameters         |
+| 401         | Unauthorized - Authentication required or failed |
+| 403         | Forbidden - Access denied                        |
+| 404         | Not Found - Resource not found                   |
+| 409         | Conflict - Resource conflict (e.g., duplicate)   |
+| 422         | Unprocessable Entity - Validation error          |
+| 429         | Too Many Requests - Rate limit exceeded          |
+| 500         | Internal Server Error - Server error             |
+| 503         | Service Unavailable - Server maintenance         |
 
 ### Common Error Codes
 
-| Error Code | Description |
-|------------|-------------|
-| `VALIDATION_ERROR` | Request validation failed |
-| `INVALID_CREDENTIALS` | Login credentials incorrect |
-| `UNAUTHORIZED` | Authentication required |
-| `FORBIDDEN` | Access denied |
-| `NOT_FOUND` | Resource not found |
-| `DUPLICATE_RESOURCE` | Resource already exists |
-| `TICKETS_UNAVAILABLE` | Tickets sold out or unavailable |
-| `SEATS_TAKEN` | Selected seats already taken |
-| `INVALID_VOUCHER` | Voucher invalid or expired |
-| `CANCELLATION_NOT_ALLOWED` | Ticket cannot be cancelled |
-| `RATE_LIMIT_EXCEEDED` | Too many requests |
-| `PAYMENT_FAILED` | Payment processing failed |
-| `SERVER_ERROR` | Internal server error |
+| Error Code                 | Description                     |
+| -------------------------- | ------------------------------- |
+| `VALIDATION_ERROR`         | Request validation failed       |
+| `INVALID_CREDENTIALS`      | Login credentials incorrect     |
+| `UNAUTHORIZED`             | Authentication required         |
+| `FORBIDDEN`                | Access denied                   |
+| `NOT_FOUND`                | Resource not found              |
+| `DUPLICATE_RESOURCE`       | Resource already exists         |
+| `TICKETS_UNAVAILABLE`      | Tickets sold out or unavailable |
+| `SEATS_TAKEN`              | Selected seats already taken    |
+| `INVALID_VOUCHER`          | Voucher invalid or expired      |
+| `CANCELLATION_NOT_ALLOWED` | Ticket cannot be cancelled      |
+| `RATE_LIMIT_EXCEEDED`      | Too many requests               |
+| `PAYMENT_FAILED`           | Payment processing failed       |
+| `SERVER_ERROR`             | Internal server error           |
 
 ### Validation Error Example
 
@@ -1302,14 +1361,14 @@ X-RateLimit-Reset: 1678901234
 
 The API can send webhook notifications for the following events:
 
-| Event | Description |
-|-------|-------------|
+| Event               | Description                    |
+| ------------------- | ------------------------------ |
 | `payment.completed` | Payment successfully processed |
-| `payment.failed` | Payment failed |
-| `ticket.issued` | Ticket issued to user |
-| `ticket.cancelled` | Ticket cancelled |
-| `event.cancelled` | Event cancelled |
-| `refund.processed` | Refund completed |
+| `payment.failed`    | Payment failed                 |
+| `ticket.issued`     | Ticket issued to user          |
+| `ticket.cancelled`  | Ticket cancelled               |
+| `event.cancelled`   | Event cancelled                |
+| `refund.processed`  | Refund completed               |
 
 ### Webhook Payload Example
 
@@ -1338,13 +1397,13 @@ The API can send webhook notifications for the following events:
 All webhook requests include an `X-Webhook-Signature` header for verification:
 
 ```javascript
-const crypto = require('crypto');
+const crypto = require("crypto");
 
 function verifyWebhook(payload, signature, secret) {
   const hash = crypto
-    .createHmac('sha256', secret)
+    .createHmac("sha256", secret)
     .update(JSON.stringify(payload))
-    .digest('hex');
+    .digest("hex");
 
   return hash === signature;
 }
@@ -1358,72 +1417,90 @@ function verifyWebhook(payload, signature, secret) {
 
 ```javascript
 // 1. Get event details
-const eventResponse = await fetch('https://api.tkgdnd.com/v1/events/evt_123456', {
-  headers: {
-    'Authorization': `Bearer ${accessToken}`
+const eventResponse = await fetch(
+  "https://ves-booking.io.vn/api/v1/events/evt_123456",
+  {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
   }
-});
+);
 const event = await eventResponse.json();
 
 // 2. Get available tickets
-const ticketsResponse = await fetch('https://api.tkgdnd.com/v1/events/evt_123456/tickets', {
-  headers: {
-    'Authorization': `Bearer ${accessToken}`
+const ticketsResponse = await fetch(
+  "https://ves-booking.io.vn/api/v1/events/evt_123456/tickets",
+  {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
   }
-});
+);
 const ticketTypes = await ticketsResponse.json();
 
 // 3. If seats required, get venue seating
-const seatsResponse = await fetch('https://api.tkgdnd.com/v1/venues/ven_789/seats?eventId=evt_123456', {
-  headers: {
-    'Authorization': `Bearer ${accessToken}`
+const seatsResponse = await fetch(
+  "https://ves-booking.io.vn/api/v1/venues/ven_789/seats?eventId=evt_123456",
+  {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
   }
-});
+);
 const seatingMap = await seatsResponse.json();
 
 // 4. Validate voucher (optional)
-const voucherResponse = await fetch('https://api.tkgdnd.com/v1/vouchers/validate', {
-  method: 'POST',
-  headers: {
-    'Authorization': `Bearer ${accessToken}`,
-    'Content-Type': 'application/json'
-  },
-  body: JSON.stringify({
-    code: 'SUMMER2024',
-    eventId: 'evt_123456',
-    ticketTypeId: 'tt_vip_001',
-    quantity: 2
-  })
-});
+const voucherResponse = await fetch(
+  "https://ves-booking.io.vn/api/v1/vouchers/validate",
+  {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      code: "SUMMER2024",
+      eventId: "evt_123456",
+      ticketTypeId: "tt_vip_001",
+      quantity: 2,
+    }),
+  }
+);
 const voucherInfo = await voucherResponse.json();
 
 // 5. Purchase tickets
-const purchaseResponse = await fetch('https://api.tkgdnd.com/v1/tickets/purchase', {
-  method: 'POST',
-  headers: {
-    'Authorization': `Bearer ${accessToken}`,
-    'Content-Type': 'application/json'
-  },
-  body: JSON.stringify({
-    eventId: 'evt_123456',
-    ticketTypeId: 'tt_vip_001',
-    quantity: 2,
-    seatIds: ['seat_A12', 'seat_A13'],
-    voucherCode: 'SUMMER2024',
-    paymentMethod: 'e_wallet'
-  })
-});
+const purchaseResponse = await fetch(
+  "https://ves-booking.io.vn/api/v1/tickets/purchase",
+  {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      eventId: "evt_123456",
+      ticketTypeId: "tt_vip_001",
+      quantity: 2,
+      seatIds: ["seat_A12", "seat_A13"],
+      voucherCode: "SUMMER2024",
+      paymentMethod: "e_wallet",
+    }),
+  }
+);
 const order = await purchaseResponse.json();
 
 // 6. Redirect to payment
 window.location.href = order.data.paymentUrl;
 
 // 7. After payment, get ticket details
-const ticketResponse = await fetch('https://api.tkgdnd.com/v1/tickets/tkt_789012', {
-  headers: {
-    'Authorization': `Bearer ${accessToken}`
+const ticketResponse = await fetch(
+  "https://ves-booking.io.vn/api/v1/tickets/tkt_789012",
+  {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
   }
-});
+);
 const ticket = await ticketResponse.json();
 ```
 
@@ -1434,19 +1511,19 @@ const ticket = await ticketResponse.json();
 ```javascript
 // Search events by keyword
 const searchResponse = await fetch(
-  'https://api.tkgdnd.com/v1/events/search?q=concert&page=1&limit=20'
+  "https://ves-booking.io.vn/api/v1/events/search?q=concert&page=1&limit=20"
 );
 const searchResults = await searchResponse.json();
 
 // Filter events by category and city
 const filterResponse = await fetch(
-  'https://api.tkgdnd.com/v1/events?category=exhibition&city=Ho+Chi+Minh&trending=true&sortBy=popularity'
+  "https://ves-booking.io.vn/api/v1/events?category=exhibition&city=Ho+Chi+Minh&trending=true&sortBy=popularity"
 );
 const filteredEvents = await filterResponse.json();
 
 // Get events within date range
 const dateRangeResponse = await fetch(
-  'https://api.tkgdnd.com/v1/events?startDate=2024-03-15&endDate=2024-03-31&sortBy=date'
+  "https://ves-booking.io.vn/api/v1/events?startDate=2024-03-15&endDate=2024-03-31&sortBy=date"
 );
 const upcomingEvents = await dateRangeResponse.json();
 ```
@@ -1457,28 +1534,37 @@ const upcomingEvents = await dateRangeResponse.json();
 
 ```javascript
 // Get user's favorites
-const favoritesResponse = await fetch('https://api.tkgdnd.com/v1/favorites', {
-  headers: {
-    'Authorization': `Bearer ${accessToken}`
+const favoritesResponse = await fetch(
+  "https://ves-booking.io.vn/api/v1/favorites",
+  {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
   }
-});
+);
 const favorites = await favoritesResponse.json();
 
 // Add to favorites
-const addResponse = await fetch('https://api.tkgdnd.com/v1/favorites/evt_123456', {
-  method: 'POST',
-  headers: {
-    'Authorization': `Bearer ${accessToken}`
+const addResponse = await fetch(
+  "https://ves-booking.io.vn/api/v1/favorites/evt_123456",
+  {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
   }
-});
+);
 
 // Remove from favorites
-const removeResponse = await fetch('https://api.tkgdnd.com/v1/favorites/evt_123456', {
-  method: 'DELETE',
-  headers: {
-    'Authorization': `Bearer ${accessToken}`
+const removeResponse = await fetch(
+  "https://ves-booking.io.vn/api/v1/favorites/evt_123456",
+  {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
   }
-});
+);
 ```
 
 ---
@@ -1488,29 +1574,29 @@ const removeResponse = await fetch('https://api.tkgdnd.com/v1/favorites/evt_1234
 ```javascript
 // Get unread notifications
 const notificationsResponse = await fetch(
-  'https://api.tkgdnd.com/v1/notifications?unreadOnly=true',
+  "https://ves-booking.io.vn/api/v1/notifications?unreadOnly=true",
   {
     headers: {
-      'Authorization': `Bearer ${accessToken}`
-    }
+      Authorization: `Bearer ${accessToken}`,
+    },
   }
 );
 const notifications = await notificationsResponse.json();
 
 // Mark single notification as read
-await fetch('https://api.tkgdnd.com/v1/notifications/ntf_555666/read', {
-  method: 'PUT',
+await fetch("https://ves-booking.io.vn/api/v1/notifications/ntf_555666/read", {
+  method: "PUT",
   headers: {
-    'Authorization': `Bearer ${accessToken}`
-  }
+    Authorization: `Bearer ${accessToken}`,
+  },
 });
 
 // Mark all as read
-await fetch('https://api.tkgdnd.com/v1/notifications/read-all', {
-  method: 'PUT',
+await fetch("https://ves-booking.io.vn/api/v1/notifications/read-all", {
+  method: "PUT",
   headers: {
-    'Authorization': `Bearer ${accessToken}`
-  }
+    Authorization: `Bearer ${accessToken}`,
+  },
 });
 ```
 
@@ -1527,16 +1613,16 @@ async function apiRequest(url, options = {}) {
     if (!data.success) {
       // Handle API error
       switch (data.error.code) {
-        case 'UNAUTHORIZED':
+        case "UNAUTHORIZED":
           // Refresh token or redirect to login
           await refreshAccessToken();
           return apiRequest(url, options); // Retry
 
-        case 'TICKETS_UNAVAILABLE':
-          showError('Tickets are no longer available');
+        case "TICKETS_UNAVAILABLE":
+          showError("Tickets are no longer available");
           break;
 
-        case 'RATE_LIMIT_EXCEEDED':
+        case "RATE_LIMIT_EXCEEDED":
           const retryAfter = data.error.details.retryAfter;
           showError(`Too many requests. Retry after ${retryAfter} seconds`);
           break;
@@ -1549,11 +1635,10 @@ async function apiRequest(url, options = {}) {
     }
 
     return data.data;
-
   } catch (error) {
     // Handle network error
-    console.error('Network error:', error);
-    showError('Network connection failed. Please try again.');
+    console.error("Network error:", error);
+    showError("Network connection failed. Please try again.");
     return null;
   }
 }
