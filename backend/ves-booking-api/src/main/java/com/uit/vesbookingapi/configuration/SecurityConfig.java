@@ -26,7 +26,7 @@ public class SecurityConfig {
     };
 
     private final String[] PUBLIC_GET_ENDPOINTS = {
-        "/categories", "/cities"
+        "/categories", "/cities", "/events", "/events/**"
     };
 
     // Swagger/OpenAPI endpoints
