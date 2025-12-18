@@ -6,20 +6,35 @@ class AuthService {
   final Dio _dio = DioClient().dio;
 
   // 1. Đăng nhập
-  Future<AuthResponse> login(String email, String password) async {
+  Future<String> login(String email, String password) async {
     try {
       final response = await _dio.post(
         '/auth/token',
-        data: {'email': email, 'password': password},
+        data: {'username': email, 'password': password},
       );
 
-      // Parse data từ response.data['data']
-      return AuthResponse.fromJson(response.data['data']);
+      if (response.statusCode == 200) {
+        final data = response.data;
+        final result = data['result'];
+
+        if (result != null && result['token'] != null) {
+          return result['token'];
+        } else {
+          throw 'API không trả về Token';
+        }
+      } else {
+        throw 'Lỗi kết nối: ${response.statusCode}';
+      }
     } on DioException catch (e) {
-      String message = e.error?.toString() ?? e.message ?? 'Lỗi kết nối server';
-      throw message;
+      if (e.response != null) {
+        final errorData = e.response?.data;
+        throw errorData?['message'] ?? 'Lỗi server (${e.response?.statusCode})';
+      } else {
+        print(e);
+        throw 'Lỗi kết nối: ${e.message}';
+      }
     } catch (e) {
-      throw 'Đã xảy ra lỗi kết nối';
+      throw e.toString();
     }
   }
 

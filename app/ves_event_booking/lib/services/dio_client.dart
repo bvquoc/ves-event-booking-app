@@ -31,20 +31,6 @@ class DioClient {
           }
           return handler.next(options);
         },
-        onResponse: (response, handler) {
-          // Kiểm tra logic success: false từ backend
-          if (response.data != null && response.data['success'] == false) {
-            final errorData = response.data['error'];
-            return handler.reject(
-              DioException(
-                requestOptions: response.requestOptions,
-                error: errorData['message'] ?? 'Lỗi không xác định',
-                type: DioExceptionType.badResponse,
-              ),
-            );
-          }
-          return handler.next(response);
-        },
         onError: (DioException e, handler) {
           return handler.next(e);
         },

@@ -19,12 +19,11 @@ class AuthProvider extends ChangeNotifier {
   Future<bool> login(String email, String password) async {
     _setLoading(true);
     try {
-      final authResponse = await _authService.login(email, password);
+      final accessToken = await _authService.login(email, password);
 
       // Lưu token vào máy
-      await _saveToken(authResponse.accessToken, authResponse.refreshToken);
+      await _saveToken(accessToken, null);
 
-      _currentUser = authResponse.user;
       _errorMessage = null;
       notifyListeners();
       return true; // Đăng nhập thành công
