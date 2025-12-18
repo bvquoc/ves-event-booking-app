@@ -298,3 +298,46 @@ String getCityImage(String cityId) {
       return 'https://via.placeholder.com/300';
   }
 }
+
+final List<EventModel> mockEvents = [
+  _eventFuture,
+  _eventPast,
+  // Thêm một vài event giả định khác để test list
+  EventModel(
+    id: 'evt_fav_01',
+    name: 'Lễ hội Âm nhạc EDM Ravolution',
+    slug: 'ravolution-music-festival',
+    description: 'Đại tiệc âm nhạc điện tử lớn nhất năm.',
+    category: 'music',
+    thumbnail:
+        'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?q=80&w=800&auto=format&fit=crop',
+    startDate: DateTime.now().add(const Duration(days: 20)),
+    endDate: DateTime.now().add(const Duration(days: 20, hours: 5)),
+    city: 'TP. Hồ Chí Minh',
+    venueName: 'SECC Quận 7',
+    minPrice: 500000,
+    maxPrice: 2000000,
+    currency: 'VND',
+    availableTickets: 1000,
+    isFavorite: true, // <--- hiện trong tab Yêu thích
+    organizer: _mockOrganizer,
+  ),
+  EventModel(
+    id: 'evt_fav_02',
+    name: 'Triển lãm Tranh Đương Đại',
+    slug: 'contemporary-art-expo',
+    description: 'Không gian nghệ thuật đầy cảm hứng.',
+    category: 'art',
+    thumbnail:
+        'https://images.unsplash.com/photo-1536924940846-227afb31e2a5?q=80&w=800&auto=format&fit=crop',
+    startDate: DateTime.now().add(const Duration(days: 5)),
+    city: 'Hà Nội',
+    venueName: 'Bảo tàng Mỹ thuật',
+    minPrice: 50000,
+    maxPrice: 150000,
+    currency: 'VND',
+    availableTickets: 200,
+    isFavorite: true, // <--- hiện trong tab Yêu thích
+    organizer: _mockOrganizer,
+  ),
+];
