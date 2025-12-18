@@ -682,7 +682,28 @@ Refund tracking separate from ticket (clean separation).
 - ✅ Error codes: VOUCHER_NOT_FOUND, VOUCHER_INVALID_OR_EXPIRED, VOUCHER_NOT_APPLICABLE, VOUCHER_USAGE_LIMIT_REACHED,
   MIN_ORDER_AMOUNT_NOT_MET
 
-### Phase 8+ (Planned)
+### Phase 8 (Complete)
+
+**Favorites & Notifications Management:**
+
+- ✅ GET /favorites - User's favorite events (paginated)
+- ✅ POST /favorites/{eventId} - Add to favorites (idempotent)
+- ✅ DELETE /favorites/{eventId} - Remove from favorites
+- ✅ GET /notifications - User notifications (paginated, with unreadOnly filter)
+- ✅ PUT /notifications/{notificationId}/read - Mark single notification as read
+- ✅ PUT /notifications/read-all - Mark all as read
+- ✅ FavoriteService with idempotent add operation
+- ✅ NotificationService with notification creation & status tracking
+- ✅ FavoriteController (3 endpoints)
+- ✅ NotificationController (3 endpoints)
+- ✅ FavoriteRepository with @EntityGraph for N+1 prevention
+- ✅ NotificationRepository with status-based queries
+- ✅ Input validation: @Pattern regex for UUID validation on path variables
+- ✅ Security: @PreAuthorize("isAuthenticated()") on all endpoints
+- ✅ Notification types: TICKET_PURCHASED, EVENT_REMINDER, EVENT_CANCELLED, PROMOTION, SYSTEM
+- ✅ Idempotent operations: Favorite add silently ignores duplicates
+
+### Phase 9+ (Planned)
 
 - Payment gateway integration (Stripe/Paypal)
 - Order status webhooks
@@ -693,7 +714,6 @@ Refund tracking separate from ticket (clean separation).
 - Event series/recurring events
 - Waiting list management
 - Real-time seat availability WebSocket
-- Notification system
 
 ## Future Enhancements
 

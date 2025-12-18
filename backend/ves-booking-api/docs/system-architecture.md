@@ -26,8 +26,9 @@
 │  │ ├── TicketController ✅ (Phase 6: GET/PUT cancel)     │   │
 │  │ ├── EventController 🚧 (Event CRUD - Phase 3)        │   │
 │  │ ├── VoucherController ✅ (Phase 7: Vouchers)         │   │
-│  │ ├── OrderController 🚧 (Order mgmt - Phase 8+)       │   │
-│  │ └── NotificationController 🚧                        │   │
+│  │ ├── FavoriteController ✅ (Phase 8: Favorites)       │   │
+│  │ ├── NotificationController ✅ (Phase 8: Notifs)      │   │
+│  │ └── OrderController 🚧 (Order mgmt - Phase 9+)       │   │
 │  └──────────────────────────────────────────────────────┘   │
 │  ┌──────────────────────────────────────────────────────┐   │
 │  │ Security Layer                                       │   │
@@ -73,9 +74,9 @@
 │  │ └── VoucherService                                  │   │
 │  └──────────────────────────────────────────────────────┘   │
 │  ┌──────────────────────────────────────────────────────┐   │
-│  │ User Experience 🚧                                   │   │
-│  │ ├── NotificationService                             │   │
-│  │ ├── FavoriteService                                 │   │
+│  │ User Experience ✅ (Phase 8)                         │   │
+│  │ ├── NotificationService ✅                            │   │
+│  │ ├── FavoriteService ✅                                │   │
 │  │ └── UserVoucherService                               │   │
 │  └──────────────────────────────────────────────────────┘   │
 │  ┌──────────────────────────────────────────────────────┐   │
@@ -116,9 +117,9 @@
 │  │ └── UserVoucherRepository ✅                         │   │
 │  └──────────────────────────────────────────────────────┘   │
 │  ┌──────────────────────────────────────────────────────┐   │
-│  │ User Preference Repositories 🚧                      │   │
-│  │ ├── FavoriteRepository                              │   │
-│  │ └── NotificationRepository                          │   │
+│  │ User Preference Repositories ✅ (Phase 8)            │   │
+│  │ ├── FavoriteRepository ✅                            │   │
+│  │ └── NotificationRepository ✅                        │   │
 │  └──────────────────────────────────────────────────────┘   │
 └────────────────────┬────────────────────────────────────────┘
                      │
@@ -682,7 +683,26 @@ Return paginated results with availability
   MIN_ORDER_AMOUNT_NOT_MET
 - ✅ Input validation: Voucher code regex ^[A-Z0-9_-]{3,30}$
 
-### Phase 8+ (Planned)
+### Phase 8 (Complete)
+
+- ✅ GET /favorites - User's favorite events (paginated)
+- ✅ POST /favorites/{eventId} - Add to favorites (idempotent)
+- ✅ DELETE /favorites/{eventId} - Remove from favorites
+- ✅ GET /notifications - User notifications (paginated, with unreadOnly filter)
+- ✅ PUT /notifications/{notificationId}/read - Mark single notification as read
+- ✅ PUT /notifications/read-all - Mark all as read
+- ✅ FavoriteService with idempotent add operation
+- ✅ NotificationService with notification creation & status tracking
+- ✅ FavoriteController (3 endpoints)
+- ✅ NotificationController (3 endpoints)
+- ✅ FavoriteRepository with @EntityGraph for N+1 prevention
+- ✅ NotificationRepository with status-based queries
+- ✅ Input validation: @Pattern regex for UUID validation on path variables
+- ✅ Security: @PreAuthorize("isAuthenticated()") on all endpoints
+- ✅ Notification types: TICKET_PURCHASED, EVENT_REMINDER, EVENT_CANCELLED, PROMOTION, SYSTEM
+- ✅ Idempotent operations: Favorite add silently ignores duplicates
+
+### Phase 9+ (Planned)
 
 - Payment gateway integration (Stripe/Paypal)
 - Order status webhooks

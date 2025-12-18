@@ -1,6 +1,8 @@
 package com.uit.vesbookingapi.repository;
 
 import com.uit.vesbookingapi.entity.Favorite;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -17,5 +19,8 @@ public interface FavoriteRepository extends JpaRepository<Favorite, String> {
 
     @Query("SELECT f.event.id FROM Favorite f WHERE f.user.id = :userId")
     List<String> findEventIdsByUserId(@Param("userId") String userId);
+
+    @Query("SELECT f FROM Favorite f JOIN FETCH f.event WHERE f.user.id = :userId ORDER BY f.createdAt DESC")
+    Page<Favorite> findByUserIdWithEvent(@Param("userId") String userId, Pageable pageable);
 }
 

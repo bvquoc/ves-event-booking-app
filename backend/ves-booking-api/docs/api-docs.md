@@ -2,7 +2,7 @@
 
 **Base URL:** `http://localhost:8080/api`
 
-**Version:** Phase 7 - Vouchers & Discounts APIs
+**Version:** Phase 8 - Favorites & Notifications APIs
 
 ---
 
@@ -15,8 +15,10 @@
 5. [Reference Data Endpoints](#reference-data-endpoints)
 6. [Booking & Ticket Purchase Endpoints](#booking--ticket-purchase-endpoints)
 7. [Voucher Endpoints](#voucher-endpoints)
-8. [Response Format](#response-format)
-9. [Error Handling](#error-handling)
+8. [Favorites Endpoints](#favorites-endpoints)
+9. [Notifications Endpoints](#notifications-endpoints)
+10. [Response Format](#response-format)
+11. [Error Handling](#error-handling)
 
 ---
 
@@ -991,6 +993,270 @@ discount never exceeds order amount
 
 ---
 
+## Favorites Endpoints
+
+### Base Path: `/favorites`
+
+#### GET /favorites
+
+Retrieve user's favorite events with pagination.
+
+**Authentication:** Required (authenticated users only)
+
+**Query Parameters:**
+
+- `page` (integer, default: 0): Page number for pagination
+- `size` (integer, default: 10): Page size for pagination
+- `sort` (string, default: createdAt,desc): Sort field and direction
+
+**Response (200 OK):**
+
+```json
+{
+  "statusCode": 200,
+  "message": "Success",
+  "data": {
+    "content": [
+      {
+        "id": "550e8400-e29b-41d4-a716-446655440000",
+        "name": "Tech Conference 2024",
+        "slug": "tech-conference-2024",
+        "description": "Annual tech conference",
+        "thumbnail": "https://example.com/event1.jpg",
+        "startDate": "2025-02-15T09:00:00Z",
+        "endDate": "2025-02-17T18:00:00Z",
+        "categoryId": "660e8400-e29b-41d4-a716-446655440000",
+        "categoryName": "Technology",
+        "cityId": "770e8400-e29b-41d4-a716-446655440000",
+        "cityName": "Ho Chi Minh",
+        "venueName": "International Convention Center",
+        "isFavorite": true,
+        "isTrending": false
+      }
+    ],
+    "page": 1,
+    "size": 10,
+    "totalElements": 15,
+    "totalPages": 2,
+    "first": true,
+    "last": false
+  }
+}
+```
+
+**Status Codes:**
+
+- 200: Success
+- 401: Unauthorized
+- 500: Server error
+
+---
+
+#### POST /favorites/{eventId}
+
+Add an event to user's favorites (idempotent operation).
+
+**Authentication:** Required (authenticated users only)
+
+**Path Parameters:**
+
+- `eventId` (string, UUID): Event ID to add to favorites. Format: ^[a-fA-F0-9-]{36}$
+
+**Response (200 OK):**
+
+```json
+{
+  "statusCode": 200,
+  "message": "Event added to favorites"
+}
+```
+
+**Side Effects:**
+
+1. Creates Favorite record linking user to event
+2. If favorite already exists (idempotent), silently succeeds
+3. Database constraint (user_id, event_id) prevents duplicates
+
+**Status Codes:**
+
+- 200: Event added to favorites
+- 400: Invalid event ID format
+- 401: Unauthorized
+- 404: Event not found
+- 500: Server error
+
+---
+
+#### DELETE /favorites/{eventId}
+
+Remove an event from user's favorites.
+
+**Authentication:** Required (authenticated users only)
+
+**Path Parameters:**
+
+- `eventId` (string, UUID): Event ID to remove from favorites. Format: ^[a-fA-F0-9-]{36}$
+
+**Response (200 OK):**
+
+```json
+{
+  "statusCode": 200,
+  "message": "Event removed from favorites"
+}
+```
+
+**Status Codes:**
+
+- 200: Event removed from favorites
+- 400: Invalid event ID format
+- 401: Unauthorized
+- 404: Favorite not found
+- 500: Server error
+
+---
+
+## Notifications Endpoints
+
+### Base Path: `/notifications`
+
+#### GET /notifications
+
+Retrieve user's notifications with optional filtering and pagination.
+
+**Authentication:** Required (authenticated users only)
+
+**Query Parameters:**
+
+- `unreadOnly` (boolean, optional): Filter only unread notifications (default: false - all)
+- `page` (integer, default: 0): Page number for pagination
+- `size` (integer, default: 20): Page size for pagination
+- `sort` (string, default: createdAt,desc): Sort field and direction
+
+**Response (200 OK):**
+
+```json
+{
+  "statusCode": 200,
+  "message": "Success",
+  "data": {
+    "content": [
+      {
+        "id": "880e8400-e29b-41d4-a716-446655440000",
+        "type": "TICKET_PURCHASED",
+        "title": "Mua vé thành công",
+        "message": "Bạn đã mua 2 vé cho sự kiện 'Tech Conference 2024'",
+        "isRead": false,
+        "data": {
+          "orderId": "990e8400-e29b-41d4-a716-446655440000",
+          "eventId": "550e8400-e29b-41d4-a716-446655440000",
+          "ticketCount": "2"
+        },
+        "createdAt": "2024-12-18T10:30:00Z"
+      },
+      {
+        "id": "880e8400-e29b-41d4-a716-446655440001",
+        "type": "EVENT_REMINDER",
+        "title": "Nhắc nhở sự kiện",
+        "message": "Sự kiện 'Summer Festival 2025' sẽ diễn ra trong 24 giờ nữa!",
+        "isRead": true,
+        "data": {
+          "eventId": "660e8400-e29b-41d4-a716-446655440000"
+        },
+        "createdAt": "2024-12-17T15:00:00Z"
+      }
+    ],
+    "page": 1,
+    "size": 20,
+    "totalElements": 45,
+    "totalPages": 3,
+    "first": true,
+    "last": false
+  }
+}
+```
+
+**Notification Types:**
+
+- `TICKET_PURCHASED` - User purchased tickets for an event
+- `EVENT_REMINDER` - Event starts in 24 hours (for favorited events)
+- `EVENT_CANCELLED` - Event user has tickets for was cancelled
+- `PROMOTION` - Promotional offers and discounts
+- `SYSTEM` - System announcements and updates
+
+**Status Codes:**
+
+- 200: Success
+- 401: Unauthorized
+- 500: Server error
+
+---
+
+#### PUT /notifications/{notificationId}/read
+
+Mark a single notification as read.
+
+**Authentication:** Required (authenticated users only)
+
+**Path Parameters:**
+
+- `notificationId` (string, UUID): Notification ID. Format: ^[a-fA-F0-9-]{36}$
+
+**Response (200 OK):**
+
+```json
+{
+  "statusCode": 200,
+  "message": "Notification marked as read"
+}
+```
+
+**Side Effects:**
+
+1. Sets Notification.isRead = true
+2. Updates Notification.updatedAt timestamp
+3. Ownership verified (notification must belong to authenticated user)
+
+**Status Codes:**
+
+- 200: Notification marked as read
+- 400: Invalid notification ID format
+- 401: Unauthorized
+- 403: Forbidden (notification belongs to another user)
+- 404: Notification not found
+- 500: Server error
+
+---
+
+#### PUT /notifications/read-all
+
+Mark all user notifications as read.
+
+**Authentication:** Required (authenticated users only)
+
+**Response (200 OK):**
+
+```json
+{
+  "statusCode": 200,
+  "message": "All notifications marked as read"
+}
+```
+
+**Side Effects:**
+
+1. Updates all Notification records with isRead = false for current user
+2. Sets isRead = true for all matching records
+3. Updates Notification.updatedAt for each record
+
+**Status Codes:**
+
+- 200: All notifications marked as read
+- 401: Unauthorized
+- 500: Server error
+
+---
+
 ## Response Format
 
 ### Success Response Format
@@ -1228,7 +1494,7 @@ curl -X GET http://localhost:8080/api/users/my-info \
 
 ## API Versioning
 
-Current API version: **Phase 6 - Ticket Management & Cancellation APIs**
+Current API version: **Phase 8 - Favorites & Notifications APIs**
 
 **Version History:**
 - Phase 1: Identity & Access Management
@@ -1236,8 +1502,10 @@ Current API version: **Phase 6 - Ticket Management & Cancellation APIs**
 - Phase 3 (Planned): Event Management APIs
 - Phase 4 (Planned): Order Status Tracking
 - Phase 5: Booking & Ticket Purchase APIs
-- Phase 6 (Current): Ticket Management & Cancellation APIs
-- Phase 7+ (Planned): Payment Gateway Integration
+- Phase 6: Ticket Management & Cancellation APIs
+- Phase 7: Vouchers & Discounts Management
+- Phase 8 (Current): Favorites & Notifications APIs
+- Phase 9+ (Planned): Payment Gateway Integration
 
 ---
 
@@ -1508,7 +1776,67 @@ Validate voucher and calculate discount for a specific order. Requires authentic
 
 ## Changelog
 
-### Phase 7 Updates (Current)
+### Phase 8 Updates (Current)
+
+**New Favorites Endpoints:**
+
+- NEW: GET /favorites - List user's favorite events (paginated, authenticated)
+- NEW: POST /favorites/{eventId} - Add event to favorites (idempotent)
+- NEW: DELETE /favorites/{eventId} - Remove event from favorites
+
+**New Notifications Endpoints:**
+
+- NEW: GET /notifications - List user notifications (paginated, with unreadOnly filter)
+- NEW: PUT /notifications/{notificationId}/read - Mark single notification as read
+- NEW: PUT /notifications/read-all - Mark all notifications as read
+
+**New Services:**
+
+- NEW: FavoriteService - Favorites management with idempotent add operation
+    - getUserFavorites() - Paginated retrieval
+    - addFavorite() - Idempotent (handles DataIntegrityViolationException)
+    - removeFavorite() - Delete favorite
+- NEW: NotificationService - Notification management (6 methods)
+    - getUserNotifications() - Paginated with unreadOnly filter
+    - markAsRead() - Mark single notification as read
+    - markAllAsRead() - Mark all as read
+    - notifyTicketPurchased() - Type: TICKET_PURCHASED
+    - notifyEventReminder() - Type: EVENT_REMINDER
+    - notifyEventCancelled() - Type: EVENT_CANCELLED
+
+**New Repositories:**
+
+- NEW: FavoriteRepository extended with findByUserIdWithEvent()
+- NEW: NotificationRepository extended with:
+    - findUnreadByUserId() - Unread notifications only
+    - findByUserIdOrderByCreatedAtDesc() - All user notifications
+    - markAllAsReadByUserId() - Bulk update for mark all read
+    - countByUserIdAndIsRead() - Unread count
+
+**New Controllers:**
+
+- NEW: FavoriteController (3 endpoints)
+- NEW: NotificationController (3 endpoints)
+
+**Features:**
+
+- Pagination support: @PageableDefault on all list endpoints
+- Input validation: @Pattern regex for UUID validation on path variables
+- Security: @PreAuthorize("isAuthenticated()") on all endpoints
+- Idempotent add: Favorites silently ignore duplicates (DataIntegrityViolationException)
+- Notification types: TICKET_PURCHASED, EVENT_REMINDER, EVENT_CANCELLED, PROMOTION, SYSTEM
+- Notification data: Map-based flexible data storage per notification
+- Unread filtering: Optional unreadOnly parameter on GET /notifications
+
+**DTOs:**
+
+- NEW: EventResponse - Event data returned in favorites list
+- NEW: NotificationResponse - Notification with type, title, message, data
+- NEW: PageResponse - Pagination wrapper for list responses
+
+---
+
+### Phase 7 Updates
 
 **New Voucher Endpoints:**
 
