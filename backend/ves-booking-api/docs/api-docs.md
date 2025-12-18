@@ -2,7 +2,7 @@
 
 **Base URL:** `http://localhost:8080/api`
 
-**Version:** Phase 6 - Ticket Management & Cancellation APIs
+**Version:** Phase 7 - Vouchers & Discounts APIs
 
 ---
 
@@ -14,8 +14,9 @@
 4. [Permission Management Endpoints](#permission-management-endpoints)
 5. [Reference Data Endpoints](#reference-data-endpoints)
 6. [Booking & Ticket Purchase Endpoints](#booking--ticket-purchase-endpoints)
-7. [Response Format](#response-format)
-8. [Error Handling](#error-handling)
+7. [Voucher Endpoints](#voucher-endpoints)
+8. [Response Format](#response-format)
+9. [Error Handling](#error-handling)
 
 ---
 
@@ -1262,6 +1263,243 @@ GET /users?page=0&size=20&sort=username,asc
 
 ---
 
+## Voucher Endpoints
+
+### Base Path: `/vouchers`
+
+#### GET /vouchers
+
+List all public vouchers that are currently valid (not expired). No authentication required.
+
+**Authentication:** Not required (public endpoint)
+
+**Query Parameters:** None
+
+**Response (200 OK):**
+
+```json
+{
+  "statusCode": 200,
+  "message": "Success",
+  "data": [
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "code": "SUMMER2024",
+      "title": "Summer Sale 2024",
+      "description": "20% off on all summer events",
+      "discountType": "PERCENTAGE",
+      "discountValue": 20,
+      "minOrderAmount": 50000,
+      "maxDiscount": 500000,
+      "startDate": "2024-06-01T00:00:00",
+      "endDate": "2024-08-31T23:59:59",
+      "usageLimit": 1000,
+      "usedCount": 245,
+      "isPublic": true,
+      "applicableEvents": [],
+      "applicableCategories": [
+        "music",
+        "sports"
+      ]
+    }
+  ]
+}
+```
+
+**Field Descriptions:**
+
+- `id` (UUID): Unique voucher identifier
+- `code` (string): Voucher code (uppercase, format: ^[A-Z0-9_-]{3,30}$)
+- `title` (string): Display name
+- `description` (string): Detailed description
+- `discountType` (enum): FIXED_AMOUNT or PERCENTAGE
+- `discountValue` (integer): Amount (for FIXED) or percentage (for PERCENTAGE)
+- `minOrderAmount` (integer): Minimum order amount to apply (nullable)
+- `maxDiscount` (integer): Maximum discount cap for PERCENTAGE type (nullable)
+- `startDate` (datetime): Validity period start
+- `endDate` (datetime): Validity period end
+- `usageLimit` (integer): Max uses limit (null = unlimited)
+- `usedCount` (integer): Current usage count
+- `isPublic` (boolean): Visible to all users
+- `applicableEvents` (array): Specific event IDs (empty = all events)
+- `applicableCategories` (array): Specific category slugs (empty = all categories)
+
+**Status Codes:**
+
+- 200: Success
+- 500: Server error
+
+---
+
+#### GET /vouchers/my-vouchers
+
+List user's vouchers with optional status filtering. Requires authentication.
+
+**Authentication:** Required (Bearer token)
+
+**Query Parameters:**
+
+- `status` (string, optional): Filter by status - "active", "used", "expired", or "all" (default: "all")
+
+**Response (200 OK):**
+
+```json
+{
+  "statusCode": 200,
+  "message": "Success",
+  "data": [
+    {
+      "id": "660e8400-e29b-41d4-a716-446655440001",
+      "userId": "770e8400-e29b-41d4-a716-446655440000",
+      "voucherId": "550e8400-e29b-41d4-a716-446655440000",
+      "isUsed": false,
+      "usedAt": null,
+      "orderId": null,
+      "addedAt": "2024-05-15T10:30:00",
+      "voucher": {
+        "id": "550e8400-e29b-41d4-a716-446655440000",
+        "code": "SUMMER2024",
+        "title": "Summer Sale 2024",
+        "discountType": "PERCENTAGE",
+        "discountValue": 20,
+        "endDate": "2024-08-31T23:59:59",
+        "isPublic": true
+      }
+    }
+  ]
+}
+```
+
+**Field Descriptions:**
+
+- `id` (UUID): UserVoucher record ID
+- `userId` (UUID): User ID
+- `voucherId` (UUID): Voucher ID
+- `isUsed` (boolean): Whether voucher has been redeemed
+- `usedAt` (datetime): When voucher was used (null if unused)
+- `orderId` (UUID): Order that used this voucher (null if unused)
+- `addedAt` (datetime): When voucher was assigned to user
+- `voucher` (object): Voucher details
+
+**Status Codes:**
+
+- 200: Success
+- 400: Invalid status filter
+- 401: Unauthenticated
+- 500: Server error
+
+---
+
+#### POST /vouchers/validate
+
+Validate voucher and calculate discount for a specific order. Requires authentication.
+
+**Authentication:** Required (Bearer token)
+
+**Request Body:**
+
+```json
+{
+  "voucherCode": "SUMMER2024",
+  "eventId": "330e8400-e29b-41d4-a716-446655440000",
+  "ticketTypeId": "440e8400-e29b-41d4-a716-446655440000",
+  "quantity": 2
+}
+```
+
+**Request Field Descriptions:**
+
+- `voucherCode` (string, required): Voucher code to validate (pattern: ^[A-Z0-9_-]{3,30}$)
+- `eventId` (UUID, required): Event ID to check applicability
+- `ticketTypeId` (UUID, required): Ticket type for pricing calculation
+- `quantity` (integer, required): Number of tickets (min: 1)
+
+**Response (200 OK - Valid Voucher):**
+
+```json
+{
+  "statusCode": 200,
+  "message": "Success",
+  "data": {
+    "isValid": true,
+    "message": "Voucher is valid",
+    "orderAmount": 200000,
+    "discountAmount": 40000,
+    "finalAmount": 160000,
+    "voucher": {
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "code": "SUMMER2024",
+      "title": "Summer Sale 2024",
+      "discountType": "PERCENTAGE",
+      "discountValue": 20
+    }
+  }
+}
+```
+
+**Response (200 OK - Invalid Voucher):**
+
+```json
+{
+  "statusCode": 200,
+  "message": "Success",
+  "data": {
+    "isValid": false,
+    "message": "Voucher is expired or not yet valid",
+    "orderAmount": 200000,
+    "discountAmount": null,
+    "finalAmount": null,
+    "voucher": {
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "code": "SUMMER2024",
+      "title": "Summer Sale 2024"
+    }
+  }
+}
+```
+
+**Response Field Descriptions:**
+
+- `isValid` (boolean): Whether voucher passes all validation steps
+- `message` (string): Validation result message
+- `orderAmount` (integer): Subtotal before discount
+- `discountAmount` (integer): Discount amount (null if invalid)
+- `finalAmount` (integer): Final amount after discount (null if invalid)
+- `voucher` (object): Voucher details
+
+**Validation Steps (10-step process):**
+
+1. Voucher exists by code
+2. Not expired (startDate <= now <= endDate)
+3. Usage limit not exceeded (usedCount < usageLimit)
+4. Event & ticket type exist
+5. Quantity within maxPerOrder limit
+6. Order amount >= minOrderAmount
+7. Applicability check (event or category match, OR logic)
+8. Discount value valid (positive for FIXED, 0-100 for PERCENTAGE)
+9. Overflow protection for percentage calculations (uses long)
+10. Discount capped at maxDiscount (for PERCENTAGE)
+
+**Possible Validation Failures:**
+
+- "Voucher is expired or not yet valid"
+- "Voucher usage limit reached"
+- "Quantity exceeds maximum per order: X"
+- "Minimum order amount not met: X"
+- "Voucher not applicable for this event"
+- "Invalid voucher discount value"
+- "Invalid voucher discount percentage"
+
+**Status Codes:**
+
+- 200: Success (valid or invalid voucher)
+- 400: Invalid request (missing fields, invalid format, not found)
+- 401: Unauthenticated
+- 404: Event or ticket type not found, voucher not found
+- 500: Server error
+
+---
+
 ## Rate Limiting
 
 (To be implemented in future phases)
@@ -1270,7 +1508,62 @@ GET /users?page=0&size=20&sort=username,asc
 
 ## Changelog
 
-### Phase 6 Updates (Current)
+### Phase 7 Updates (Current)
+
+**New Voucher Endpoints:**
+
+- NEW: GET /vouchers - List public vouchers (no auth, not expired)
+- NEW: GET /vouchers/my-vouchers?status={status} - List user vouchers (authenticated)
+- NEW: POST /vouchers/validate - Validate voucher & calculate discount (authenticated)
+
+**New Services:**
+
+- NEW: VoucherService - Comprehensive voucher validation with 10-step process:
+    1. Find voucher by code
+    2. Check expiry (startDate, endDate)
+    3. Check usage limit (usedCount vs usageLimit)
+    4. Load event & ticket type validation
+    5. Validate quantity against maxPerOrder
+    6. Calculate order amount (price * quantity)
+    7. Check minimum order amount requirement
+    8. Verify event/category applicability (OR logic)
+    9. Calculate discount (fixed or percentage with overflow protection)
+    10. Return validation result with final amount
+
+**New Repositories:**
+
+- NEW: VoucherRepository custom queries:
+    - findByCode(String code) - Find voucher by code
+    - findPublicActiveVouchers(LocalDateTime now) - Find public non-expired vouchers
+- NEW: UserVoucherRepository status-based filters:
+    - findByUserIdOrderByAddedAtDesc(String userId) - All user vouchers
+    - findActiveByUserId(String userId, LocalDateTime now) - Active (not used, not expired)
+    - findUsedByUserId(String userId) - Used vouchers
+    - findExpiredByUserId(String userId, LocalDateTime now) - Expired (not used, expired)
+
+**Entities & Enums:**
+
+- Voucher entity with applicableEvents & applicableCategories element collections
+- UserVoucher entity for user-specific voucher assignments & tracking
+- VoucherDiscountType enum (FIXED_AMOUNT, PERCENTAGE)
+
+**DTOs:**
+
+- NEW: VoucherResponse - Public voucher information
+- NEW: UserVoucherResponse - User's assigned voucher with status
+- NEW: VoucherValidationResponse - Validation result with discount breakdown
+- NEW: ValidateVoucherRequest - Validation request with input validation
+
+**Features:**
+
+- Discount types: FIXED_AMOUNT or PERCENTAGE
+- Overflow protection: Uses long for percentage calculations
+- Applicability: Empty lists = all events/categories, non-empty = specific restrictions (OR logic)
+- Input validation: Voucher code regex ^[A-Z0-9_-]{3,30}$
+- Error codes: VOUCHER_NOT_FOUND (6001), VOUCHER_INVALID_OR_EXPIRED (6002), VOUCHER_NOT_APPLICABLE (6003),
+  VOUCHER_USAGE_LIMIT_REACHED (6004), MIN_ORDER_AMOUNT_NOT_MET (6005)
+
+### Phase 6 Updates
 
 **New Ticket Management Endpoints:**
 

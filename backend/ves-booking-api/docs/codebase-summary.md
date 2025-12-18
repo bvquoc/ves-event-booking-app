@@ -661,7 +661,28 @@ Refund tracking separate from ticket (clean separation).
 - refundAmount (integer)
 - refundStatus (RefundStatus enum: PENDING, PROCESSING, COMPLETED, FAILED)
 
-### Phase 7+ (Planned)
+### Phase 7 (Complete)
+
+**Vouchers & Discounts Management:**
+
+- ✅ GET /vouchers - List public vouchers (no auth required, not expired)
+- ✅ GET /vouchers/my-vouchers?status={status} - List user vouchers (authenticated, status filter:
+  active/used/expired/all)
+- ✅ POST /vouchers/validate - Validate voucher & calculate discount (authenticated)
+- ✅ VoucherService - Comprehensive validation with 10-step process
+- ✅ VoucherRepository with custom JPA queries
+- ✅ UserVoucherRepository with status-based filters
+- ✅ Voucher entity with discount types (FIXED_AMOUNT, PERCENTAGE)
+- ✅ UserVoucher entity for user-specific assignments
+- ✅ Validation: expiry, usage limit, applicability, min order amount
+- ✅ Discount calculation: fixed amounts, percentages with maxDiscount cap
+- ✅ Applicability: events OR categories (OR logic), unrestricted vouchers apply to all
+- ✅ Overflow protection: Uses long for percentage calculations
+- ✅ Input validation: Voucher code regex ^[A-Z0-9_-]{3,30}$
+- ✅ Error codes: VOUCHER_NOT_FOUND, VOUCHER_INVALID_OR_EXPIRED, VOUCHER_NOT_APPLICABLE, VOUCHER_USAGE_LIMIT_REACHED,
+  MIN_ORDER_AMOUNT_NOT_MET
+
+### Phase 8+ (Planned)
 
 - Payment gateway integration (Stripe/Paypal)
 - Order status webhooks
@@ -672,7 +693,7 @@ Refund tracking separate from ticket (clean separation).
 - Event series/recurring events
 - Waiting list management
 - Real-time seat availability WebSocket
-- Notification system (Phase 8)
+- Notification system
 
 ## Future Enhancements
 
