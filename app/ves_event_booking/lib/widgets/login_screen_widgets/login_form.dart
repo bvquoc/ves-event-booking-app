@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:ves_event_booking/screens/home_screen.dart';
+import 'package:provider/provider.dart';
+import 'package:ves_event_booking/providers/auth_provider.dart';
 
 class LoginForm extends StatefulWidget {
   final VoidCallback onSwitch;
@@ -19,9 +21,23 @@ class _LoginFormState extends State<LoginForm> {
   String _email = "";
   String _password = "";
   bool _rememberMe = false;
+  bool _isButtonEnabled = false;
+
+  void _validateInputs() {
+    // Kiểm tra nhập liệu: không được để trống và không chỉ chứa khoảng trắng
+    final isValid = _email.trim().isNotEmpty && _password.trim().isNotEmpty;
+
+    if (_isButtonEnabled != isValid) {
+      setState(() {
+        _isButtonEnabled = isValid;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -45,6 +61,7 @@ class _LoginFormState extends State<LoginForm> {
           onChanged: (value) {
             setState(() {
               _email = value;
+              _validateInputs();
             });
           },
         ),
@@ -59,6 +76,7 @@ class _LoginFormState extends State<LoginForm> {
           onChanged: (value) {
             setState(() {
               _password = value;
+              _validateInputs();
             });
           },
         ),
@@ -91,51 +109,53 @@ class _LoginFormState extends State<LoginForm> {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),
           child: ElevatedButton(
-            onPressed: () async {
-              print("Email: $_email");
-              print("Password: $_password");
-              print("Remember: $_rememberMe");
+            onPressed: (_isButtonEnabled && !authProvider.isLoading)
+                ? () async {
+                    bool success = await authProvider.login(_email, _password);
 
-              /* Use these services when have API
-              try {
-                final auth = context.read<AuthProvider>();
-                await auth.login(_email, _password);
-
-                // Login -> navigation
-                if (context.mounted) {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => const HomeScreen()),
-                  );
-                }
-              } catch (e) {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Đăng nhập thất bại: $e')),
-                  );
-                }
-              }
-              */
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => const HomeScreen()),
-              );
-            },
+                    if (success) {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const HomeScreen(),
+                        ),
+                      );
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            authProvider.errorMessage ?? 'Lỗi đăng nhập',
+                          ),
+                        ),
+                      );
+                    }
+                  }
+                : null,
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.blueAccent,
               padding: const EdgeInsets.symmetric(vertical: 10),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10),
               ),
+              disabledBackgroundColor: Colors.grey[300],
             ),
-            child: const Text(
-              "Đăng nhập",
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-              ),
-            ),
+            child: authProvider.isLoading
+                ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                      strokeWidth: 2,
+                    ),
+                  )
+                : const Text(
+                    "Đăng nhập",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
           ),
         ),
 

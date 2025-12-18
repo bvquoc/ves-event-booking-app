@@ -1,11 +1,21 @@
 import 'package:flutter/material.dart';
 import 'screens/login_screen.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:provider/provider.dart';
+import 'providers/auth_provider.dart';
 
 void main() {
   initializeDateFormatting('vi_VN', null);
 
-  runApp(const MainApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        // Các provider khác...
+      ],
+      child: const MainApp(),
+    ),
+  );
 }
 
 class MainApp extends StatelessWidget {
