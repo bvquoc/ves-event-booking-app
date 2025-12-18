@@ -1,21 +1,19 @@
 package com.uit.vesbookingapi.controller;
 
-import java.text.ParseException;
-
+import com.nimbusds.jose.JOSEException;
+import com.uit.vesbookingapi.dto.request.*;
+import com.uit.vesbookingapi.dto.response.AuthenticationResponse;
+import com.uit.vesbookingapi.dto.response.IntrospectResponse;
+import com.uit.vesbookingapi.service.AuthenticationService;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.uit.vesbookingapi.dto.request.*;
-import com.uit.vesbookingapi.dto.response.AuthenticationResponse;
-import com.uit.vesbookingapi.dto.response.IntrospectResponse;
-import com.uit.vesbookingapi.service.AuthenticationService;
-import com.nimbusds.jose.JOSEException;
-
-import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.FieldDefaults;
+import java.text.ParseException;
 
 @RestController
 @RequestMapping("/auth")

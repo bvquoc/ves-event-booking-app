@@ -3,6 +3,7 @@ package com.uit.vesbookingapi.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+
 import java.time.LocalDateTime;
 
 @Getter
@@ -13,7 +14,7 @@ import java.time.LocalDateTime;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Entity
 @Table(uniqueConstraints = {
-    @UniqueConstraint(columnNames = {"user_id", "voucher_id"})
+        @UniqueConstraint(columnNames = {"user_id", "voucher_id"})
 })
 public class UserVoucher {
     @Id

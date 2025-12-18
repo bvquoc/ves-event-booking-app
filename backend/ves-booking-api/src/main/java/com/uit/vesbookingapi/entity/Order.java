@@ -5,6 +5,7 @@ import com.uit.vesbookingapi.enums.PaymentMethod;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -16,8 +17,8 @@ import java.util.List;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Entity
 @Table(name = "orders", indexes = {
-    @Index(name = "idx_order_user", columnList = "user_id"),
-    @Index(name = "idx_order_status", columnList = "status")
+        @Index(name = "idx_order_user", columnList = "user_id"),
+        @Index(name = "idx_order_status", columnList = "status")
 })
 public class Order {
     @Id

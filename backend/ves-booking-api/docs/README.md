@@ -1,6 +1,6 @@
 # VES Booking API - Documentation Index
 
-**Current Phase:** Phase 1 - Foundation & Core Entities (Complete)
+**Current Phase:** Phase 5 - Booking & Payment Flow (Complete)
 
 ---
 
@@ -322,21 +322,36 @@ AND (v.usageLimit IS NULL OR v.usedCount < v.usageLimit);
 
 ## Quick Reference
 
-### Phase 1: Foundation & Core Entities
+### Phase 1: Foundation & Core Entities (Complete)
 - ✅ 12 entities implemented
 - ✅ 24 tables created
 - ✅ 7 enums defined
 - ✅ 30+ error codes
 - ✅ Complete documentation
 
-### Phase 2: Service Layer & APIs (Planned)
-- 📋 Service implementation for all entities
-- 📋 REST API endpoints
-- 📋 Request/Response DTOs
-- 📋 Comprehensive error handling
+### Phase 2: Reference Data APIs (Complete)
+
+- ✅ CategoryService & Controller
+- ✅ CityService & Controller
+- ✅ Event counting queries
+- ✅ Performance optimized (N+1 prevented)
+
+### Phase 5: Booking & Payment Flow (Current - Complete)
+
+- ✅ BookingService with transactional guarantees
+- ✅ TicketController.purchase endpoint
+- ✅ Optimistic locking for concurrent safety
+- ✅ Seat reservation logic
+- ✅ Voucher validation & discount calculation
+- ✅ Order creation (15min expiry)
+- ✅ Mock payment URLs & QR codes
+- ✅ Error codes for tickets, seats, orders, vouchers
 
 ### Phase 3+: Advanced Features (Future)
-- 📋 Payment gateway integration
+
+- 📋 Event Management APIs
+- 📋 Payment gateway integration (Stripe/PayPal)
+- 📋 Order completion workflow
 - 📋 Notification system
 - 📋 Analytics & reporting
 - 📋 Admin dashboard
@@ -353,6 +368,6 @@ AND (v.usageLimit IS NULL OR v.usedCount < v.usageLimit);
 
 ---
 
-**Last Updated:** 2025-12-17
-**Phase 1 Status:** ✅ COMPLETE
+**Last Updated:** 2025-12-18
+**Current Phase Status:** ✅ Phase 5 COMPLETE
 **Documentation Coverage:** 100%

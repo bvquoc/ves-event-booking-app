@@ -1,122 +1,90 @@
 import 'package:flutter/material.dart';
-import '../old_models/user.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../models/user_model.dart';
 import '../services/auth_service.dart';
-import '../services/user_service.dart';
-import '../services/google_auth_service.dart';
 
-class AuthProvider with ChangeNotifier {
+class AuthProvider extends ChangeNotifier {
   final AuthService _authService = AuthService();
-  final GoogleAuthService _googleService = GoogleAuthService();
 
-  User? currentUser;
-  String? accessToken;
-  String? refreshToken;
-  bool isLoading = false;
+  UserModel? _currentUser;
+  bool _isLoading = false;
+  String? _errorMessage;
 
-  bool get isLoggedIn => accessToken != null && currentUser != null;
-  static bool isInitialized = false;
+  // Getters
+  UserModel? get currentUser => _currentUser;
+  bool get isLoading => _isLoading;
+  String? get errorMessage => _errorMessage;
 
-  /// Login with email, password
-  Future<void> login(String email, String password) async {
+  // Xử lý Đăng nhập
+  Future<bool> login(String email, String password) async {
     _setLoading(true);
     try {
-      final auth = await _authService.login(email, password);
-      accessToken = auth.accessToken;
-      refreshToken = auth.refreshToken;
-      await fetchProfile();
+      final accessToken = await _authService.login(email, password);
+
+      // Lưu token vào máy
+      await _saveToken(accessToken, null);
+
+      _errorMessage = null;
+      notifyListeners();
+      return true; // Đăng nhập thành công
+    } catch (e) {
+      _errorMessage = e.toString();
+      notifyListeners();
+      return false; // Đăng nhập thất bại
     } finally {
       _setLoading(false);
     }
   }
 
-  /// Sign up new user
-  Future<void> signup(String email, String password) async {
+  // Xử lý Đăng ký
+  Future<bool> register(
+    String email,
+    String password,
+    String name,
+    String phone,
+  ) async {
     _setLoading(true);
     try {
-      await _authService.signup(email, password);
-      // Return {userId}, does not have token.
-      // Not automatic login -> back to login page
+      final authResponse = await _authService.register(
+        email: email,
+        password: password,
+        fullName: name,
+        phone: phone,
+      );
+
+      await _saveToken(authResponse.accessToken, authResponse.refreshToken);
+      _currentUser = authResponse.user;
+      _errorMessage = null;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString();
+      notifyListeners();
+      return false;
     } finally {
       _setLoading(false);
     }
   }
 
-  /// Forgot password -> send email reset request
-  Future<void> forgotPassword(String email) async {
-    await _authService.forgotPassword(email);
+  // Lưu token
+  Future<void> _saveToken(String access, String? refresh) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('accessToken', access);
+    if (refresh != null) {
+      await prefs.setString('refreshToken', refresh);
+    }
   }
 
-  /// Set new password with token
-  Future<void> resetPassword(String token, String newPassword) async {
-    await _authService.resetPassword(token, newPassword);
-  }
-
-  /// Change password while logged in
-  Future<void> changePassword(String oldPassword, String newPassword) async {
-    if (accessToken == null) throw Exception("Not logged in");
-    await _authService.changePassword(accessToken!, oldPassword, newPassword);
-  }
-
-  /// Get user profile
-  Future<void> fetchProfile() async {
-    if (accessToken == null) return;
-    final userService = UserService(accessToken!);
-    currentUser = await userService.getProfile();
-    notifyListeners();
-  }
-
-  /// Refresh access with refresh token
-  Future<void> refreshAccessToken() async {
-    if (refreshToken == null) throw Exception("No refresh token");
-    final auth = await _authService.refreshToken(refreshToken!);
-    accessToken = auth.accessToken;
-    notifyListeners();
-  }
-
-  /// Logout 1 session
+  // Logout
   Future<void> logout() async {
-    if (accessToken != null && refreshToken != null) {
-      await _authService.logout(accessToken!, refreshToken!);
-    }
-    _clearAuth();
-  }
-
-  /// Logout all sessions
-  Future<void> logoutAll() async {
-    if (accessToken != null) {
-      await _authService.logoutAll(accessToken!);
-    }
-    _clearAuth();
-  }
-
-  /// Clear state
-  void _clearAuth() {
-    accessToken = null;
-    refreshToken = null;
-    currentUser = null;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
+    _currentUser = null;
     notifyListeners();
   }
 
   void _setLoading(bool value) {
-    isLoading = value;
+    _isLoading = value;
     notifyListeners();
-  }
-
-  /// Google login session
-  Future<void> loginWithGoogle() async {
-    _setLoading(true);
-    try {
-      final auth = await _googleService.signInWithGoogle();
-
-      if (auth != null) {
-        accessToken = auth.accessToken;
-        refreshToken = auth.refreshToken;
-        await fetchProfile();
-      } else {
-        throw Exception("Đăng nhập Google thất bại hoặc đã bị hủy.");
-      }
-    } finally {
-      _setLoading(false);
-    }
   }
 }

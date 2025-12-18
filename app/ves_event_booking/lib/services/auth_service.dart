@@ -1,68 +1,66 @@
 import 'package:dio/dio.dart';
-import '../old_models/auth_response.dart';
+import '../models/auth_model.dart'; // Chứa AuthResponse, UserModel
+import 'dio_client.dart';
 
 class AuthService {
-  final Dio _dio = Dio(BaseOptions(baseUrl: 'http://10.0.2.2:8080/api'));
+  final Dio _dio = DioClient().dio;
 
-  Future<AuthResponse> login(String email, String password) async {
-    final response = await _dio.post(
-      '/auth/login',
-      data: {'email': email, 'password': password},
-    );
-    return AuthResponse.fromJson(response.data);
+  // 1. Đăng nhập
+  Future<String> login(String email, String password) async {
+    try {
+      final response = await _dio.post(
+        '/auth/token',
+        data: {'username': email, 'password': password},
+      );
+
+      if (response.statusCode == 200) {
+        final data = response.data;
+        final result = data['result'];
+
+        if (result != null && result['token'] != null) {
+          return result['token'];
+        } else {
+          throw 'API không trả về Token';
+        }
+      } else {
+        throw 'Lỗi kết nối: ${response.statusCode}';
+      }
+    } on DioException catch (e) {
+      if (e.response != null) {
+        final errorData = e.response?.data;
+        throw errorData?['message'] ?? 'Lỗi server (${e.response?.statusCode})';
+      } else {
+        print(e);
+        throw 'Lỗi kết nối: ${e.message}';
+      }
+    } catch (e) {
+      throw e.toString();
+    }
   }
 
-  Future<Map<String, dynamic>> signup(String email, String password) async {
-    final response = await _dio.post(
-      '/auth/signup',
-      data: {'email': email, 'password': password},
-    );
-    return response.data; // {"userId": "..."}
-  }
+  // 2. Đăng ký
+  Future<AuthResponse> register({
+    required String email,
+    required String password,
+    required String fullName,
+    required String phone,
+  }) async {
+    try {
+      final response = await _dio.post(
+        '/auth/register',
+        data: {
+          'email': email,
+          'password': password,
+          'fullName': fullName,
+          'phoneNumber': phone,
+        },
+      );
 
-  Future<void> forgotPassword(String email) async {
-    await _dio.post('/auth/password/forgot', data: {"email": email});
-  }
-
-  Future<void> resetPassword(String token, String newPassword) async {
-    await _dio.post(
-      '/auth/password/reset',
-      data: {"token": token, "newPassword": newPassword},
-    );
-  }
-
-  Future<void> changePassword(
-    String accessToken,
-    String oldPassword,
-    String newPassword,
-  ) async {
-    await _dio.post(
-      '/auth/password/change',
-      data: {"oldPassword": oldPassword, "newPassword": newPassword},
-      options: Options(headers: {"Authorization": "Bearer $accessToken"}),
-    );
-  }
-
-  Future<AuthResponse> refreshToken(String refreshToken) async {
-    final response = await _dio.post(
-      '/auth/token/refresh',
-      data: {"refreshToken": refreshToken},
-    );
-    return AuthResponse.fromJson(response.data);
-  }
-
-  Future<void> logout(String accessToken, String refreshToken) async {
-    await _dio.post(
-      '/auth/logout',
-      data: {"refreshToken": refreshToken},
-      options: Options(headers: {"Authorization": "Bearer $accessToken"}),
-    );
-  }
-
-  Future<void> logoutAll(String accessToken) async {
-    await _dio.post(
-      '/auth/logout-all',
-      options: Options(headers: {"Authorization": "Bearer $accessToken"}),
-    );
+      return AuthResponse.fromJson(response.data['data']);
+    } on DioException catch (e) {
+      throw e.error.toString();
+    } catch (e) {
+      throw 'Đã xảy ra lỗi kết nối';
+    }
   }
 }
