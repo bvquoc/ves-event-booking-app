@@ -3,6 +3,8 @@ import '../models/organizer_model.dart';
 import '../models/ticket_model.dart';
 import '../models/ticket_type_model.dart';
 import '../models/notification_model.dart';
+import '../models/category_model.dart';
+import '../models/city_model.dart';
 
 // ==========================================
 // 1. DATA PHỤ TRỢ (Organizer, TicketType)
@@ -108,13 +110,23 @@ final List<TicketModel> mockUpcomingTickets = [
   ),
   TicketModel(
     id: 'tkt_up_02',
-    orderId: 'ord_001', // Cùng 1 đơn hàng mua 2 vé
+    orderId: 'ord_001',
     event: _eventFuture,
     ticketType: _typeVip,
     qrCode: 'QR_UPCOMING_02',
     status: 'active',
     purchaseDate: DateTime.now().subtract(const Duration(days: 2)),
     seatNumber: 'A-13',
+  ),
+  TicketModel(
+    id: 'tkt_up_03',
+    orderId: 'ord_001', // Cùng 1 đơn hàng mua 3 vé
+    event: _eventFuture,
+    ticketType: _typeVip,
+    qrCode: 'QR_UPCOMING_03',
+    status: 'active',
+    purchaseDate: DateTime.now().subtract(const Duration(days: 2)),
+    seatNumber: 'A-14',
   ),
 ];
 
@@ -224,5 +236,108 @@ final List<NotificationModel> mockNotifications = [
       'image': 'https://picsum.photos/id/50/800/400',
       'voucherId': 'vch_b1g1',
     },
+  ),
+];
+
+// ==========================================
+// 5. MOCK CATEGORIES & CITIES (Khám phá)
+// ==========================================
+
+final List<CategoryModel> mockCategories = [
+  CategoryModel(
+    id: 'cat_sports',
+    name: 'THỂ THAO',
+    slug: 'sports',
+    // Dùng ảnh placeholder đẹp thay vì icon
+    icon:
+        'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?q=80&w=800&auto=format&fit=crop',
+    eventCount: 45,
+  ),
+  CategoryModel(
+    id: 'cat_music',
+    name: 'HOÀ NHẠC',
+    slug: 'music',
+    icon:
+        'https://images.unsplash.com/photo-1459749411177-0473ef71607b?q=80&w=800&auto=format&fit=crop',
+    eventCount: 78,
+  ),
+  CategoryModel(
+    id: 'cat_art',
+    name: 'TRIỂN LÃM',
+    slug: 'art',
+    icon:
+        'https://images.unsplash.com/photo-1518998053901-5348d3969105?q=80&w=800&auto=format&fit=crop',
+    eventCount: 20,
+  ),
+];
+
+final List<CityModel> mockCities = [
+  CityModel(
+    id: 'city_hcm',
+    name: 'HỒ CHÍ MINH',
+    slug: 'ho-chi-minh',
+    eventCount: 120,
+    // Lưu ý: Model City chưa có trường image,
+    // Có thể tạm thời hardcode trong UI hoặc thêm field vào model.
+    // Ở đây giả định sẽ truyền URL ảnh trực tiếp khi hiển thị.
+  ),
+  CityModel(id: 'city_hn', name: 'HÀ NỘI', slug: 'ha-noi', eventCount: 95),
+  CityModel(id: 'city_dn', name: 'ĐÀ NẴNG', slug: 'da-nang', eventCount: 40),
+];
+
+// Helper map để lấy ảnh cho City (vì model City trong spec cũ không có ảnh)
+String getCityImage(String cityId) {
+  switch (cityId) {
+    case 'city_hcm':
+      return 'https://images.unsplash.com/photo-1583417319070-4a69db38a482?q=80&w=800&auto=format&fit=crop';
+    case 'city_hn':
+      return 'https://images.unsplash.com/photo-1599708153386-7288ebf25b16?q=80&w=800&auto=format&fit=crop';
+    case 'city_dn':
+      return 'https://images.unsplash.com/photo-1560965386-8d5d45eb7128?q=80&w=800&auto=format&fit=crop';
+    default:
+      return 'https://via.placeholder.com/300';
+  }
+}
+
+final List<EventModel> mockEvents = [
+  _eventFuture,
+  _eventPast,
+  // Thêm một vài event giả định khác để test list
+  EventModel(
+    id: 'evt_fav_01',
+    name: 'Lễ hội Âm nhạc EDM Ravolution',
+    slug: 'ravolution-music-festival',
+    description: 'Đại tiệc âm nhạc điện tử lớn nhất năm.',
+    category: 'music',
+    thumbnail:
+        'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?q=80&w=800&auto=format&fit=crop',
+    startDate: DateTime.now().add(const Duration(days: 20)),
+    endDate: DateTime.now().add(const Duration(days: 20, hours: 5)),
+    city: 'TP. Hồ Chí Minh',
+    venueName: 'SECC Quận 7',
+    minPrice: 500000,
+    maxPrice: 2000000,
+    currency: 'VND',
+    availableTickets: 1000,
+    isFavorite: true, // <--- hiện trong tab Yêu thích
+    organizer: _mockOrganizer,
+  ),
+  EventModel(
+    id: 'evt_fav_02',
+    name: 'Triển lãm Tranh Đương Đại',
+    slug: 'contemporary-art-expo',
+    description: 'Không gian nghệ thuật đầy cảm hứng.',
+    category: 'art',
+    thumbnail:
+        'https://images.unsplash.com/photo-1536924940846-227afb31e2a5?q=80&w=800&auto=format&fit=crop',
+    startDate: DateTime.now().add(const Duration(days: 5)),
+    city: 'Hà Nội',
+    venueName: 'Bảo tàng Mỹ thuật',
+    minPrice: 50000,
+    maxPrice: 150000,
+    currency: 'VND',
+    availableTickets: 200,
+    isFavorite: true, // <--- hiện trong tab Yêu thích
+    organizer: _mockOrganizer,
   ),
 ];

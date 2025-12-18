@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:ves_event_booking/screens/explore_screen.dart';
+import 'package:ves_event_booking/screens/explore/explore_screen.dart';
 import 'package:ves_event_booking/screens/home_screen.dart';
 import 'package:ves_event_booking/screens/login_screen.dart';
 import 'package:ves_event_booking/screens/notifications/notifications_screen.dart';
 import 'package:ves_event_booking/screens/profile/profile_detail_screen.dart';
 import 'package:ves_event_booking/screens/tickets/tickets_screen.dart';
 import 'package:ves_event_booking/widgets/profile_widgets.dart';
+import 'package:ves_event_booking/screens/favourite_events_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -120,12 +121,27 @@ class ProfileScreen extends StatelessWidget {
                             MenuItem(
                               icon: Icons.shopping_bag_outlined,
                               title: 'Vé của tôi',
-                              onTap: () {},
+                              onTap: () {
+                                Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const TicketsScreen(),
+                                  ),
+                                );
+                              },
                             ),
                             MenuItem(
                               icon: Icons.favorite_border,
                               title: 'Mục yêu thích',
-                              onTap: () {},
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        const FavoriteEventsScreen(),
+                                  ),
+                                );
+                              },
                             ),
                             MenuItem(
                               icon: Icons.confirmation_number_outlined,

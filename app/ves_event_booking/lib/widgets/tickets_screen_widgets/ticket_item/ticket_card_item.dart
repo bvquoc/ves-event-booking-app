@@ -24,7 +24,7 @@ class _EventCardItemState extends State<TicketCardItem> {
       onTap: () {
         print('Đã nhấn vào thẻ: ${widget.ticket.event.name}');
 
-        // Khi có màn hình chi tiết (ví dụ: TicketDetailScreen), điều hướng ở đây
+        // Khi có màn hình chi tiết (mã qr cho vé đã mua), điều hướng ở đây
         //
         // Navigator.push(
         //   context,
