@@ -33,6 +33,12 @@ public class ApplicationInitConfig {
     @NonFinal
     static final String ADMIN_PASSWORD = "admin";
 
+    @NonFinal
+    static final String NORMAL_USER_NAME = "user1";
+
+    @NonFinal
+    static final String NORMAL_PASSWORD = "123456";
+
     @Bean
     @ConditionalOnProperty(
             prefix = "spring",
@@ -50,7 +56,7 @@ public class ApplicationInitConfig {
         log.info("Initializing application.....");
         return args -> {
             if (userRepository.findByUsername(ADMIN_USER_NAME).isEmpty()) {
-                roleRepository.save(Role.builder()
+                Role userRole = roleRepository.save(Role.builder()
                         .name(PredefinedRole.USER_ROLE)
                         .description("User role")
                         .build());
@@ -60,17 +66,31 @@ public class ApplicationInitConfig {
                         .description("Admin role")
                         .build());
 
-                var roles = new HashSet<Role>();
-                roles.add(adminRole);
+                var adminRoles = new HashSet<Role>();
+                adminRoles.add(adminRole);
 
-                User user = User.builder()
+                User adminUser = User.builder()
                         .username(ADMIN_USER_NAME)
                         .password(passwordEncoder.encode(ADMIN_PASSWORD))
-                        .roles(roles)
+                        .roles(adminRoles)
                         .build();
 
-                userRepository.save(user);
+                userRepository.save(adminUser);
                 log.warn("admin user has been created with default password: admin, please change it");
+
+                // Create normal user
+                var normalUserRoles = new HashSet<Role>();
+                normalUserRoles.add(userRole);
+
+                User normalUser = User.builder()
+                        .username(NORMAL_USER_NAME)
+                        .password(passwordEncoder.encode(NORMAL_PASSWORD))
+                        .roles(normalUserRoles)
+                        .build();
+
+                userRepository.save(normalUser);
+                log.warn("normal user '{}' has been created with default password: {}, please change it",
+                        NORMAL_USER_NAME, NORMAL_PASSWORD);
             }
 
             // Seed categories if empty
