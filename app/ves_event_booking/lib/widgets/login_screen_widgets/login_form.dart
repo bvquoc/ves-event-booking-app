@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:provider/provider.dart';
-import 'package:ves_event_booking/providers/auth_provider.dart';
 import 'package:ves_event_booking/screens/home_screen.dart';
 
 class LoginForm extends StatefulWidget {
@@ -164,33 +162,7 @@ class _LoginFormState extends State<LoginForm> {
           children: [
             IconButton(
               icon: const FaIcon(FontAwesomeIcons.google, color: Colors.red),
-              onPressed: () async {
-                final authProvider = context.read<AuthProvider>();
-
-                try {
-                  await authProvider.loginWithGoogle();
-
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text("Đăng nhập Google thành công!"),
-                      ),
-                    );
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const HomeScreen(),
-                      ),
-                    );
-                  }
-                } catch (e) {
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text("Google login failed: $e")),
-                    );
-                  }
-                }
-              },
+              onPressed: () async {},
             ),
             IconButton(
               icon: const FaIcon(FontAwesomeIcons.facebook, color: Colors.blue),
