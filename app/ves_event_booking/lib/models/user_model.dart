@@ -1,35 +1,30 @@
+import 'package:ves_event_booking/models/role_model.dart';
+
 class UserModel {
   final String id;
-  final String email;
-  final String fullName;
-  final String phoneNumber;
-  final String? avatar;
-  final DateTime? dateOfBirth; // Có trong register response
-  final DateTime? createdAt;
+  final String username;
+  final String firstName;
+  final String lastName;
+  final DateTime dob;
+  final List<RoleModel> roles;
 
   UserModel({
     required this.id,
-    required this.email,
-    required this.fullName,
-    required this.phoneNumber,
-    this.avatar,
-    this.dateOfBirth,
-    this.createdAt,
+    required this.username,
+    required this.firstName,
+    required this.lastName,
+    required this.dob,
+    required this.roles,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
-      id: json['id'] as String,
-      email: json['email'] as String,
-      fullName: json['fullName'] as String,
-      phoneNumber: json['phoneNumber'] as String,
-      avatar: json['avatar'] as String?,
-      dateOfBirth: json['dateOfBirth'] != null
-          ? DateTime.parse(json['dateOfBirth'])
-          : null,
-      createdAt: json['createdAt'] != null
-          ? DateTime.parse(json['createdAt'])
-          : null,
+      id: json['id'],
+      username: json['username'],
+      firstName: json['firstName'],
+      lastName: json['lastName'],
+      dob: DateTime.parse(json['dob']),
+      roles: (json['roles'] as List).map((e) => RoleModel.fromJson(e)).toList(),
     );
   }
 }

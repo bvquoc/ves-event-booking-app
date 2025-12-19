@@ -1,3 +1,5 @@
+import 'package:ves_event_booking/models/venue_model.dart';
+
 import '../models/event_model.dart';
 import '../models/organizer_model.dart';
 import '../models/ticket_model.dart';
@@ -5,6 +7,22 @@ import '../models/ticket_type_model.dart';
 import '../models/notification_model.dart';
 import '../models/category_model.dart';
 import '../models/city_model.dart';
+
+// Data after change models
+final CategoryModel _mockCategory = CategoryModel(
+  id: '58842857-6151-4586-b056-8a881b5a9951',
+  name: 'Hòa nhạc',
+  slug: 'hoa-nhac',
+  icon: 'music_note',
+  eventCount: 12,
+);
+
+final CityModel _mockCity = CityModel(
+  id: 'c1a2b3d4-5678-90ab-cdef-1234567890ab',
+  name: 'TP. Hồ Chí Minh',
+  slug: 'tp-ho-chi-minh',
+  eventCount: 24,
+);
 
 // ==========================================
 // 1. DATA PHỤ TRỢ (Organizer, TicketType)
@@ -45,51 +63,78 @@ final TicketTypeModel _typeStandard = TicketTypeModel(
 // 2. MOCK EVENTS (Sự kiện)
 // ==========================================
 
-// Sự kiện 1: TƯƠNG LAI (Dùng cho Tab Upcoming & Cancelled)
-final EventModel _eventFuture = EventModel(
-  id: 'evt_future_01',
-  name: 'Concert Hà Anh Tuấn - Chân Trời Rực Rỡ',
-  slug: 'concert-ha-anh-tuan',
-  description: 'Đêm nhạc acoustic lãng mạn tại Đà Lạt.',
-  longDescription: '...',
-  category: 'concert',
-  thumbnail: 'https://picsum.photos/id/453/800/400', // Ảnh demo
-  startDate: DateTime.now().add(const Duration(days: 15)), // 15 ngày tới
-  endDate: DateTime.now().add(const Duration(days: 15, hours: 4)),
-  city: 'Đà Lạt',
-  venueName: 'Trung tâm Hội nghị Đà Lạt',
-  venueId: 'ven_dalat',
-  venueAddress: 'Số 1, Phù Đổng Thiên Vương',
-  minPrice: 800000,
-  maxPrice: 3000000,
-  currency: 'VND',
-  availableTickets: 500,
-  ticketTypes: [_typeVip, _typeStandard],
-  organizer: _mockOrganizer,
-  isTrending: true,
-);
+final EventModel _mockEvent = EventModel(
+  id: 'evt-001',
+  name: 'Live Concert 2025',
+  slug: 'live-concert-2025',
+  description: 'A spectacular live music concert.',
+  longDescription:
+      'Experience an unforgettable night with top artists, live band performances, and amazing sound systems.',
+  thumbnail: 'https://example.com/images/event-thumbnail.jpg',
+  images: [
+    'https://example.com/images/event-1.jpg',
+    'https://example.com/images/event-2.jpg',
+  ],
+  startDate: DateTime.parse('2025-06-20T19:00:00Z'),
+  endDate: DateTime.parse('2025-06-20T22:00:00Z'),
 
-// Sự kiện 2: QUÁ KHỨ (Dùng cho Tab Past)
-final EventModel _eventPast = EventModel(
-  id: 'evt_past_01',
-  name: 'Triển lãm Van Gogh Art Lighting',
-  slug: 'van-gogh-expo',
-  description: 'Trải nghiệm nghệ thuật ánh sáng đa giác quan.',
-  longDescription: '...',
-  category: 'exhibition',
-  thumbnail: 'https://picsum.photos/id/1040/800/400', // Ảnh demo
-  startDate: DateTime.now().subtract(const Duration(days: 30)), // 30 ngày trước
-  endDate: DateTime.now().subtract(const Duration(days: 30, hours: 2)),
-  city: 'TP. Hồ Chí Minh',
-  venueName: 'Gigamall Thủ Đức',
-  venueId: 'ven_giga',
-  venueAddress: 'Phạm Văn Đồng, Thủ Đức',
-  minPrice: 300000,
-  maxPrice: 600000,
+  category: CategoryModel(
+    id: 'cat-001',
+    name: 'Hòa nhạc',
+    slug: 'hoa-nhac',
+    icon: 'music_note',
+    eventCount: 12,
+  ),
+
+  city: CityModel(
+    id: 'city-001',
+    name: 'TP. Hồ Chí Minh',
+    slug: 'tp-ho-chi-minh',
+    eventCount: 24,
+  ),
+
+  venueId: 'venue-001',
+  venue: VenueModel(
+    name: 'Saigon Opera House',
+    address: '07 Công Trường Lam Sơn, Quận 1',
+    capacity: 1800,
+    cityId: 'city-001',
+  ),
+
+  venueName: 'Saigon Opera House',
+  venueAddress: '07 Công Trường Lam Sơn, Quận 1',
   currency: 'VND',
-  availableTickets: 0,
-  ticketTypes: [_typeStandard],
-  organizer: _mockOrganizer,
+  isTrending: true,
+
+  organizerId: 'org-001',
+  organizerName: 'VES Entertainment',
+  organizerLogo: 'https://example.com/images/org-logo.png',
+
+  terms: 'No late entry allowed.',
+  cancellationPolicy: 'Tickets are non-refundable.',
+  tags: ['concert', 'live-music', '2025'],
+
+  ticketTypes: [
+    TicketTypeModel(
+      id: 'ticket-001',
+      name: 'VIP',
+      description: 'Front row seating with complimentary drinks',
+      price: 1500000,
+      currency: 'VND',
+      available: 50,
+      maxPerOrder: 4,
+      benefits: ['Free drink', 'Backstage access'],
+      requiresSeatSelection: true,
+    ),
+  ],
+
+  minPrice: 500000,
+  maxPrice: 1500000,
+  availableTickets: 500,
+  isFavorite: false,
+
+  createdAt: DateTime.now(),
+  updatedAt: DateTime.now(),
 );
 
 // ==========================================
@@ -101,7 +146,7 @@ final List<TicketModel> mockUpcomingTickets = [
   TicketModel(
     id: 'tkt_up_01',
     orderId: 'ord_001',
-    event: _eventFuture,
+    event: _mockEvent,
     ticketType: _typeVip,
     qrCode: 'QR_UPCOMING_01',
     status: 'active',
@@ -111,7 +156,7 @@ final List<TicketModel> mockUpcomingTickets = [
   TicketModel(
     id: 'tkt_up_02',
     orderId: 'ord_001',
-    event: _eventFuture,
+    event: _mockEvent,
     ticketType: _typeVip,
     qrCode: 'QR_UPCOMING_02',
     status: 'active',
@@ -121,7 +166,7 @@ final List<TicketModel> mockUpcomingTickets = [
   TicketModel(
     id: 'tkt_up_03',
     orderId: 'ord_001', // Cùng 1 đơn hàng mua 3 vé
-    event: _eventFuture,
+    event: _mockEvent,
     ticketType: _typeVip,
     qrCode: 'QR_UPCOMING_03',
     status: 'active',
@@ -135,13 +180,13 @@ final List<TicketModel> mockPastTickets = [
   TicketModel(
     id: 'tkt_past_01',
     orderId: 'ord_old_01',
-    event: _eventPast,
+    event: _mockEvent,
     ticketType: _typeStandard,
     qrCode: 'QR_PAST_01',
     status: 'used', // Đã sử dụng
     purchaseDate: DateTime.now().subtract(const Duration(days: 35)),
     seatNumber: null, // Vé đứng/tự do
-    checkedInAt: _eventPast.startDate.add(const Duration(minutes: 15)),
+    checkedInAt: _mockEvent.startDate.add(const Duration(minutes: 15)),
   ),
 ];
 
@@ -150,7 +195,7 @@ final List<TicketModel> mockCancelledTickets = [
   TicketModel(
     id: 'tkt_cancel_01',
     orderId: 'ord_cancel_01',
-    event: _eventFuture, // Hủy vé của sự kiện tương lai
+    event: _mockEvent, // Hủy vé của sự kiện tương lai
     ticketType: _typeStandard,
     qrCode: 'QR_CANCEL_01',
     status: 'cancelled',
@@ -299,45 +344,4 @@ String getCityImage(String cityId) {
   }
 }
 
-final List<EventModel> mockEvents = [
-  _eventFuture,
-  _eventPast,
-  // Thêm một vài event giả định khác để test list
-  EventModel(
-    id: 'evt_fav_01',
-    name: 'Lễ hội Âm nhạc EDM Ravolution',
-    slug: 'ravolution-music-festival',
-    description: 'Đại tiệc âm nhạc điện tử lớn nhất năm.',
-    category: 'music',
-    thumbnail:
-        'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?q=80&w=800&auto=format&fit=crop',
-    startDate: DateTime.now().add(const Duration(days: 20)),
-    endDate: DateTime.now().add(const Duration(days: 20, hours: 5)),
-    city: 'TP. Hồ Chí Minh',
-    venueName: 'SECC Quận 7',
-    minPrice: 500000,
-    maxPrice: 2000000,
-    currency: 'VND',
-    availableTickets: 1000,
-    isFavorite: true, // <--- hiện trong tab Yêu thích
-    organizer: _mockOrganizer,
-  ),
-  EventModel(
-    id: 'evt_fav_02',
-    name: 'Triển lãm Tranh Đương Đại',
-    slug: 'contemporary-art-expo',
-    description: 'Không gian nghệ thuật đầy cảm hứng.',
-    category: 'art',
-    thumbnail:
-        'https://images.unsplash.com/photo-1536924940846-227afb31e2a5?q=80&w=800&auto=format&fit=crop',
-    startDate: DateTime.now().add(const Duration(days: 5)),
-    city: 'Hà Nội',
-    venueName: 'Bảo tàng Mỹ thuật',
-    minPrice: 50000,
-    maxPrice: 150000,
-    currency: 'VND',
-    availableTickets: 200,
-    isFavorite: true, // <--- hiện trong tab Yêu thích
-    organizer: _mockOrganizer,
-  ),
-];
+final List<EventModel> mockEvents = [_mockEvent, _mockEvent];

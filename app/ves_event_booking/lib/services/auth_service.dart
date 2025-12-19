@@ -1,8 +1,9 @@
 import 'package:dio/dio.dart';
+import 'package:ves_event_booking/config/dio_client.dart';
 import '../old_models/auth_response.dart';
 
 class AuthService {
-  final Dio _dio = Dio(BaseOptions(baseUrl: 'http://10.0.2.2:8080/api'));
+  final Dio _dio = DioClient.dio;
 
   Future<AuthResponse> login(String email, String password) async {
     final response = await _dio.post(

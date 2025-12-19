@@ -7,6 +7,8 @@ import '../services/google_auth_service.dart';
 class AuthProvider with ChangeNotifier {
   final AuthService _authService = AuthService();
   final GoogleAuthService _googleService = GoogleAuthService();
+  static final AuthProvider instance = AuthProvider._internal();
+  AuthProvider._internal();
 
   User? currentUser;
   String? accessToken;

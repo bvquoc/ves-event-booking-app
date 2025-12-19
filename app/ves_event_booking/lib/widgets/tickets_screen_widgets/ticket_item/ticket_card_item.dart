@@ -134,7 +134,8 @@ class _EventCardItemState extends State<TicketCardItem> {
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            widget.ticket.event.city,
+                            // widget.ticket.event.city,
+                            "",
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 14,
