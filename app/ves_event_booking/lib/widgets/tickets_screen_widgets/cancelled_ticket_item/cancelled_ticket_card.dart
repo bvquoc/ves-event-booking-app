@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ves_event_booking/models/ticket_model.dart';
 import 'package:ves_event_booking/screens/tickets/cancelled_ticket_details_screen.dart';
+import 'package:ves_event_booking/widgets/tickets_screen_widgets/cancelled_ticket_item/ticket_clipper.dart';
 
 class CancelledTicketCard extends StatelessWidget {
   final TicketModel ticket;
