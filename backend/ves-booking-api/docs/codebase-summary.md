@@ -594,6 +594,127 @@ Refund tracking separate from ticket (clean separation).
 
 ---
 
+## Implementation Phases
+
+### Phase 1 (Complete)
+
+- ✅ 24 core database entities with relationships
+- ✅ 7 enums for status management
+- ✅ Identity & Access Management (IAM)
+- ✅ Strategic indexes on frequently queried columns
+
+### Phase 2 (Complete)
+
+- ✅ CategoryService with event counts (single JOIN query)
+- ✅ CityService with event counts
+- ✅ Public GET /categories endpoint
+- ✅ Public GET /cities endpoint
+- ✅ Performance optimized (N+1 query prevention)
+
+### Phase 3 (Planned)
+
+- Event Management APIs (CRUD, search, filtering)
+- Event discovery endpoints
+- Trending events functionality
+- Event filtering by category, city, date range
+
+### Phase 4 (Planned)
+
+- Order status tracking APIs
+- Ticket retrieval & QR code endpoints
+- Refund workflows
+
+### Phase 5 (Complete)
+
+- ✅ BookingService with transactional guarantees
+- ✅ TicketController with POST /tickets/purchase
+- ✅ SERIALIZABLE transaction isolation
+- ✅ Optimistic locking (@Version on TicketType)
+- ✅ Seat reservation logic (PENDING → SOLD)
+- ✅ Voucher validation & discount calculation
+- ✅ Mock payment URL & QR code generation
+- ✅ Order expiry (15 minutes for PENDING orders)
+
+### Phase 6 (Current - Complete)
+
+**Ticket Management & Cancellation:**
+
+- ✅ GET /tickets - List user tickets with status filter & pagination
+- ✅ GET /tickets/{ticketId} - Get ticket details
+- ✅ PUT /tickets/{ticketId}/cancel - Cancel ticket with refund
+- ✅ CancellationService - Refund calculation (time-based policy)
+- ✅ TicketService - Ticket management operations
+- ✅ Ownership validation - Users can only view/cancel their own tickets
+- ✅ Seat release - Cancelled tickets release seats to inventory
+- ✅ Available count increment - TicketType.available incremented on cancellation
+
+**Refund Policy (Time-based):**
+
+- Greater than 48 hours before event: 80% refund
+- 24-48 hours before event: 50% refund
+- Less than 24 hours before event: NOT cancellable
+
+**New Fields in Ticket Entity:**
+
+- cancellationReason (string)
+- cancelledAt (LocalDateTime)
+- refundAmount (integer)
+- refundStatus (RefundStatus enum: PENDING, PROCESSING, COMPLETED, FAILED)
+
+### Phase 7 (Complete)
+
+**Vouchers & Discounts Management:**
+
+- ✅ GET /vouchers - List public vouchers (no auth required, not expired)
+- ✅ GET /vouchers/my-vouchers?status={status} - List user vouchers (authenticated, status filter:
+  active/used/expired/all)
+- ✅ POST /vouchers/validate - Validate voucher & calculate discount (authenticated)
+- ✅ VoucherService - Comprehensive validation with 10-step process
+- ✅ VoucherRepository with custom JPA queries
+- ✅ UserVoucherRepository with status-based filters
+- ✅ Voucher entity with discount types (FIXED_AMOUNT, PERCENTAGE)
+- ✅ UserVoucher entity for user-specific assignments
+- ✅ Validation: expiry, usage limit, applicability, min order amount
+- ✅ Discount calculation: fixed amounts, percentages with maxDiscount cap
+- ✅ Applicability: events OR categories (OR logic), unrestricted vouchers apply to all
+- ✅ Overflow protection: Uses long for percentage calculations
+- ✅ Input validation: Voucher code regex ^[A-Z0-9_-]{3,30}$
+- ✅ Error codes: VOUCHER_NOT_FOUND, VOUCHER_INVALID_OR_EXPIRED, VOUCHER_NOT_APPLICABLE, VOUCHER_USAGE_LIMIT_REACHED,
+  MIN_ORDER_AMOUNT_NOT_MET
+
+### Phase 8 (Complete)
+
+**Favorites & Notifications Management:**
+
+- ✅ GET /favorites - User's favorite events (paginated)
+- ✅ POST /favorites/{eventId} - Add to favorites (idempotent)
+- ✅ DELETE /favorites/{eventId} - Remove from favorites
+- ✅ GET /notifications - User notifications (paginated, with unreadOnly filter)
+- ✅ PUT /notifications/{notificationId}/read - Mark single notification as read
+- ✅ PUT /notifications/read-all - Mark all as read
+- ✅ FavoriteService with idempotent add operation
+- ✅ NotificationService with notification creation & status tracking
+- ✅ FavoriteController (3 endpoints)
+- ✅ NotificationController (3 endpoints)
+- ✅ FavoriteRepository with @EntityGraph for N+1 prevention
+- ✅ NotificationRepository with status-based queries
+- ✅ Input validation: @Pattern regex for UUID validation on path variables
+- ✅ Security: @PreAuthorize("isAuthenticated()") on all endpoints
+- ✅ Notification types: TICKET_PURCHASED, EVENT_REMINDER, EVENT_CANCELLED, PROMOTION, SYSTEM
+- ✅ Idempotent operations: Favorite add silently ignores duplicates
+
+### Phase 9+ (Planned)
+
+- Payment gateway integration (Stripe/Paypal)
+- Order status webhooks
+- Ticket QR code image generation
+- Organizer entity & management
+- Advanced audit logging
+- Soft delete support
+- Event series/recurring events
+- Waiting list management
+- Real-time seat availability WebSocket
+
 ## Future Enhancements
 
 - Organizer entity (currently string organizerId)

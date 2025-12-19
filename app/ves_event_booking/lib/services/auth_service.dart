@@ -1,9 +1,9 @@
 import 'package:dio/dio.dart';
-import '../models/auth_model.dart'; // Chứa AuthResponse, UserModel
-import 'dio_client.dart';
+import 'package:ves_event_booking/config/dio_client.dart';
+import 'package:ves_event_booking/models/auth_model.dart';
 
 class AuthService {
-  final Dio _dio = DioClient().dio;
+  final Dio _dio = DioClient.dio;
 
   // 1. Đăng nhập
   Future<String> login(String email, String password) async {

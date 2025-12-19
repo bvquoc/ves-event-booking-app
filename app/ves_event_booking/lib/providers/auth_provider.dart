@@ -5,6 +5,8 @@ import '../services/auth_service.dart';
 
 class AuthProvider extends ChangeNotifier {
   final AuthService _authService = AuthService();
+  static final AuthProvider instance = AuthProvider._internal();
+  AuthProvider._internal();
 
   UserModel? _currentUser;
   bool _isLoading = false;

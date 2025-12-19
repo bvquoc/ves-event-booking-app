@@ -9,10 +9,7 @@ void main() {
 
   runApp(
     MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => AuthProvider()),
-        // Các provider khác...
-      ],
+      providers: [ChangeNotifierProvider.value(value: AuthProvider.instance)],
       child: const MainApp(),
     ),
   );

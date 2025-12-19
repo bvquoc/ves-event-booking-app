@@ -2,7 +2,7 @@
 
 **Base URL:** `http://localhost:8080/api`
 
-**Version:** Phase 5 - Booking & Payment Flow APIs
+**Version:** Phase 8 - Favorites & Notifications APIs
 
 ---
 
@@ -14,8 +14,11 @@
 4. [Permission Management Endpoints](#permission-management-endpoints)
 5. [Reference Data Endpoints](#reference-data-endpoints)
 6. [Booking & Ticket Purchase Endpoints](#booking--ticket-purchase-endpoints)
-7. [Response Format](#response-format)
-8. [Error Handling](#error-handling)
+7. [Voucher Endpoints](#voucher-endpoints)
+8. [Favorites Endpoints](#favorites-endpoints)
+9. [Notifications Endpoints](#notifications-endpoints)
+10. [Response Format](#response-format)
+11. [Error Handling](#error-handling)
 
 ---
 
@@ -612,7 +615,239 @@ Retrieve all cities with event count.
 
 ---
 
-## Booking & Ticket Purchase Endpoints
+## Ticket Management Endpoints (Phase 6)
+
+### Base Path: `/tickets`
+
+#### GET /tickets
+
+Retrieve user's tickets with optional status filter and pagination.
+
+**Authentication:** Required (authenticated users only)
+
+**Query Parameters:**
+
+- `status` (enum, optional): Filter by ticket status (ACTIVE, USED, CANCELLED, REFUNDED)
+- `page` (integer, default: 0): Page number for pagination
+- `size` (integer, default: 10): Page size for pagination
+- `sort` (string, default: purchaseDate,desc): Sort field and direction
+
+**Response (200 OK):**
+
+```json
+{
+  "statusCode": 200,
+  "message": "Success",
+  "data": {
+    "content": [
+      {
+        "id": "880e8400-e29b-41d4-a716-446655440000",
+        "orderId": "770e8400-e29b-41d4-a716-446655440000",
+        "eventId": "550e8400-e29b-41d4-a716-446655440000",
+        "eventName": "Tech Conference 2024",
+        "ticketTypeId": "660e8400-e29b-41d4-a716-446655440000",
+        "ticketTypeName": "VIP TICKET",
+        "qrCode": "QR-CODE-123456",
+        "status": "ACTIVE",
+        "purchaseDate": "2024-12-25T16:30:00Z",
+        "seatNumber": "A12"
+      },
+      {
+        "id": "880e8400-e29b-41d4-a716-446655440001",
+        "orderId": "770e8400-e29b-41d4-a716-446655440001",
+        "eventId": "550e8400-e29b-41d4-a716-446655440001",
+        "eventName": "Summer Festival 2025",
+        "ticketTypeId": "660e8400-e29b-41d4-a716-446655440001",
+        "ticketTypeName": "STANDARD TICKET",
+        "qrCode": "QR-CODE-234567",
+        "status": "CANCELLED",
+        "purchaseDate": "2024-12-20T10:15:00Z",
+        "seatNumber": null
+      }
+    ],
+    "page": 0,
+    "size": 10,
+    "totalElements": 25,
+    "totalPages": 3,
+    "hasNext": true
+  }
+}
+```
+
+**Status Codes:**
+
+- 200: Success
+- 401: Unauthorized
+- 500: Server error
+
+---
+
+#### GET /tickets/{ticketId}
+
+Retrieve detailed information about a specific ticket.
+
+**Authentication:** Required (authenticated users only)
+
+**Authorization:** User can only view their own tickets
+
+**Path Parameters:**
+
+- `ticketId` (string, UUID): Ticket ID
+
+**Response (200 OK):**
+
+```json
+{
+  "statusCode": 200,
+  "message": "Success",
+  "data": {
+    "id": "880e8400-e29b-41d4-a716-446655440000",
+    "orderId": "770e8400-e29b-41d4-a716-446655440000",
+    "eventId": "550e8400-e29b-41d4-a716-446655440000",
+    "eventName": "Tech Conference 2024",
+    "eventStartDate": "2025-01-15T09:00:00Z",
+    "ticketTypeId": "660e8400-e29b-41d4-a716-446655440000",
+    "ticketTypeName": "VIP TICKET",
+    "ticketPrice": 500000,
+    "qrCode": "QR-CODE-123456",
+    "qrCodeImage": "https://example.com/qr/QR-CODE-123456.png",
+    "status": "ACTIVE",
+    "purchaseDate": "2024-12-25T16:30:00Z",
+    "checkedInAt": null,
+    "seatId": "990e8400-e29b-41d4-a716-446655440000",
+    "seatNumber": "A12",
+    "sectionName": "VIP Section",
+    "rowName": "A",
+    "cancellationReason": null,
+    "refundAmount": null,
+    "refundStatus": null,
+    "cancelledAt": null
+  }
+}
+```
+
+**Status Codes:**
+
+- 200: Success
+- 401: Unauthorized
+- 403: Forbidden (ticket belongs to another user)
+- 404: Ticket not found
+- 500: Server error
+
+---
+
+#### PUT /tickets/{ticketId}/cancel
+
+Cancel a ticket and process refund based on time-based policy.
+
+**Authentication:** Required (authenticated users only)
+
+**Authorization:** User can only cancel their own tickets
+
+**Path Parameters:**
+
+- `ticketId` (string, UUID): Ticket ID to cancel
+
+**Request Body (optional):**
+
+```json
+{
+  "reason": "Personal reasons"
+}
+```
+
+**Request Fields:**
+
+- `reason` (string, optional): Cancellation reason provided by user
+
+**Response (200 OK):**
+
+```json
+{
+  "statusCode": 200,
+  "message": "Success",
+  "data": {
+    "ticketId": "880e8400-e29b-41d4-a716-446655440000",
+    "status": "CANCELLED",
+    "refundAmount": 400000,
+    "refundPercentage": 80,
+    "refundStatus": "PENDING",
+    "cancelledAt": "2024-12-25T17:00:00Z",
+    "message": "Ticket cancelled successfully. Refund will be processed within 3-5 business days."
+  }
+}
+```
+
+**Refund Policy (Time-based):**
+
+Based on hours remaining until event start:
+
+- Greater than 48 hours: 80% refund
+- 24-48 hours: 50% refund
+- Less than 24 hours: Cannot cancel (returns error 3005)
+
+**Example Calculations:**
+
+If event starts in 60 hours and ticket price is 500,000 VND:
+
+- Refund: 500,000 * 0.80 = 400,000 VND (80% refund)
+
+If event starts in 36 hours and ticket price is 500,000 VND:
+
+- Refund: 500,000 * 0.50 = 250,000 VND (50% refund)
+
+**Response Fields:**
+
+- `ticketId` (UUID): Cancelled ticket ID
+- `status` (enum): CANCELLED
+- `refundAmount` (integer): Calculated refund in currency units
+- `refundPercentage` (integer): Refund percentage (80 or 50)
+- `refundStatus` (enum): PENDING (refund processing status)
+- `cancelledAt` (timestamp): When cancellation was processed
+- `message` (string): Confirmation message
+
+**Side Effects:**
+
+1. Ticket status changes to CANCELLED
+2. TicketType.available incremented (seat released)
+3. Seat association cleared (if applicable)
+4. RefundStatus set to PENDING
+5. Cancellation timestamp recorded
+
+**Status Codes:**
+
+- 200: Cancellation processed successfully
+- 401: Unauthorized
+- 403: Forbidden (ticket belongs to another user)
+- 404: Ticket not found
+- 409: Conflict (ticket already cancelled, used, or refunded)
+- 500: Server error
+
+**Error Examples:**
+
+**Cannot cancel - less than 24 hours:**
+
+```json
+{
+  "statusCode": 409,
+  "message": "Ticket cannot be cancelled",
+  "errorCode": "3005"
+}
+```
+
+**Ticket already cancelled:**
+
+```json
+{
+  "statusCode": 409,
+  "message": "Ticket cannot be cancelled",
+  "errorCode": "3005"
+}
+```
+
+---
+
+## Booking & Ticket Purchase Endpoints (Phase 5)
 
 ### Base Path: `/tickets`
 
@@ -755,6 +990,270 @@ discount never exceeds order amount
 - 404: Resource not found
 - 409: Conflict (seats taken, inventory exhausted)
 - 500: Server error (transaction failed)
+
+---
+
+## Favorites Endpoints
+
+### Base Path: `/favorites`
+
+#### GET /favorites
+
+Retrieve user's favorite events with pagination.
+
+**Authentication:** Required (authenticated users only)
+
+**Query Parameters:**
+
+- `page` (integer, default: 0): Page number for pagination
+- `size` (integer, default: 10): Page size for pagination
+- `sort` (string, default: createdAt,desc): Sort field and direction
+
+**Response (200 OK):**
+
+```json
+{
+  "statusCode": 200,
+  "message": "Success",
+  "data": {
+    "content": [
+      {
+        "id": "550e8400-e29b-41d4-a716-446655440000",
+        "name": "Tech Conference 2024",
+        "slug": "tech-conference-2024",
+        "description": "Annual tech conference",
+        "thumbnail": "https://example.com/event1.jpg",
+        "startDate": "2025-02-15T09:00:00Z",
+        "endDate": "2025-02-17T18:00:00Z",
+        "categoryId": "660e8400-e29b-41d4-a716-446655440000",
+        "categoryName": "Technology",
+        "cityId": "770e8400-e29b-41d4-a716-446655440000",
+        "cityName": "Ho Chi Minh",
+        "venueName": "International Convention Center",
+        "isFavorite": true,
+        "isTrending": false
+      }
+    ],
+    "page": 1,
+    "size": 10,
+    "totalElements": 15,
+    "totalPages": 2,
+    "first": true,
+    "last": false
+  }
+}
+```
+
+**Status Codes:**
+
+- 200: Success
+- 401: Unauthorized
+- 500: Server error
+
+---
+
+#### POST /favorites/{eventId}
+
+Add an event to user's favorites (idempotent operation).
+
+**Authentication:** Required (authenticated users only)
+
+**Path Parameters:**
+
+- `eventId` (string, UUID): Event ID to add to favorites. Format: ^[a-fA-F0-9-]{36}$
+
+**Response (200 OK):**
+
+```json
+{
+  "statusCode": 200,
+  "message": "Event added to favorites"
+}
+```
+
+**Side Effects:**
+
+1. Creates Favorite record linking user to event
+2. If favorite already exists (idempotent), silently succeeds
+3. Database constraint (user_id, event_id) prevents duplicates
+
+**Status Codes:**
+
+- 200: Event added to favorites
+- 400: Invalid event ID format
+- 401: Unauthorized
+- 404: Event not found
+- 500: Server error
+
+---
+
+#### DELETE /favorites/{eventId}
+
+Remove an event from user's favorites.
+
+**Authentication:** Required (authenticated users only)
+
+**Path Parameters:**
+
+- `eventId` (string, UUID): Event ID to remove from favorites. Format: ^[a-fA-F0-9-]{36}$
+
+**Response (200 OK):**
+
+```json
+{
+  "statusCode": 200,
+  "message": "Event removed from favorites"
+}
+```
+
+**Status Codes:**
+
+- 200: Event removed from favorites
+- 400: Invalid event ID format
+- 401: Unauthorized
+- 404: Favorite not found
+- 500: Server error
+
+---
+
+## Notifications Endpoints
+
+### Base Path: `/notifications`
+
+#### GET /notifications
+
+Retrieve user's notifications with optional filtering and pagination.
+
+**Authentication:** Required (authenticated users only)
+
+**Query Parameters:**
+
+- `unreadOnly` (boolean, optional): Filter only unread notifications (default: false - all)
+- `page` (integer, default: 0): Page number for pagination
+- `size` (integer, default: 20): Page size for pagination
+- `sort` (string, default: createdAt,desc): Sort field and direction
+
+**Response (200 OK):**
+
+```json
+{
+  "statusCode": 200,
+  "message": "Success",
+  "data": {
+    "content": [
+      {
+        "id": "880e8400-e29b-41d4-a716-446655440000",
+        "type": "TICKET_PURCHASED",
+        "title": "Mua vé thành công",
+        "message": "Bạn đã mua 2 vé cho sự kiện 'Tech Conference 2024'",
+        "isRead": false,
+        "data": {
+          "orderId": "990e8400-e29b-41d4-a716-446655440000",
+          "eventId": "550e8400-e29b-41d4-a716-446655440000",
+          "ticketCount": "2"
+        },
+        "createdAt": "2024-12-18T10:30:00Z"
+      },
+      {
+        "id": "880e8400-e29b-41d4-a716-446655440001",
+        "type": "EVENT_REMINDER",
+        "title": "Nhắc nhở sự kiện",
+        "message": "Sự kiện 'Summer Festival 2025' sẽ diễn ra trong 24 giờ nữa!",
+        "isRead": true,
+        "data": {
+          "eventId": "660e8400-e29b-41d4-a716-446655440000"
+        },
+        "createdAt": "2024-12-17T15:00:00Z"
+      }
+    ],
+    "page": 1,
+    "size": 20,
+    "totalElements": 45,
+    "totalPages": 3,
+    "first": true,
+    "last": false
+  }
+}
+```
+
+**Notification Types:**
+
+- `TICKET_PURCHASED` - User purchased tickets for an event
+- `EVENT_REMINDER` - Event starts in 24 hours (for favorited events)
+- `EVENT_CANCELLED` - Event user has tickets for was cancelled
+- `PROMOTION` - Promotional offers and discounts
+- `SYSTEM` - System announcements and updates
+
+**Status Codes:**
+
+- 200: Success
+- 401: Unauthorized
+- 500: Server error
+
+---
+
+#### PUT /notifications/{notificationId}/read
+
+Mark a single notification as read.
+
+**Authentication:** Required (authenticated users only)
+
+**Path Parameters:**
+
+- `notificationId` (string, UUID): Notification ID. Format: ^[a-fA-F0-9-]{36}$
+
+**Response (200 OK):**
+
+```json
+{
+  "statusCode": 200,
+  "message": "Notification marked as read"
+}
+```
+
+**Side Effects:**
+
+1. Sets Notification.isRead = true
+2. Updates Notification.updatedAt timestamp
+3. Ownership verified (notification must belong to authenticated user)
+
+**Status Codes:**
+
+- 200: Notification marked as read
+- 400: Invalid notification ID format
+- 401: Unauthorized
+- 403: Forbidden (notification belongs to another user)
+- 404: Notification not found
+- 500: Server error
+
+---
+
+#### PUT /notifications/read-all
+
+Mark all user notifications as read.
+
+**Authentication:** Required (authenticated users only)
+
+**Response (200 OK):**
+
+```json
+{
+  "statusCode": 200,
+  "message": "All notifications marked as read"
+}
+```
+
+**Side Effects:**
+
+1. Updates all Notification records with isRead = false for current user
+2. Sets isRead = true for all matching records
+3. Updates Notification.updatedAt for each record
+
+**Status Codes:**
+
+- 200: All notifications marked as read
+- 401: Unauthorized
+- 500: Server error
 
 ---
 
@@ -995,13 +1494,18 @@ curl -X GET http://localhost:8080/api/users/my-info \
 
 ## API Versioning
 
-Current API version: **Phase 2 - Reference Data APIs**
+Current API version: **Phase 8 - Favorites & Notifications APIs**
 
 **Version History:**
 - Phase 1: Identity & Access Management
 - Phase 2: Reference Data APIs (Categories, Cities)
 - Phase 3 (Planned): Event Management APIs
-- Phase 4 (Planned): Booking & Order Management
+- Phase 4 (Planned): Order Status Tracking
+- Phase 5: Booking & Ticket Purchase APIs
+- Phase 6: Ticket Management & Cancellation APIs
+- Phase 7: Vouchers & Discounts Management
+- Phase 8 (Current): Favorites & Notifications APIs
+- Phase 9+ (Planned): Payment Gateway Integration
 
 ---
 
@@ -1027,6 +1531,243 @@ GET /users?page=0&size=20&sort=username,asc
 
 ---
 
+## Voucher Endpoints
+
+### Base Path: `/vouchers`
+
+#### GET /vouchers
+
+List all public vouchers that are currently valid (not expired). No authentication required.
+
+**Authentication:** Not required (public endpoint)
+
+**Query Parameters:** None
+
+**Response (200 OK):**
+
+```json
+{
+  "statusCode": 200,
+  "message": "Success",
+  "data": [
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "code": "SUMMER2024",
+      "title": "Summer Sale 2024",
+      "description": "20% off on all summer events",
+      "discountType": "PERCENTAGE",
+      "discountValue": 20,
+      "minOrderAmount": 50000,
+      "maxDiscount": 500000,
+      "startDate": "2024-06-01T00:00:00",
+      "endDate": "2024-08-31T23:59:59",
+      "usageLimit": 1000,
+      "usedCount": 245,
+      "isPublic": true,
+      "applicableEvents": [],
+      "applicableCategories": [
+        "music",
+        "sports"
+      ]
+    }
+  ]
+}
+```
+
+**Field Descriptions:**
+
+- `id` (UUID): Unique voucher identifier
+- `code` (string): Voucher code (uppercase, format: ^[A-Z0-9_-]{3,30}$)
+- `title` (string): Display name
+- `description` (string): Detailed description
+- `discountType` (enum): FIXED_AMOUNT or PERCENTAGE
+- `discountValue` (integer): Amount (for FIXED) or percentage (for PERCENTAGE)
+- `minOrderAmount` (integer): Minimum order amount to apply (nullable)
+- `maxDiscount` (integer): Maximum discount cap for PERCENTAGE type (nullable)
+- `startDate` (datetime): Validity period start
+- `endDate` (datetime): Validity period end
+- `usageLimit` (integer): Max uses limit (null = unlimited)
+- `usedCount` (integer): Current usage count
+- `isPublic` (boolean): Visible to all users
+- `applicableEvents` (array): Specific event IDs (empty = all events)
+- `applicableCategories` (array): Specific category slugs (empty = all categories)
+
+**Status Codes:**
+
+- 200: Success
+- 500: Server error
+
+---
+
+#### GET /vouchers/my-vouchers
+
+List user's vouchers with optional status filtering. Requires authentication.
+
+**Authentication:** Required (Bearer token)
+
+**Query Parameters:**
+
+- `status` (string, optional): Filter by status - "active", "used", "expired", or "all" (default: "all")
+
+**Response (200 OK):**
+
+```json
+{
+  "statusCode": 200,
+  "message": "Success",
+  "data": [
+    {
+      "id": "660e8400-e29b-41d4-a716-446655440001",
+      "userId": "770e8400-e29b-41d4-a716-446655440000",
+      "voucherId": "550e8400-e29b-41d4-a716-446655440000",
+      "isUsed": false,
+      "usedAt": null,
+      "orderId": null,
+      "addedAt": "2024-05-15T10:30:00",
+      "voucher": {
+        "id": "550e8400-e29b-41d4-a716-446655440000",
+        "code": "SUMMER2024",
+        "title": "Summer Sale 2024",
+        "discountType": "PERCENTAGE",
+        "discountValue": 20,
+        "endDate": "2024-08-31T23:59:59",
+        "isPublic": true
+      }
+    }
+  ]
+}
+```
+
+**Field Descriptions:**
+
+- `id` (UUID): UserVoucher record ID
+- `userId` (UUID): User ID
+- `voucherId` (UUID): Voucher ID
+- `isUsed` (boolean): Whether voucher has been redeemed
+- `usedAt` (datetime): When voucher was used (null if unused)
+- `orderId` (UUID): Order that used this voucher (null if unused)
+- `addedAt` (datetime): When voucher was assigned to user
+- `voucher` (object): Voucher details
+
+**Status Codes:**
+
+- 200: Success
+- 400: Invalid status filter
+- 401: Unauthenticated
+- 500: Server error
+
+---
+
+#### POST /vouchers/validate
+
+Validate voucher and calculate discount for a specific order. Requires authentication.
+
+**Authentication:** Required (Bearer token)
+
+**Request Body:**
+
+```json
+{
+  "voucherCode": "SUMMER2024",
+  "eventId": "330e8400-e29b-41d4-a716-446655440000",
+  "ticketTypeId": "440e8400-e29b-41d4-a716-446655440000",
+  "quantity": 2
+}
+```
+
+**Request Field Descriptions:**
+
+- `voucherCode` (string, required): Voucher code to validate (pattern: ^[A-Z0-9_-]{3,30}$)
+- `eventId` (UUID, required): Event ID to check applicability
+- `ticketTypeId` (UUID, required): Ticket type for pricing calculation
+- `quantity` (integer, required): Number of tickets (min: 1)
+
+**Response (200 OK - Valid Voucher):**
+
+```json
+{
+  "statusCode": 200,
+  "message": "Success",
+  "data": {
+    "isValid": true,
+    "message": "Voucher is valid",
+    "orderAmount": 200000,
+    "discountAmount": 40000,
+    "finalAmount": 160000,
+    "voucher": {
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "code": "SUMMER2024",
+      "title": "Summer Sale 2024",
+      "discountType": "PERCENTAGE",
+      "discountValue": 20
+    }
+  }
+}
+```
+
+**Response (200 OK - Invalid Voucher):**
+
+```json
+{
+  "statusCode": 200,
+  "message": "Success",
+  "data": {
+    "isValid": false,
+    "message": "Voucher is expired or not yet valid",
+    "orderAmount": 200000,
+    "discountAmount": null,
+    "finalAmount": null,
+    "voucher": {
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "code": "SUMMER2024",
+      "title": "Summer Sale 2024"
+    }
+  }
+}
+```
+
+**Response Field Descriptions:**
+
+- `isValid` (boolean): Whether voucher passes all validation steps
+- `message` (string): Validation result message
+- `orderAmount` (integer): Subtotal before discount
+- `discountAmount` (integer): Discount amount (null if invalid)
+- `finalAmount` (integer): Final amount after discount (null if invalid)
+- `voucher` (object): Voucher details
+
+**Validation Steps (10-step process):**
+
+1. Voucher exists by code
+2. Not expired (startDate <= now <= endDate)
+3. Usage limit not exceeded (usedCount < usageLimit)
+4. Event & ticket type exist
+5. Quantity within maxPerOrder limit
+6. Order amount >= minOrderAmount
+7. Applicability check (event or category match, OR logic)
+8. Discount value valid (positive for FIXED, 0-100 for PERCENTAGE)
+9. Overflow protection for percentage calculations (uses long)
+10. Discount capped at maxDiscount (for PERCENTAGE)
+
+**Possible Validation Failures:**
+
+- "Voucher is expired or not yet valid"
+- "Voucher usage limit reached"
+- "Quantity exceeds maximum per order: X"
+- "Minimum order amount not met: X"
+- "Voucher not applicable for this event"
+- "Invalid voucher discount value"
+- "Invalid voucher discount percentage"
+
+**Status Codes:**
+
+- 200: Success (valid or invalid voucher)
+- 400: Invalid request (missing fields, invalid format, not found)
+- 401: Unauthenticated
+- 404: Event or ticket type not found, voucher not found
+- 500: Server error
+
+---
+
 ## Rate Limiting
 
 (To be implemented in future phases)
@@ -1035,7 +1776,159 @@ GET /users?page=0&size=20&sort=username,asc
 
 ## Changelog
 
-### Phase 5 Updates (Current)
+### Phase 8 Updates (Current)
+
+**New Favorites Endpoints:**
+
+- NEW: GET /favorites - List user's favorite events (paginated, authenticated)
+- NEW: POST /favorites/{eventId} - Add event to favorites (idempotent)
+- NEW: DELETE /favorites/{eventId} - Remove event from favorites
+
+**New Notifications Endpoints:**
+
+- NEW: GET /notifications - List user notifications (paginated, with unreadOnly filter)
+- NEW: PUT /notifications/{notificationId}/read - Mark single notification as read
+- NEW: PUT /notifications/read-all - Mark all notifications as read
+
+**New Services:**
+
+- NEW: FavoriteService - Favorites management with idempotent add operation
+    - getUserFavorites() - Paginated retrieval
+    - addFavorite() - Idempotent (handles DataIntegrityViolationException)
+    - removeFavorite() - Delete favorite
+- NEW: NotificationService - Notification management (6 methods)
+    - getUserNotifications() - Paginated with unreadOnly filter
+    - markAsRead() - Mark single notification as read
+    - markAllAsRead() - Mark all as read
+    - notifyTicketPurchased() - Type: TICKET_PURCHASED
+    - notifyEventReminder() - Type: EVENT_REMINDER
+    - notifyEventCancelled() - Type: EVENT_CANCELLED
+
+**New Repositories:**
+
+- NEW: FavoriteRepository extended with findByUserIdWithEvent()
+- NEW: NotificationRepository extended with:
+    - findUnreadByUserId() - Unread notifications only
+    - findByUserIdOrderByCreatedAtDesc() - All user notifications
+    - markAllAsReadByUserId() - Bulk update for mark all read
+    - countByUserIdAndIsRead() - Unread count
+
+**New Controllers:**
+
+- NEW: FavoriteController (3 endpoints)
+- NEW: NotificationController (3 endpoints)
+
+**Features:**
+
+- Pagination support: @PageableDefault on all list endpoints
+- Input validation: @Pattern regex for UUID validation on path variables
+- Security: @PreAuthorize("isAuthenticated()") on all endpoints
+- Idempotent add: Favorites silently ignore duplicates (DataIntegrityViolationException)
+- Notification types: TICKET_PURCHASED, EVENT_REMINDER, EVENT_CANCELLED, PROMOTION, SYSTEM
+- Notification data: Map-based flexible data storage per notification
+- Unread filtering: Optional unreadOnly parameter on GET /notifications
+
+**DTOs:**
+
+- NEW: EventResponse - Event data returned in favorites list
+- NEW: NotificationResponse - Notification with type, title, message, data
+- NEW: PageResponse - Pagination wrapper for list responses
+
+---
+
+### Phase 7 Updates
+
+**New Voucher Endpoints:**
+
+- NEW: GET /vouchers - List public vouchers (no auth, not expired)
+- NEW: GET /vouchers/my-vouchers?status={status} - List user vouchers (authenticated)
+- NEW: POST /vouchers/validate - Validate voucher & calculate discount (authenticated)
+
+**New Services:**
+
+- NEW: VoucherService - Comprehensive voucher validation with 10-step process:
+    1. Find voucher by code
+    2. Check expiry (startDate, endDate)
+    3. Check usage limit (usedCount vs usageLimit)
+    4. Load event & ticket type validation
+    5. Validate quantity against maxPerOrder
+    6. Calculate order amount (price * quantity)
+    7. Check minimum order amount requirement
+    8. Verify event/category applicability (OR logic)
+    9. Calculate discount (fixed or percentage with overflow protection)
+    10. Return validation result with final amount
+
+**New Repositories:**
+
+- NEW: VoucherRepository custom queries:
+    - findByCode(String code) - Find voucher by code
+    - findPublicActiveVouchers(LocalDateTime now) - Find public non-expired vouchers
+- NEW: UserVoucherRepository status-based filters:
+    - findByUserIdOrderByAddedAtDesc(String userId) - All user vouchers
+    - findActiveByUserId(String userId, LocalDateTime now) - Active (not used, not expired)
+    - findUsedByUserId(String userId) - Used vouchers
+    - findExpiredByUserId(String userId, LocalDateTime now) - Expired (not used, expired)
+
+**Entities & Enums:**
+
+- Voucher entity with applicableEvents & applicableCategories element collections
+- UserVoucher entity for user-specific voucher assignments & tracking
+- VoucherDiscountType enum (FIXED_AMOUNT, PERCENTAGE)
+
+**DTOs:**
+
+- NEW: VoucherResponse - Public voucher information
+- NEW: UserVoucherResponse - User's assigned voucher with status
+- NEW: VoucherValidationResponse - Validation result with discount breakdown
+- NEW: ValidateVoucherRequest - Validation request with input validation
+
+**Features:**
+
+- Discount types: FIXED_AMOUNT or PERCENTAGE
+- Overflow protection: Uses long for percentage calculations
+- Applicability: Empty lists = all events/categories, non-empty = specific restrictions (OR logic)
+- Input validation: Voucher code regex ^[A-Z0-9_-]{3,30}$
+- Error codes: VOUCHER_NOT_FOUND (6001), VOUCHER_INVALID_OR_EXPIRED (6002), VOUCHER_NOT_APPLICABLE (6003),
+  VOUCHER_USAGE_LIMIT_REACHED (6004), MIN_ORDER_AMOUNT_NOT_MET (6005)
+
+### Phase 6 Updates
+
+**New Ticket Management Endpoints:**
+
+- NEW: GET /tickets - List user tickets with status filter & pagination
+- NEW: GET /tickets/{ticketId} - Get ticket details (ownership validated)
+- NEW: PUT /tickets/{ticketId}/cancel - Cancel ticket with refund
+
+**New Services:**
+
+- NEW: TicketService - Ticket retrieval & cancellation operations
+- NEW: CancellationService - Time-based refund calculation
+  - 80% refund: >48 hours before event
+  - 50% refund: 24-48 hours before event
+  - Not cancellable: <24 hours before event
+
+**Ticket Entity Enhancements:**
+
+- NEW: cancellationReason (string) - User-provided cancellation reason
+- NEW: cancelledAt (LocalDateTime) - Cancellation timestamp
+- NEW: refundAmount (integer) - Calculated refund in currency units
+- NEW: refundStatus (RefundStatus enum) - Refund processing status
+
+**Business Logic Implementation:**
+
+- NEW: Ownership validation - Users can only view/cancel their own tickets
+- NEW: Seat release on cancellation - TicketType.available incremented
+- NEW: Refund status tracking (PENDING → PROCESSING → COMPLETED/FAILED)
+- NEW: TicketRepository extended with filter methods
+
+**DTOs:**
+
+- NEW: CancellationResponse - Cancellation result with refund details
+- NEW: TicketResponse - List view of tickets with status
+- NEW: TicketDetailResponse - Detailed ticket information
+- NEW: CancelTicketRequest - Cancellation request with optional reason
+
+### Phase 5 Updates
 
 - NEW: POST /tickets/purchase (authenticated)
 - NEW: Transactional booking with SERIALIZABLE isolation
@@ -1050,9 +1943,6 @@ GET /users?page=0&size=20&sort=username,asc
 - NEW: VoucherRepository for code lookups
 - NEW: BookingService with transactional guarantees
 - NEW: OrderMapper for Entity ↔ DTO conversion
-- MODIFIED: TicketType entity added @Version for optimistic locking
-- CHANGED: PurchaseRequest DTO with seat selection support
-- CHANGED: OrderResponse includes payment details
 
 ### Phase 2 Updates
 

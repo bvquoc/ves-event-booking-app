@@ -23,11 +23,12 @@
 │  │ ├── PermissionController ✅                          │   │
 │  │ ├── CategoryController ✅ (Reference data)           │   │
 │  │ ├── CityController ✅ (Reference data)               │   │
-│  │ ├── TicketController ✅ (Phase 5: POST purchase)     │   │
+│  │ ├── TicketController ✅ (Phase 6: GET/PUT cancel)     │   │
 │  │ ├── EventController 🚧 (Event CRUD - Phase 3)        │   │
-│  │ ├── OrderController 🚧 (Order mgmt - Phase 6+)       │   │
-│  │ ├── VoucherController 🚧                             │   │
-│  │ └── NotificationController 🚧                        │   │
+│  │ ├── VoucherController ✅ (Phase 7: Vouchers)         │   │
+│  │ ├── FavoriteController ✅ (Phase 8: Favorites)       │   │
+│  │ ├── NotificationController ✅ (Phase 8: Notifs)      │   │
+│  │ └── OrderController 🚧 (Order mgmt - Phase 9+)       │   │
 │  └──────────────────────────────────────────────────────┘   │
 │  ┌──────────────────────────────────────────────────────┐   │
 │  │ Security Layer                                       │   │
@@ -69,15 +70,13 @@
 │  │ └── QRCodeGeneratorService                           │   │
 │  └──────────────────────────────────────────────────────┘   │
 │  ┌──────────────────────────────────────────────────────┐   │
-│  │ Promotions & Discounts 🚧                            │   │
-│  │ ├── VoucherService                                  │   │
-│  │ ├── VoucherValidationService                         │   │
-│  │ └── DiscountCalculationService                       │   │
+│  │ Promotions & Discounts ✅ (Phase 7)                  │   │
+│  │ └── VoucherService                                  │   │
 │  └──────────────────────────────────────────────────────┘   │
 │  ┌──────────────────────────────────────────────────────┐   │
-│  │ User Experience 🚧                                   │   │
-│  │ ├── NotificationService                             │   │
-│  │ ├── FavoriteService                                 │   │
+│  │ User Experience ✅ (Phase 8)                         │   │
+│  │ ├── NotificationService ✅                            │   │
+│  │ ├── FavoriteService ✅                                │   │
 │  │ └── UserVoucherService                               │   │
 │  └──────────────────────────────────────────────────────┘   │
 │  ┌──────────────────────────────────────────────────────┐   │
@@ -113,14 +112,14 @@
 │  │ └── SeatRepository ✅                                │   │
 │  └──────────────────────────────────────────────────────┘   │
 │  ┌──────────────────────────────────────────────────────┐   │
-│  │ Promotion Repositories ✅ (Phase 5)                  │   │
+│  │ Promotion Repositories ✅ (Phase 7)                  │   │
 │  │ ├── VoucherRepository ✅                             │   │
-│  │ └── UserVoucherRepository 🚧                         │   │
+│  │ └── UserVoucherRepository ✅                         │   │
 │  └──────────────────────────────────────────────────────┘   │
 │  ┌──────────────────────────────────────────────────────┐   │
-│  │ User Preference Repositories 🚧                      │   │
-│  │ ├── FavoriteRepository                              │   │
-│  │ └── NotificationRepository                          │   │
+│  │ User Preference Repositories ✅ (Phase 8)            │   │
+│  │ ├── FavoriteRepository ✅                            │   │
+│  │ └── NotificationRepository ✅                        │   │
 │  └──────────────────────────────────────────────────────┘   │
 └────────────────────┬────────────────────────────────────────┘
                      │
@@ -234,7 +233,25 @@ Request handling, input validation, response formatting.
 - Payment URL generation (mock)
 - Optimistic locking prevents overselling
 
-#### OrderService 🚧 (Planned - Phase 6+)
+#### TicketService ✅ (Phase 6)
+
+- List user tickets with status filter & pagination
+- Get ticket details (with ownership validation)
+- Cancel ticket with refund processing
+- Refund status tracking (PENDING → PROCESSING → COMPLETED/FAILED)
+- Status transitions (ACTIVE → CANCELLED → REFUNDED)
+- Seat release on cancellation
+
+#### CancellationService ✅ (Phase 6)
+
+- Time-based refund calculation:
+  - Greater than 48 hours before event: 80% refund
+  - 24-48 hours before event: 50% refund
+  - Less than 24 hours before event: NOT cancellable
+- Refund amount calculation based on ticket price
+- Refund percentage tracking
+
+#### OrderService 🚧 (Planned - Phase 7+)
 
 - Order completion workflow
 - Payment status tracking
@@ -242,27 +259,32 @@ Request handling, input validation, response formatting.
 - Order cancellation & refund initiation
 - Ticket generation completion
 
-#### TicketService 🚧 (Planned - Phase 6+)
-
-- Ticket CRUD & retrieval
-- QR code image generation
-- Ticket check-in validation
-- Refund processing
-- Status transitions (ACTIVE → USED → REFUNDED)
-
-#### SeatAvailabilityService 🚧 (Planned - Phase 6+)
+#### SeatAvailabilityService 🚧 (Planned - Phase 7+)
 - Real-time seat status calculation
 - Seat reservation (15 min temp hold)
 - Seat release on order expiration
 - Seat occupancy tracking per event
 
-#### VoucherService 🚧 (Planned - Phase 6+)
-- Voucher CRUD
-- Validity period checking
-- Usage limit enforcement
-- Event/category applicability
-- Discount calculation (fixed/percentage)
-- User voucher assignment
+#### VoucherService ✅ (Phase 7)
+
+- Get public vouchers (isPublic=true, not expired)
+- Get user vouchers (status filter: active/used/expired/all)
+- 10-step voucher validation process:
+  1. Find voucher by code
+  2. Check expiry (startDate, endDate)
+  3. Check usage limit (usedCount vs usageLimit)
+  4. Load event & ticket type validation
+  5. Validate quantity against maxPerOrder
+  6. Calculate order amount (price * quantity)
+  7. Check minimum order amount requirement
+  8. Verify event/category applicability (OR logic)
+  9. Calculate discount (fixed or percentage with overflow protection)
+  10. Return validation result with final amount
+- Discount types: FIXED_AMOUNT or PERCENTAGE
+- Percentage calculations use long to prevent integer overflow
+- Cap percentage discount at maxDiscount if specified
+- Applicability: Empty lists = all events/categories, non-empty = specific restrictions
+- Returns VoucherValidationResponse with discount breakdown
 
 #### NotificationService 🚧 (Planned)
 - Notification creation
@@ -611,7 +633,7 @@ Return paginated results with availability
 - Ticket retrieval & QR code endpoints
 - Refund workflows
 
-### Phase 5 (Current - Complete)
+### Phase 5 (Complete)
 
 - ✅ BookingService with transactional guarantees
 - ✅ TicketController with POST /tickets/purchase
@@ -627,7 +649,60 @@ Return paginated results with availability
 - ✅ QR code generation (mock)
 - ✅ Order expiry (15 minutes)
 
-### Phase 6+ (Planned)
+### Phase 6 (Current - Complete)
+
+**Ticket Management & Cancellation:**
+
+- ✅ GET /tickets - List user tickets (status filter, pagination)
+- ✅ GET /tickets/{ticketId} - Get ticket details
+- ✅ PUT /tickets/{ticketId}/cancel - Cancel ticket with refund
+- ✅ CancellationService - Time-based refund policy
+- ✅ TicketService - Ticket retrieval & cancellation
+- ✅ Ownership validation - Users can only view/cancel their own tickets
+- ✅ Seat release - Cancelled tickets increment TicketType.available
+- ✅ Refund tracking - cancellationReason, cancelledAt, refundAmount, refundStatus fields
+- ✅ Ticket entity updates for cancellation workflow
+- ✅ TicketRepository extended with filter methods
+
+### Phase 7 (Complete)
+
+**Vouchers & Discounts:**
+
+- ✅ GET /vouchers - List public vouchers (no auth, not expired)
+- ✅ GET /vouchers/my-vouchers?status={status} - List user vouchers (authenticated)
+- ✅ POST /vouchers/validate - Validate voucher & calculate discount
+- ✅ VoucherService - 10-step validation process
+- ✅ VoucherRepository with custom JPA queries (findByCode, findPublicActiveVouchers)
+- ✅ UserVoucherRepository with status-based filters (findActiveByUserId, findUsedByUserId, findExpiredByUserId)
+- ✅ Voucher entity with applicableEvents & applicableCategories element collections
+- ✅ UserVoucher entity for user-specific voucher assignments & tracking
+- ✅ VoucherDiscountType enum (FIXED_AMOUNT, PERCENTAGE)
+- ✅ Validation: expiry check, usage limit, quantity check, min order amount, applicability
+- ✅ Discount calculation with overflow protection (long for percentage)
+- ✅ Error codes: VOUCHER_NOT_FOUND, VOUCHER_INVALID_OR_EXPIRED, VOUCHER_NOT_APPLICABLE, VOUCHER_USAGE_LIMIT_REACHED,
+  MIN_ORDER_AMOUNT_NOT_MET
+- ✅ Input validation: Voucher code regex ^[A-Z0-9_-]{3,30}$
+
+### Phase 8 (Complete)
+
+- ✅ GET /favorites - User's favorite events (paginated)
+- ✅ POST /favorites/{eventId} - Add to favorites (idempotent)
+- ✅ DELETE /favorites/{eventId} - Remove from favorites
+- ✅ GET /notifications - User notifications (paginated, with unreadOnly filter)
+- ✅ PUT /notifications/{notificationId}/read - Mark single notification as read
+- ✅ PUT /notifications/read-all - Mark all as read
+- ✅ FavoriteService with idempotent add operation
+- ✅ NotificationService with notification creation & status tracking
+- ✅ FavoriteController (3 endpoints)
+- ✅ NotificationController (3 endpoints)
+- ✅ FavoriteRepository with @EntityGraph for N+1 prevention
+- ✅ NotificationRepository with status-based queries
+- ✅ Input validation: @Pattern regex for UUID validation on path variables
+- ✅ Security: @PreAuthorize("isAuthenticated()") on all endpoints
+- ✅ Notification types: TICKET_PURCHASED, EVENT_REMINDER, EVENT_CANCELLED, PROMOTION, SYSTEM
+- ✅ Idempotent operations: Favorite add silently ignores duplicates
+
+### Phase 9+ (Planned)
 
 - Payment gateway integration (Stripe/Paypal)
 - Order status webhooks
@@ -638,6 +713,7 @@ Return paginated results with availability
 - Event series/recurring events
 - Waiting list management
 - Real-time seat availability WebSocket
+- Notification system
 
 ---
 
