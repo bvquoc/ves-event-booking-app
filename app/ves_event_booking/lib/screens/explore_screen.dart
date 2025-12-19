@@ -59,7 +59,7 @@ class ExploreScreen extends StatelessWidget {
                   ),
                   NavItem(
                     icon: Icons.grid_view_rounded,
-                    isActive: false,
+                    isActive: true,
                     onTap: () {},
                   ),
                   NavItem(
@@ -76,7 +76,7 @@ class ExploreScreen extends StatelessWidget {
                   ),
                   NavItem(
                     icon: Icons.person_2_rounded,
-                    isActive: true,
+                    isActive: false,
                     onTap: () {
                       Navigator.pushReplacement(
                         context,

@@ -15,6 +15,7 @@ dependencies:
   dio: ^5.9.0
   timeline_tile: ^2.0.0
   intl: ^0.20.2
+  dotted_border: ^3.1.0
 
 dev_dependencies:
   flutter_test:
@@ -25,4 +26,9 @@ flutter:
   uses-material-design: true
   assets:
     - assets/images/bg_image.png
+    - assets/images/image 85.png
+    - assets/images/image 90.png
+    - assets/images/image 106.png
+    - assets/images/image 91.png
     - assets/images/event_image.jpeg
+    - assets/images/logo.png
