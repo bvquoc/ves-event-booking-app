@@ -38,4 +38,17 @@ class TicketTypeModel {
       requiresSeatSelection: json['requiresSeatSelection'] ?? false,
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'description': description,
+      'price': price,
+      'currency': currency,
+      'available': available,
+      'maxPerOrder': maxPerOrder,
+      'benefits': benefits,
+      'requiresSeatSelection': requiresSeatSelection,
+    };
+  }
 }

@@ -54,6 +54,7 @@ public enum ErrorCode {
 
     // Notification errors (9xxx)
     NOTIFICATION_NOT_FOUND(9001, "Notification not found", HttpStatus.NOT_FOUND),
+    FAVORITE_NOT_FOUND(9002, "Favorite not found", HttpStatus.NOT_FOUND),
     ;
 
     ErrorCode(int code, String message, HttpStatusCode statusCode) {

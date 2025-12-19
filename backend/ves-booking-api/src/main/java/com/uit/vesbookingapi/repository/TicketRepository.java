@@ -2,6 +2,8 @@ package com.uit.vesbookingapi.repository;
 
 import com.uit.vesbookingapi.entity.Ticket;
 import com.uit.vesbookingapi.enums.TicketStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -14,7 +16,11 @@ public interface TicketRepository extends JpaRepository<Ticket, String> {
 
     List<Ticket> findByUserIdOrderByPurchaseDateDesc(String userId);
 
+    Page<Ticket> findByUserIdOrderByPurchaseDateDesc(String userId, Pageable pageable);
+
     List<Ticket> findByUserIdAndStatusOrderByPurchaseDateDesc(String userId, TicketStatus status);
+
+    Page<Ticket> findByUserIdAndStatusOrderByPurchaseDateDesc(String userId, TicketStatus status, Pageable pageable);
 
     List<Ticket> findByOrderId(String orderId);
 

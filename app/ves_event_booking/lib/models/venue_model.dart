@@ -1,80 +1,75 @@
-class SeatMapModel {
-  final String venueId;
-  final String venueName;
-  final String eventId;
-  final List<SectionModel> sections;
-
-  SeatMapModel({
-    required this.venueId,
-    required this.venueName,
-    required this.eventId,
-    required this.sections,
-  });
-
-  factory SeatMapModel.fromJson(Map<String, dynamic> json) {
-    return SeatMapModel(
-      venueId: json['venueId'] as String,
-      venueName: json['venueName'] as String,
-      eventId: json['eventId'] as String,
-      sections: (json['sections'] as List)
-          .map((e) => SectionModel.fromJson(e))
-          .toList(),
-    );
-  }
-}
-
-class SectionModel {
-  final String id;
+class VenueModel {
   final String name;
-  final List<RowModel> rows;
+  final String address;
+  final int capacity;
+  final String cityId;
 
-  SectionModel({required this.id, required this.name, required this.rows});
-
-  factory SectionModel.fromJson(Map<String, dynamic> json) {
-    return SectionModel(
-      id: json['id'] as String,
-      name: json['name'] as String,
-      rows: (json['rows'] as List).map((e) => RowModel.fromJson(e)).toList(),
-    );
-  }
-}
-
-class RowModel {
-  final String row; // Tên hàng ghế (A, B, C...)
-  final List<SeatModel> seats;
-
-  RowModel({required this.row, required this.seats});
-
-  factory RowModel.fromJson(Map<String, dynamic> json) {
-    return RowModel(
-      row: json['row'] as String,
-      seats: (json['seats'] as List).map((e) => SeatModel.fromJson(e)).toList(),
-    );
-  }
-}
-
-class SeatModel {
-  final String id;
-  final String number;
-  final String status; // available, sold, reserved, blocked
-  final double price;
-  final String ticketTypeId;
-
-  SeatModel({
-    required this.id,
-    required this.number,
-    required this.status,
-    required this.price,
-    required this.ticketTypeId,
+  VenueModel({
+    required this.name,
+    required this.address,
+    required this.capacity,
+    required this.cityId,
   });
 
-  factory SeatModel.fromJson(Map<String, dynamic> json) {
-    return SeatModel(
-      id: json['id'] as String,
-      number: json['number'] as String,
-      status: json['status'] as String,
-      price: (json['price'] as num).toDouble(),
-      ticketTypeId: json['ticketTypeId'] as String,
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'address': address,
+      'capacity': capacity,
+      'cityId': cityId,
+    };
+  }
+
+  factory VenueModel.fromJson(Map<String, dynamic> json) {
+    return VenueModel(
+      name: json['name'],
+      address: json['address'],
+      capacity: json['capacity'],
+      cityId: json['cityId'],
+    );
+  }
+}
+
+class VenueSection {
+  final String sectionName;
+  final List<VenueRow> rows;
+
+  VenueSection({required this.sectionName, required this.rows});
+
+  factory VenueSection.fromJson(Map<String, dynamic> json) {
+    return VenueSection(
+      sectionName: json['sectionName'],
+      rows: (json['rows'] as List).map((e) => VenueRow.fromJson(e)).toList(),
+    );
+  }
+}
+
+class VenueRow {
+  final String rowName;
+  final List<Seat> seats;
+
+  VenueRow({required this.rowName, required this.seats});
+
+  factory VenueRow.fromJson(Map<String, dynamic> json) {
+    return VenueRow(
+      rowName: json['rowName'],
+      seats: (json['seats'] as List).map((e) => Seat.fromJson(e)).toList(),
+    );
+  }
+}
+
+class Seat {
+  final String id;
+  final String seatNumber;
+  final String status;
+
+  Seat({required this.id, required this.seatNumber, required this.status});
+
+  factory Seat.fromJson(Map<String, dynamic> json) {
+    return Seat(
+      id: json['id'],
+      seatNumber: json['seatNumber'],
+      status: json['status'],
     );
   }
 }
