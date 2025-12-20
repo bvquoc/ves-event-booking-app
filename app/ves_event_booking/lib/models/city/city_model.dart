@@ -19,4 +19,8 @@ class CityModel {
       eventCount: json['eventCount'] as int,
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {'id': id, 'name': name, 'slug': slug, 'eventCount': eventCount};
+  }
 }

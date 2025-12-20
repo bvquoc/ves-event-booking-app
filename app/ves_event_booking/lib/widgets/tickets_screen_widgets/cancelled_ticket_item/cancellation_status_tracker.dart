@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:ves_event_booking/models/ticket_model.dart';
+import 'package:ves_event_booking/models/ticket/ticket_model.dart';
 
 class CancellationStatusTracker extends StatelessWidget {
   final TicketModel ticket;

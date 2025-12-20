@@ -1,4 +1,4 @@
-import 'package:ves_event_booking/models/role_model.dart';
+import 'package:ves_event_booking/models/user/role_model.dart';
 
 class UserModel {
   final String id;

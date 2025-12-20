@@ -1,7 +1,7 @@
-import 'package:ves_event_booking/models/category_model.dart';
-import 'package:ves_event_booking/models/city_model.dart';
-import 'package:ves_event_booking/models/ticket_type_model.dart';
-import 'package:ves_event_booking/models/venue_model.dart';
+import 'package:ves_event_booking/models/category/category_model.dart';
+import 'package:ves_event_booking/models/city/city_model.dart';
+import 'package:ves_event_booking/models/ticket/ticket_type_model.dart';
+import 'package:ves_event_booking/models/venue/venue_model.dart';
 
 class EventModel {
   final String id;

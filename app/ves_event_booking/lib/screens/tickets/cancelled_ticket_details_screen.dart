@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:ves_event_booking/models/ticket_model.dart';
+import 'package:ves_event_booking/models/ticket/ticket_model.dart';
 import 'package:ves_event_booking/screens/explore/explore_screen.dart';
 import 'package:ves_event_booking/screens/home_screen.dart';
 import 'package:ves_event_booking/screens/notifications/notifications_screen.dart';

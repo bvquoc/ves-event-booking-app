@@ -1,4 +1,4 @@
-import 'package:ves_event_booking/models/permission_model.dart';
+import 'package:ves_event_booking/models/user/permission_model.dart';
 
 class RoleModel {
   final String name;

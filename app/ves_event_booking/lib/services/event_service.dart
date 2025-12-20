@@ -1,9 +1,9 @@
 import 'package:dio/dio.dart';
 import 'package:ves_event_booking/config/dio_client.dart';
-import 'package:ves_event_booking/models/api_response.dart';
-import 'package:ves_event_booking/models/event_model.dart';
-import 'package:ves_event_booking/models/event_model_request.dart';
-import 'package:ves_event_booking/models/ticket_type_model.dart';
+import 'package:ves_event_booking/models/utils/api_response.dart';
+import 'package:ves_event_booking/models/event/event_model.dart';
+import 'package:ves_event_booking/models/event/event_model_request.dart';
+import 'package:ves_event_booking/models/ticket/ticket_type_model.dart';
 
 class EventService {
   final Dio _dio = DioClient.dio;

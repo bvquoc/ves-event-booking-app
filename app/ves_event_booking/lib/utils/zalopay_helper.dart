@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:intl/intl.dart';
-import 'package:ves_event_booking/models/zalopay_request.dart';
+import 'package:ves_event_booking/models/zalopay/zalopay_request.dart';
 
 import '../config/zalopay_config.dart';
 import 'crypto_helper.dart';

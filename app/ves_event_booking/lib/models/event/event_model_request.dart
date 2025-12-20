@@ -1,4 +1,4 @@
-import 'package:ves_event_booking/models/ticket_type_model.dart';
+import 'package:ves_event_booking/models/ticket/ticket_type_model.dart';
 
 class EventModelRequest {
   final String name;
