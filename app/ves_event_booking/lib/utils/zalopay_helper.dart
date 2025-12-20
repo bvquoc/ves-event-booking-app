@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:intl/intl.dart';
+import 'package:ves_event_booking/models/zalopay/zalopay_callback_response.dart';
 import 'package:ves_event_booking/models/zalopay/zalopay_request.dart';
 
 import '../config/zalopay_config.dart';
@@ -46,5 +47,18 @@ class ZaloPayHelper {
       description: description,
       mac: mac,
     );
+  }
+
+  /// Check Zalopay callback validity
+  /// [callbackData] - the received callback response
+  /// [key] - your secret key (key2)
+  static bool isValidCallback(ZalopayCallbackResponse callbackData) {
+    final key2 = ZaloPayConfig.key2;
+
+    // Use existing CryptoHelper
+    final digest = CryptoHelper.hmacSha256(key2, callbackData.data);
+
+    // Compare digest with mac
+    return digest == callbackData.mac;
   }
 }
