@@ -170,12 +170,7 @@ class ProfileScreen extends StatelessWidget {
                                 Navigator.of(context).push(
                                   MaterialPageRoute(
                                     builder: (context) =>
-                                        const ProfileDetailScreen(
-                                          name: 'Nguyễn Văn A',
-                                          email: 'abc@gmail.com',
-                                          phone: '+84987654321',
-                                          dob: '24/12/2004',
-                                        ),
+                                        const ProfileDetailScreen(),
                                   ),
                                 );
                               },

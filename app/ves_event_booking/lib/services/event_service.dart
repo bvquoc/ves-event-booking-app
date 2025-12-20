@@ -4,6 +4,7 @@ import 'package:ves_event_booking/models/utils/api_response.dart';
 import 'package:ves_event_booking/models/event/event_model.dart';
 import 'package:ves_event_booking/models/event/event_model_request.dart';
 import 'package:ves_event_booking/models/ticket/ticket_type_model.dart';
+import 'package:ves_event_booking/models/utils/pagination_request.dart';
 
 class EventService {
   final Dio _dio = DioClient.dio;
@@ -80,6 +81,46 @@ class EventService {
       );
     } on DioException catch (e) {
       throw Exception(e.response?.data?['message'] ?? 'Failed to update event');
+    }
+  }
+
+  Future<List<EventModel>> getEvents({
+    String? category,
+    String? city,
+    bool? trending,
+    String? startDate,
+    String? endDate,
+    String? search,
+    String? sortBy,
+    PaginationRequest? pageable,
+  }) async {
+    try {
+      final queryParams = <String, dynamic>{
+        if (category != null) 'category': category,
+        if (city != null) 'city': city,
+        if (trending != null) 'trending': trending,
+        if (startDate != null) 'startDate': startDate,
+        if (endDate != null) 'endDate': endDate,
+        if (search != null) 'search': search,
+        if (sortBy != null) 'sortBy': sortBy,
+        if (pageable != null) ...pageable.toQueryParams(),
+      };
+
+      final Response response = await _dio.get(
+        '/events',
+        queryParameters: queryParams,
+      );
+
+      final apiResponse = ApiResponse.fromJson(
+        response.data,
+        (json) => (json['content'] as List)
+            .map((e) => EventModel.fromJson(e))
+            .toList(),
+      );
+
+      return apiResponse.result;
+    } on DioException catch (e) {
+      throw Exception(e.response?.data?['message'] ?? 'Failed to load events');
     }
   }
 }
