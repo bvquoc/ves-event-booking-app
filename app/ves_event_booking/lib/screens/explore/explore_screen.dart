@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:ves_event_booking/models/category/category_model.dart';
-import 'package:ves_event_booking/models/city/city_model.dart';
+import 'package:provider/provider.dart';
+import 'package:ves_event_booking/providers/event_provider.dart';
 import 'package:ves_event_booking/screens/explore/filtered_events_screen.dart';
 import 'package:ves_event_booking/screens/home_screen.dart';
 import 'package:ves_event_booking/screens/notifications/notifications_screen.dart';
@@ -8,182 +8,220 @@ import 'package:ves_event_booking/screens/profile/profile_creen.dart';
 import 'package:ves_event_booking/screens/tickets/tickets_screen.dart';
 import 'package:ves_event_booking/widgets/profile_widgets.dart';
 
-class ExploreScreen extends StatelessWidget {
+class ExploreScreen extends StatefulWidget {
   const ExploreScreen({super.key});
 
   @override
+  State<ExploreScreen> createState() => ExploreScreenState();
+}
+
+class ExploreScreenState extends State<ExploreScreen> {
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      context.read<EventProvider>().fetchCategotiesAndCities();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final List<CategoryModel> listCategories = [];
-    final List<CityModel> listCities = [];
+    return Consumer<EventProvider>(
+      builder: (context, provider, _) {
+        // ⏳ Loading
+        if (provider.isLoading) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        title: const Text(
-          'Khám phá',
-          style: TextStyle(
-            color: Colors.black,
-            fontWeight: FontWeight.bold,
-            fontSize: 24,
+        // ❌ Error
+        if (provider.errorMessage != null) {
+          return Center(
+            child: Text(
+              provider.errorMessage!,
+              style: const TextStyle(color: Colors.red),
+            ),
+          );
+        }
+
+        final listCategories = provider.categories;
+        final listCities = provider.cities;
+
+        return Scaffold(
+          backgroundColor: Colors.white,
+          appBar: AppBar(
+            backgroundColor: Colors.white,
+            elevation: 0,
+            title: const Text(
+              'Khám phá',
+              style: TextStyle(
+                color: Colors.black,
+                fontWeight: FontWeight.bold,
+                fontSize: 24,
+              ),
+            ),
+            centerTitle: true,
+            automaticallyImplyLeading: false, // Tắt nút back mặc định
           ),
-        ),
-        centerTitle: true,
-        automaticallyImplyLeading: false, // Tắt nút back mặc định
-      ),
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          SingleChildScrollView(
-            padding: const EdgeInsets.only(bottom: 100.0, top: 16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // --- SECTION 1: THỂ LOẠI ---
-                _buildSectionTitle('Khám phá theo Thể loại'),
-                const SizedBox(height: 12),
-                SizedBox(
-                  height: 200, // fix height
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: listCategories.length,
-                    itemBuilder: (context, index) {
-                      final cat = listCategories[index];
-                      return _buildExploreCard(
-                        context,
-                        title: cat.name,
-                        imageUrl:
-                            cat.icon, // Mock data đã thêm ảnh vào field icon
+          body: Stack(
+            fit: StackFit.expand,
+            children: [
+              SingleChildScrollView(
+                padding: const EdgeInsets.only(bottom: 100.0, top: 16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // --- SECTION 1: THỂ LOẠI ---
+                    _buildSectionTitle('Khám phá theo Thể loại'),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      height: 200, // fix height
+                      child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        itemCount: listCategories.length,
+                        itemBuilder: (context, index) {
+                          final cat = listCategories[index];
+                          return _buildExploreCard(
+                            context,
+                            title: cat.name,
+                            imageUrl: cat
+                                .icon, // Mock data đã thêm ảnh vào field icon
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => FilteredEventsScreen(
+                                    title: cat.name,
+                                    filterType: 'category',
+                                  ),
+                                ),
+                              );
+                            },
+                          );
+                        },
+                      ),
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // --- SECTION 2: THÀNH PHỐ ---
+                    _buildSectionTitle('Khám phá theo Thành phố'),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      height: 200,
+                      child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        itemCount: listCities.length,
+                        itemBuilder: (context, index) {
+                          final city = listCities[index];
+                          return _buildExploreCard(
+                            context,
+                            title: city.name,
+                            // Dùng hàm helper lấy ảnh city
+                            imageUrl: "",
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => FilteredEventsScreen(
+                                    title: city.name,
+                                    filterType: 'city',
+                                  ),
+                                ),
+                              );
+                            },
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: Container(
+                  margin: const EdgeInsets.symmetric(
+                    vertical: 12,
+                    horizontal: 32,
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 8,
+                    horizontal: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF0f0c29),
+                    borderRadius: BorderRadius.circular(40),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      NavItem(
+                        icon: Icons.home_rounded,
+                        isActive: false,
                         onTap: () {
-                          Navigator.push(
+                          Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => FilteredEventsScreen(
-                                title: cat.name,
-                                filterType: 'category',
-                                filterValue: cat.id,
-                              ),
+                              builder: (context) => const HomeScreen(),
                             ),
                           );
                         },
-                      );
-                    },
-                  ),
-                ),
-
-                const SizedBox(height: 24),
-
-                // --- SECTION 2: THÀNH PHỐ ---
-                _buildSectionTitle('Khám phá theo Thành phố'),
-                const SizedBox(height: 12),
-                SizedBox(
-                  height: 200,
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: listCities.length,
-                    itemBuilder: (context, index) {
-                      final city = listCities[index];
-                      return _buildExploreCard(
-                        context,
-                        title: city.name,
-                        // Dùng hàm helper lấy ảnh city
-                        imageUrl: "",
+                      ),
+                      NavItem(
+                        icon: Icons.confirmation_num_rounded,
+                        isActive: false,
                         onTap: () {
-                          Navigator.push(
+                          Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => FilteredEventsScreen(
-                                title: city.name,
-                                filterType: 'city',
-                                filterValue: city.id,
-                              ),
+                              builder: (context) => const TicketsScreen(),
                             ),
                           );
                         },
-                      );
-                    },
+                      ),
+                      NavItem(
+                        icon: Icons.grid_view_rounded,
+                        isActive: true, // Active trang này
+                        onTap: () {},
+                      ),
+                      NavItem(
+                        icon: Icons.notifications_rounded,
+                        isActive: false,
+                        onTap: () {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const NotificationsScreen(),
+                            ),
+                          );
+                        },
+                      ),
+                      NavItem(
+                        icon: Icons.person_2_rounded,
+                        isActive: false,
+                        onTap: () {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const ProfileScreen(),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
                   ),
                 ),
-              ],
-            ),
-          ),
-
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: Container(
-              margin: const EdgeInsets.symmetric(vertical: 12, horizontal: 32),
-              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
-              decoration: BoxDecoration(
-                color: const Color(0xFF0f0c29),
-                borderRadius: BorderRadius.circular(40),
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  NavItem(
-                    icon: Icons.home_rounded,
-                    isActive: false,
-                    onTap: () {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const HomeScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                  NavItem(
-                    icon: Icons.confirmation_num_rounded,
-                    isActive: false,
-                    onTap: () {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const TicketsScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                  NavItem(
-                    icon: Icons.grid_view_rounded,
-                    isActive: true, // Active trang này
-                    onTap: () {},
-                  ),
-                  NavItem(
-                    icon: Icons.notifications_rounded,
-                    isActive: false,
-                    onTap: () {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const NotificationsScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                  NavItem(
-                    icon: Icons.person_2_rounded,
-                    isActive: false,
-                    onTap: () {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const ProfileScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                ],
-              ),
-            ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
