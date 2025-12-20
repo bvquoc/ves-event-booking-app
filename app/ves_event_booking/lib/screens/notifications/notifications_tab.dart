@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:ves_event_booking/models/mock_data.dart';
 import 'package:ves_event_booking/models/notification_model.dart';
 import 'package:ves_event_booking/widgets/notifications_screen_widgets/notification_card.dart';
 
@@ -9,9 +8,7 @@ class NotificationTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // replace this with actual api or data source
-    final List<NotificationModel> notifications = mockNotifications
-        .where((n) => n.type != 'promotion')
-        .toList();
+    final List<NotificationModel> notifications = [];
 
     return Container(
       color: Colors.white,

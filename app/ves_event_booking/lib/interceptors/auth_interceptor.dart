@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:ves_event_booking/providers/auth_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthInterceptor extends Interceptor {
   static const _publicEndpoints = ['/auth/token', '/auth/register'];
@@ -9,12 +9,16 @@ class AuthInterceptor extends Interceptor {
   }
 
   @override
-  void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
+  void onRequest(
+    RequestOptions options,
+    RequestInterceptorHandler handler,
+  ) async {
     if (_isPublicEndpoint(options.path)) {
       return handler.next(options);
     }
 
-    final token = AuthProvider.instance.accessToken;
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('accessToken');
 
     if (token != null && token.isNotEmpty) {
       options.headers['Authorization'] = 'Bearer $token';
@@ -25,14 +29,6 @@ class AuthInterceptor extends Interceptor {
 
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
-    if (err.response?.statusCode == 401) {
-      // Token invalid / expired
-      AuthProvider.instance.accessToken = null;
-
-      // TODO: notify UI or navigate to login
-      // NavigationService.logout();
-    }
-
     handler.next(err);
   }
 }

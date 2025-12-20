@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:ves_event_booking/models/mock_data.dart';
+import 'package:ves_event_booking/models/category_model.dart';
+import 'package:ves_event_booking/models/city_model.dart';
 import 'package:ves_event_booking/screens/explore/filtered_events_screen.dart';
 import 'package:ves_event_booking/screens/home_screen.dart';
 import 'package:ves_event_booking/screens/notifications/notifications_screen.dart';
@@ -12,6 +13,9 @@ class ExploreScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final List<CategoryModel> listCategories = [];
+    final List<CityModel> listCities = [];
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -44,9 +48,9 @@ class ExploreScreen extends StatelessWidget {
                   child: ListView.builder(
                     scrollDirection: Axis.horizontal,
                     padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: mockCategories.length,
+                    itemCount: listCategories.length,
                     itemBuilder: (context, index) {
-                      final cat = mockCategories[index];
+                      final cat = listCategories[index];
                       return _buildExploreCard(
                         context,
                         title: cat.name,
@@ -79,14 +83,14 @@ class ExploreScreen extends StatelessWidget {
                   child: ListView.builder(
                     scrollDirection: Axis.horizontal,
                     padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: mockCities.length,
+                    itemCount: listCities.length,
                     itemBuilder: (context, index) {
-                      final city = mockCities[index];
+                      final city = listCities[index];
                       return _buildExploreCard(
                         context,
                         title: city.name,
                         // Dùng hàm helper lấy ảnh city
-                        imageUrl: getCityImage(city.id),
+                        imageUrl: "",
                         onTap: () {
                           Navigator.push(
                             context,

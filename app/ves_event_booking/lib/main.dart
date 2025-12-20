@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ves_event_booking/providers/ticket_provider.dart';
 import 'screens/login_screen.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
@@ -9,7 +10,10 @@ void main() {
 
   runApp(
     MultiProvider(
-      providers: [ChangeNotifierProvider.value(value: AuthProvider.instance)],
+      providers: [
+        ChangeNotifierProvider.value(value: AuthProvider.instance),
+        ChangeNotifierProvider(create: (_) => TicketProvider()),
+      ],
       child: const MainApp(),
     ),
   );

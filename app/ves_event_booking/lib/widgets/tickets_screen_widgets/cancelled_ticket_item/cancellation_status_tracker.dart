@@ -12,10 +12,8 @@ class CancellationStatusTracker extends StatelessWidget {
 
     // Xác định trạng thái active
     final isRequested = true; // Luôn luôn active
-    final isProcessing =
-        ticket.refundStatus == 'processing' ||
-        ticket.refundStatus == 'completed';
-    final isCompleted = ticket.refundStatus == 'completed';
+    final isProcessing = true;
+    final isCompleted = false;
 
     // Màu sắc
     final activeColor = Colors.blue[700];

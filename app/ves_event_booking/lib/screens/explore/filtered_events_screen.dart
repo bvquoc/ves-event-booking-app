@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:ves_event_booking/models/mock_data.dart';
 import 'package:ves_event_booking/models/event_model.dart';
 import 'package:ves_event_booking/widgets/explore_screen_widgets/event_item_card.dart';
 import 'package:ves_event_booking/screens/home_screen.dart';
@@ -25,10 +24,7 @@ class FilteredEventsScreen extends StatelessWidget {
     // Lọc sự kiện (Logic giả định)
     // Trong thực tế sẽ gọi API ở đây: /events?category=... hoặc /events?city=...
     // Tạm thời hiển thị tất cả event từ mock data
-    final List<EventModel> events = [
-      // Giả lập lấy data từ mockEvents
-      ...mockUpcomingTickets.map((t) => t.event), // Lấy tạm event từ vé
-    ];
+    final List<EventModel> events = [];
 
     return Scaffold(
       backgroundColor: Colors.white,
