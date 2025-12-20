@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:ves_event_booking/screens/explore/explore_screen.dart';
 import 'package:ves_event_booking/screens/home_screen.dart';
@@ -7,6 +6,7 @@ import 'package:ves_event_booking/screens/profile/profile_detail_screen.dart';
 import 'package:ves_event_booking/screens/tickets/tickets_screen.dart';
 import 'package:ves_event_booking/widgets/profile_widgets.dart';
 import 'package:ves_event_booking/screens/favourite_events_screen.dart';
+import 'package:ves_event_booking/screens/login_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -20,7 +20,6 @@ class ProfileScreen extends StatelessWidget {
         children: [
           _buildScrollableMenu(context),
 
-<<<<<<< HEAD
           Positioned(
             top: 150,
             left: 0,
@@ -290,9 +289,6 @@ class ProfileScreen extends StatelessWidget {
               ),
             ),
           ),
-=======
-          _buildHeader(context),
->>>>>>> parent of 2bffac6 (Revert "Merge branch 'feature/ticket-booking'")
 
           Positioned(
             left: 0,
@@ -315,10 +311,7 @@ class ProfileScreen extends StatelessWidget {
             image: DecorationImage(
               image: const AssetImage('assets/images/bg_image.png'),
               fit: BoxFit.cover,
-              colorFilter: ColorFilter.mode(
-                Colors.white38,
-                BlendMode.lighten,
-              ),
+              colorFilter: ColorFilter.mode(Colors.white38, BlendMode.lighten),
             ),
           ),
         ),
@@ -357,9 +350,7 @@ class ProfileScreen extends StatelessWidget {
             padding: const EdgeInsets.only(top: 72),
             decoration: const BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.vertical(
-                top: Radius.circular(30),
-              ),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
             ),
             child: Column(
               children: [
@@ -431,8 +422,7 @@ class ProfileScreen extends StatelessWidget {
               ),
               child: const CircleAvatar(
                 radius: 62,
-                backgroundImage:
-                    AssetImage('assets/images/bg_image.png'),
+                backgroundImage: AssetImage('assets/images/bg_image.png'),
               ),
             ),
           ),
@@ -472,12 +462,7 @@ class ProfileScreen extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => const ProfileDetailScreen(
-                      name: 'Nguyễn Văn A',
-                      email: 'abc@gmail.com',
-                      phone: '+84987654321',
-                      dob: '24/12/2004',
-                    ),
+                    builder: (_) => const ProfileDetailScreen(),
                   ),
                 );
               },
@@ -596,17 +581,11 @@ class ProfileScreen extends StatelessWidget {
             onTap: () {
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(
-                  builder: (_) => const NotificationsScreen(),
-                ),
+                MaterialPageRoute(builder: (_) => const NotificationsScreen()),
               );
             },
           ),
-          NavItem(
-            icon: Icons.person_2_rounded,
-            isActive: true,
-            onTap: () {},
-          ),
+          NavItem(icon: Icons.person_2_rounded, isActive: true, onTap: () {}),
         ],
       ),
     );

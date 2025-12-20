@@ -8,7 +8,6 @@ import 'package:ves_event_booking/screens/profile/profile_creen.dart';
 import 'package:ves_event_booking/screens/tickets/tickets_screen.dart';
 import 'package:ves_event_booking/widgets/home_screen_widgets/event_section.dart';
 import 'package:ves_event_booking/widgets/home_screen_widgets/home_header.dart';
-import 'package:ves_event_booking/widgets/home_screen_widgets/section_header.dart';
 import 'package:ves_event_booking/widgets/home_screen_widgets/voucher_section.dart';
 import 'package:ves_event_booking/widgets/profile_widgets.dart';
 
@@ -54,7 +53,6 @@ class HomeScreen extends StatelessWidget {
                   vouchers: mockVouchers, // hoặc data từ API
                 ),
                 const SizedBox(height: 20),
-
 
                 EventSection(title: 'Buổi hòa nhạc', events: mockEvents),
                 const SizedBox(height: 20),
