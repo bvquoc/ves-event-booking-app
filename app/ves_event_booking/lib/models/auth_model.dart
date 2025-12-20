@@ -1,4 +1,4 @@
-import 'user_model.dart';
+import 'user/user_model.dart';
 
 class AuthResponse {
   final UserModel? user; // Login trả về user, Refresh token thì không

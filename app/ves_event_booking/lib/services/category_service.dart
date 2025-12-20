@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:ves_event_booking/config/dio_client.dart';
-import 'package:ves_event_booking/models/api_response.dart';
-import 'package:ves_event_booking/models/category_model.dart';
+import 'package:ves_event_booking/models/utils/api_response.dart';
+import 'package:ves_event_booking/models/category/category_model.dart';
 
 class CategoryService {
   final Dio _dio = DioClient.dio;

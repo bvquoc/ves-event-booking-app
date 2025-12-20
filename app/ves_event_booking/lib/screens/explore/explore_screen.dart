@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:ves_event_booking/models/category_model.dart';
-import 'package:ves_event_booking/models/city_model.dart';
+import 'package:ves_event_booking/models/category/category_model.dart';
+import 'package:ves_event_booking/models/city/city_model.dart';
 import 'package:ves_event_booking/screens/explore/filtered_events_screen.dart';
 import 'package:ves_event_booking/screens/home_screen.dart';
 import 'package:ves_event_booking/screens/notifications/notifications_screen.dart';

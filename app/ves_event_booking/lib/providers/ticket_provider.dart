@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ves_event_booking/enums/ticket_status.dart';
-import 'package:ves_event_booking/models/pagination_request.dart';
-import 'package:ves_event_booking/models/ticket_model.dart';
+import 'package:ves_event_booking/models/utils/pagination_request.dart';
+import 'package:ves_event_booking/models/ticket/ticket_model.dart';
 import 'package:ves_event_booking/services/ticket_service.dart';
 
 class TicketProvider extends ChangeNotifier {

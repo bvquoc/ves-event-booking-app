@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:ves_event_booking/config/zalopay_config.dart';
-import 'package:ves_event_booking/models/zalopay_response.dart';
+import 'package:ves_event_booking/models/zalopay/zalopay_response.dart';
 import 'package:ves_event_booking/utils/zalopay_helper.dart';
 
 class ZaloPayService {
