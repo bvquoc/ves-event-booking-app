@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ves_event_booking/models/ticket_model.dart';
 import 'package:ves_event_booking/screens/tickets/cancelled_ticket_details_screen.dart';
-import 'package:ves_event_booking/widgets/tickets_screen_widgets/cancelled_ticket_item/ticket_clipper.dart';
+// import 'package:ves_event_booking/widgets/tickets_screen_widgets/cancelled_ticket_item/ticket_clipper.dart';
 
 class CancelledTicketCard extends StatelessWidget {
   final TicketModel ticket;
@@ -46,7 +46,7 @@ class CancelledTicketCard extends StatelessWidget {
         child: Stack(
           children: [
             Image.network(
-              ticket.event.thumbnail,
+              ticket.eventThumbnail,
               height: 180,
               width: double.infinity,
               fit: BoxFit.cover,
@@ -77,7 +77,7 @@ class CancelledTicketCard extends StatelessWidget {
                   // Tên sự kiện
                   Expanded(
                     child: Text(
-                      ticket.event.name,
+                      ticket.eventName,
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 22,

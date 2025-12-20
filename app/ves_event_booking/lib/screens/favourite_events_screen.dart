@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:ves_event_booking/models/mock_data.dart';
 import 'package:ves_event_booking/models/event_model.dart';
 import 'package:ves_event_booking/screens/home_screen.dart';
 import 'package:ves_event_booking/widgets/explore_screen_widgets/event_item_card.dart';
@@ -10,11 +9,7 @@ class FavoriteEventsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Lọc danh sách yêu thích từ mock data
-    final List<EventModel> favoriteEvents = [
-      ...mockUpcomingTickets.map((t) => t.event),
-      ...mockPastTickets.map((t) => t.event),
-      ...mockEvents,
-    ].where((event) => event.isFavorite).toList();
+    final List<EventModel> favoriteEvents = [];
 
     return Scaffold(
       backgroundColor: Colors.white,

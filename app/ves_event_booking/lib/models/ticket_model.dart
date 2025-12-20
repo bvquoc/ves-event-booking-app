@@ -1,62 +1,43 @@
-import 'event_model.dart';
-import 'ticket_type_model.dart';
-
-// 1. Model cho Vé của người dùng (My Tickets)
 class TicketModel {
   final String id;
-  final String orderId;
-  final EventModel event; // Sự kiện tương ứng
-  final TicketTypeModel ticketType; // Loại vé
-  final String qrCode;
-  final String? qrCodeImage; // Chỉ có ở chi tiết vé
-  final String status; // active, used, cancelled
-  final DateTime purchaseDate;
+  final String eventId;
+  final String eventName;
+  final String eventThumbnail;
+  final DateTime eventStartDate;
+  final String venueName;
+  final String ticketTypeName;
   final String? seatNumber;
-  final DateTime? checkedInAt; // Chỉ có ở chi tiết vé
-
-  // Thông tin hủy vé (Nullable)
-  final String? cancellationReason;
-  final double? refundAmount;
-  final String? refundStatus;
+  final String status;
+  final String qrCode;
+  final DateTime purchaseDate;
 
   TicketModel({
     required this.id,
-    required this.orderId,
-    required this.event,
-    required this.ticketType,
-    required this.qrCode,
-    this.qrCodeImage,
-    required this.status,
-    required this.purchaseDate,
+    required this.eventId,
+    required this.eventName,
+    required this.eventThumbnail,
+    required this.eventStartDate,
+    required this.venueName,
+    required this.ticketTypeName,
     this.seatNumber,
-    this.checkedInAt,
-    this.cancellationReason,
-    this.refundAmount,
-    this.refundStatus,
+    required this.status,
+    required this.qrCode,
+    required this.purchaseDate,
   });
 
   factory TicketModel.fromJson(Map<String, dynamic> json) {
     return TicketModel(
       id: json['id'] as String,
-      orderId: json['orderId'] as String,
-      // Event trong vé thường là dạng tóm tắt, nhưng dùng chung EventModel vẫn ổn
-      event: EventModel.fromJson(json['event'] as Map<String, dynamic>),
-      ticketType: TicketTypeModel.fromJson(
-        json['ticketType'] as Map<String, dynamic>,
-      ),
-      qrCode: json['qrCode'] as String,
-      qrCodeImage: json['qrCodeImage'] as String?,
+      eventId: json['eventId'] as String,
+      eventName: json['eventName'] as String,
+      eventThumbnail: json['eventThumbnail'] as String,
+      eventStartDate: DateTime.parse(json['eventStartDate']),
+      venueName: json['venueName'] as String,
+      ticketTypeName: json['ticketTypeName'] as String,
+      seatNumber: json['seatNumber'], // nullable
       status: json['status'] as String,
+      qrCode: json['qrCode'] as String,
       purchaseDate: DateTime.parse(json['purchaseDate']),
-      seatNumber: json['seatNumber'] as String?,
-      checkedInAt: json['checkedInAt'] != null
-          ? DateTime.parse(json['checkedInAt'])
-          : null,
-      cancellationReason: json['cancellationReason'] as String?,
-      refundAmount: json['refundAmount'] != null
-          ? (json['refundAmount'] as num).toDouble()
-          : null,
-      refundStatus: json['refundStatus'] as String?,
     );
   }
 }

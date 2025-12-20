@@ -108,7 +108,7 @@ class CancelledTicketDetail extends StatelessWidget {
           ),
           SizedBox(height: 8),
           Text(
-            ticket.cancellationReason ?? 'Không có lý do',
+            'Không có lý do',
             style: TextStyle(color: Colors.black54, fontSize: 15),
           ),
         ],
@@ -119,7 +119,7 @@ class CancelledTicketDetail extends StatelessWidget {
   // Thẻ "Thành tiền" (màu trắng)
   Widget _buildTotalCard(BuildContext context) {
     final currencyFormat = NumberFormat.currency(locale: 'vi_VN', symbol: 'đ');
-    final amount = ticket.refundAmount ?? 0;
+    final amount = 0;
 
     return _buildWhiteCard(
       Row(
@@ -158,7 +158,7 @@ class CancelledTicketDetail extends StatelessWidget {
         ClipRRect(
           borderRadius: BorderRadius.circular(16.0),
           child: Image.network(
-            ticket.event.thumbnail,
+            ticket.eventThumbnail,
             height: 180,
             width: double.infinity,
             fit: BoxFit.cover,
@@ -169,7 +169,7 @@ class CancelledTicketDetail extends StatelessWidget {
         const SizedBox(height: 16),
         // Tên sự kiện
         Text(
-          ticket.event.name,
+          ticket.eventName,
           style: const TextStyle(
             color: Colors.black,
             fontSize: 22,
@@ -180,15 +180,15 @@ class CancelledTicketDetail extends StatelessWidget {
         // Hàng 1: Ngày + Giờ
         _buildIconTextRow(
           Icons.calendar_today_outlined,
-          dateFormat.format(ticket.event.startDate),
+          dateFormat.format(ticket.eventStartDate),
           Icons.access_time_outlined,
-          timeFormat.format(ticket.event.startDate),
+          timeFormat.format(ticket.eventStartDate),
         ),
         const SizedBox(height: 8),
         // Hàng 2: Địa điểm + Số ghế
         _buildIconTextRow(
           Icons.location_on_outlined,
-          ticket.event.venueName,
+          ticket.venueName,
           Icons.event_seat_outlined,
           ticket.seatNumber ?? 'Tự do',
         ),
@@ -227,7 +227,7 @@ class CancelledTicketDetail extends StatelessWidget {
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildInfoRow('Mã đơn hàng', ticket.orderId),
+          _buildInfoRow('Mã đơn hàng', ticket.id),
           _buildInfoRow(
             'Phương thức thanh toán',
             'Ví điện tử',

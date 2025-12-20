@@ -15,14 +15,14 @@ class _EventCardItemState extends State<TicketCardItem> {
   @override
   void initState() {
     super.initState();
-    _isFavorite = widget.ticket.event.isFavorite;
+    _isFavorite = false;
   }
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        print('Đã nhấn vào thẻ: ${widget.ticket.event.name}');
+        print('Đã nhấn vào thẻ: ${widget.ticket.eventName}');
 
         // Khi có màn hình chi tiết (mã qr cho vé đã mua), điều hướng ở đây
         //
@@ -41,7 +41,7 @@ class _EventCardItemState extends State<TicketCardItem> {
             children: [
               // 1. Ảnh nền
               Image.network(
-                widget.ticket.event.thumbnail,
+                widget.ticket.eventThumbnail,
                 height: 200,
                 width: double.infinity,
                 fit: BoxFit.cover,
@@ -104,7 +104,7 @@ class _EventCardItemState extends State<TicketCardItem> {
                   children: [
                     // Tên sự kiện
                     Text(
-                      widget.ticket.event.name,
+                      widget.ticket.eventName,
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 22,

@@ -9,10 +9,10 @@ import 'package:ves_event_booking/models/ticket_model.dart';
 class TicketService {
   final Dio _dio = DioClient.dio;
 
-  Future<PageResult<TicketModel>> getTickets({
-    required TicketStatus status,
-    required PaginationRequest pageable,
-  }) async {
+  Future<PageResult<TicketModel>> getTickets(
+    TicketStatus status,
+    PaginationRequest pageable,
+  ) async {
     try {
       final response = await _dio.get(
         '/tickets',

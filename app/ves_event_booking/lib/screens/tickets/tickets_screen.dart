@@ -5,8 +5,8 @@ import 'package:ves_event_booking/screens/notifications/notifications_screen.dar
 import 'package:ves_event_booking/screens/profile/profile_creen.dart';
 import 'package:ves_event_booking/widgets/profile_widgets.dart';
 import 'package:ves_event_booking/screens/tickets/cancelled_tickets_tab.dart';
-import 'package:ves_event_booking/screens/tickets/up_coming_events_tab.dart';
-import 'package:ves_event_booking/screens/tickets/past_events_tab.dart';
+import 'package:ves_event_booking/screens/tickets/up_coming_tickets_tab.dart';
+import 'package:ves_event_booking/screens/tickets/past_tickets_tab.dart';
 
 class TicketsScreen extends StatelessWidget {
   const TicketsScreen({super.key});
@@ -54,11 +54,11 @@ class TicketsScreen extends StatelessWidget {
             const TabBarView(
               children: [
                 // Nội dung cho tab "Sắp diễn ra"
-                const UpcomingEventsTab(),
+                UpcomingTicketsTab(),
                 // Nội dung cho tab "Đã diễn ra"
-                const PastEventsTab(),
+                PastTicketsTab(),
                 // Nội dung cho tab "Đã hủy"
-                const CancelledTicketsTab(),
+                CancelledTicketsTab(),
               ],
             ),
             Positioned(

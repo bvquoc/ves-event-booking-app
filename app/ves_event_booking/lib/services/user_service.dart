@@ -1,7 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:ves_event_booking/models/api_response.dart';
 import 'package:ves_event_booking/models/user_model.dart';
-import '../old_models/user.dart';
 
 class UserService {
   final Dio _dio;
@@ -14,14 +13,14 @@ class UserService {
         ),
       );
 
-  Future<User> getProfile() async {
+  Future<UserModel> getProfile() async {
     final response = await _dio.get('/users/me');
-    return User.fromJson(response.data);
+    return UserModel.fromJson(response.data);
   }
 
-  Future<User> updateProfile(Map<String, dynamic> updates) async {
+  Future<UserModel> updateProfile(Map<String, dynamic> updates) async {
     final response = await _dio.patch('/users/me', data: updates);
-    return User.fromJson(response.data);
+    return UserModel.fromJson(response.data);
   }
 
   Future<List<UserModel>> getUsers() async {

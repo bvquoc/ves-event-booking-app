@@ -23,12 +23,14 @@ class PageResult<T> {
   ) {
     return PageResult(
       content: (json['content'] as List).map((e) => fromJsonT(e)).toList(),
-      page: json['page'],
-      size: json['size'],
-      totalElements: json['totalElements'],
-      totalPages: json['totalPages'],
-      first: json['first'],
-      last: json['last'],
+
+      // ✅ FIX HERE
+      page: json['number'] ?? 0,
+      size: json['size'] ?? 0,
+      totalElements: json['totalElements'] ?? 0,
+      totalPages: json['totalPages'] ?? 0,
+      first: json['first'] ?? true,
+      last: json['last'] ?? true,
     );
   }
 }
