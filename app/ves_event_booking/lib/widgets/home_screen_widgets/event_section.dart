@@ -42,11 +42,11 @@ class EventSection extends StatelessWidget {
               return EventCard(
                 event: event,
                 onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (ctx) => EventDetailScreen(eventId: event.id),
-                    ),
-                  );
+                  // Navigator.of(context).push(
+                  //   MaterialPageRoute(
+                  //     builder: (ctx) => EventDetailScreen(eventId: event.id),
+                  //   ),
+                  // );
                 },
                 onFavoriteTap: () {
                   // TODO: call POST /favorites/{eventId}

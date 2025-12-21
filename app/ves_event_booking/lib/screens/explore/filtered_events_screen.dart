@@ -11,12 +11,14 @@ import 'package:ves_event_booking/widgets/profile_widgets.dart';
 
 class FilteredEventsScreen extends StatefulWidget {
   final String title;
-  final String filterType; // 'category' hoặc 'city'
+  final String? categoryId;
+  final String? cityId;
 
   const FilteredEventsScreen({
     super.key,
     required this.title,
-    required this.filterType,
+    this.categoryId,
+    this.cityId,
   });
 
   @override
@@ -32,8 +34,8 @@ class FilteredEventsScreenState extends State<FilteredEventsScreen> {
       if (!mounted) return;
       context.read<EventProvider>().fetchEvents(
         pageable: PaginationRequest(page: 0, size: 20),
-        category: widget.filterType == 'category' ? widget.title : null,
-        city: widget.filterType == 'city' ? widget.title : null,
+        category: widget.categoryId,
+        city: widget.cityId,
       );
     });
   }

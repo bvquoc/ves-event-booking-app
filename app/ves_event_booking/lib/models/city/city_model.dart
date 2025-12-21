@@ -2,7 +2,7 @@ class CityModel {
   final String id;
   final String name;
   final String slug;
-  final int eventCount;
+  final int? eventCount;
 
   CityModel({
     required this.id,
@@ -16,7 +16,7 @@ class CityModel {
       id: json['id'] as String,
       name: json['name'] as String,
       slug: json['slug'] as String,
-      eventCount: json['eventCount'] as int,
+      eventCount: json['eventCount'],
     );
   }
 

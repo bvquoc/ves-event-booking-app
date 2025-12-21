@@ -25,7 +25,7 @@ class PageResult<T> {
       content: (json['content'] as List).map((e) => fromJsonT(e)).toList(),
 
       // ✅ FIX HERE
-      page: json['number'] ?? 0,
+      page: json['page'] ?? 0,
       size: json['size'] ?? 0,
       totalElements: json['totalElements'] ?? 0,
       totalPages: json['totalPages'] ?? 0,

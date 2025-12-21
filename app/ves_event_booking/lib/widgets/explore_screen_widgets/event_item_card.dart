@@ -17,12 +17,12 @@ class EventItemCard extends StatelessWidget {
 
     return GestureDetector(
       onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => EventDetailScreen(eventId: event.id),
-          ),
-        );
+        // Navigator.push(
+        //   context,
+        //   MaterialPageRoute(
+        //     builder: (_) => EventDetailScreen(eventId: event.id),
+        //   ),
+        // );
       },
       child: Container(
         decoration: BoxDecoration(

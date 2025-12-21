@@ -44,7 +44,7 @@ class HomeProvider extends ChangeNotifier {
         search: search,
         sortBy: sortBy,
       );
-      _events = response;
+      _events = response.content;
     } catch (e) {
       _errorMessage = e.toString();
     } finally {

@@ -8,15 +8,15 @@ class EventModel {
   final String name;
   final String slug;
   final String description;
-  final String longDescription;
+  final String? longDescription;
   final String thumbnail;
   final List<String> images;
   final DateTime startDate;
   final DateTime endDate;
   final CategoryModel category;
   final CityModel city;
+  final VenueModel? venue;
   final String venueId;
-  final VenueModel venue;
   final String venueName;
   final String venueAddress;
   final String currency;
@@ -24,31 +24,31 @@ class EventModel {
   final String organizerId;
   final String organizerName;
   final String organizerLogo;
-  final String terms;
-  final String cancellationPolicy;
+  final String? terms;
+  final String? cancellationPolicy;
   final List<String> tags;
   final List<TicketTypeModel> ticketTypes;
   final double minPrice;
   final double maxPrice;
   final int availableTickets;
   final bool isFavorite;
-  final DateTime createdAt;
-  final DateTime updatedAt;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
 
   EventModel({
     required this.id,
     required this.name,
     required this.slug,
     required this.description,
-    required this.longDescription,
+    this.longDescription,
     required this.thumbnail,
     required this.images,
     required this.startDate,
     required this.endDate,
     required this.category,
     required this.city,
+    this.venue,
     required this.venueId,
-    required this.venue,
     required this.venueName,
     required this.venueAddress,
     required this.currency,
@@ -56,19 +56,21 @@ class EventModel {
     required this.organizerId,
     required this.organizerName,
     required this.organizerLogo,
-    required this.terms,
-    required this.cancellationPolicy,
+    this.terms,
+    this.cancellationPolicy,
     required this.tags,
     required this.ticketTypes,
     required this.minPrice,
     required this.maxPrice,
     required this.availableTickets,
     required this.isFavorite,
-    required this.createdAt,
-    required this.updatedAt,
+    this.createdAt,
+    this.updatedAt,
   });
 
   factory EventModel.fromJson(Map<String, dynamic> json) {
+    List<TicketTypeModel> temp = [];
+
     return EventModel(
       id: json['id'],
       name: json['name'],
@@ -93,9 +95,11 @@ class EventModel {
       terms: json['terms'],
       cancellationPolicy: json['cancellationPolicy'],
       tags: List<String>.from(json['tags']),
-      ticketTypes: (json['ticketTypes'] as List)
-          .map((e) => TicketTypeModel.fromJson(e))
-          .toList(),
+      ticketTypes: json['ticketTypes'] != null
+          ? (json['ticketTypes'] as List)
+                .map((e) => TicketTypeModel.fromJson(e))
+                .toList()
+          : temp,
       minPrice: (json['minPrice'] as num).toDouble(),
       maxPrice: (json['maxPrice'] as num).toDouble(),
       availableTickets: json['availableTickets'],

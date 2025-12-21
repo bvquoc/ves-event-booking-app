@@ -95,7 +95,7 @@ class ExploreScreenState extends State<ExploreScreen> {
                                 MaterialPageRoute(
                                   builder: (context) => FilteredEventsScreen(
                                     title: cat.name,
-                                    filterType: 'category',
+                                    categoryId: cat.id,
                                   ),
                                 ),
                               );
@@ -129,7 +129,7 @@ class ExploreScreenState extends State<ExploreScreen> {
                                 MaterialPageRoute(
                                   builder: (context) => FilteredEventsScreen(
                                     title: city.name,
-                                    filterType: 'city',
+                                    cityId: city.id,
                                   ),
                                 ),
                               );
