@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:ves_event_booking/models/notification_model.dart';
+import 'package:ves_event_booking/models/notification/notification_model.dart';
 import 'package:ves_event_booking/screens/notifications/offer_details_screen.dart';
 
 class OfferCard extends StatelessWidget {

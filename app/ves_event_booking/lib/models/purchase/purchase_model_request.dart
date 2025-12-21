@@ -3,7 +3,7 @@ class PurchaseModelRequest {
   final String ticketTypeId;
   final int quantity;
   final List<String> seatIds;
-  final String? voucherCode;
+  final String voucherCode;
   final String paymentMethod;
 
   PurchaseModelRequest({
@@ -11,7 +11,7 @@ class PurchaseModelRequest {
     required this.ticketTypeId,
     required this.quantity,
     required this.seatIds,
-    this.voucherCode,
+    required this.voucherCode,
     required this.paymentMethod,
   });
 

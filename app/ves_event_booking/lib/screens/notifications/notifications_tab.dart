@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:ves_event_booking/models/notification_model.dart';
+import 'package:ves_event_booking/models/notification/notification_model.dart';
 import 'package:ves_event_booking/widgets/notifications_screen_widgets/notification_card.dart';
 
 class NotificationTab extends StatelessWidget {

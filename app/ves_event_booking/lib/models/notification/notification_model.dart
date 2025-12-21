@@ -1,10 +1,10 @@
 class NotificationModel {
   final String id;
-  final String type; // ticket_purchased, event_reminder...
+  final String type;
   final String title;
   final String message;
   final bool isRead;
-  final Map<String, dynamic>? data; // Dữ liệu đi kèm (eventId, orderId...)
+  final Map<String, dynamic> data;
   final DateTime createdAt;
 
   NotificationModel({
@@ -13,7 +13,7 @@ class NotificationModel {
     required this.title,
     required this.message,
     required this.isRead,
-    this.data,
+    required this.data,
     required this.createdAt,
   });
 
@@ -24,8 +24,20 @@ class NotificationModel {
       title: json['title'] as String,
       message: json['message'] as String,
       isRead: json['isRead'] as bool,
-      data: json['data'] as Map<String, dynamic>?,
+      data: (json['data'] as Map<String, dynamic>? ?? {}),
       createdAt: DateTime.parse(json['createdAt']),
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'type': type,
+      'title': title,
+      'message': message,
+      'isRead': isRead,
+      'data': data,
+      'createdAt': createdAt.toIso8601String(),
+    };
   }
 }
