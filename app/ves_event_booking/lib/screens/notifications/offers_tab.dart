@@ -3,7 +3,8 @@ import 'package:ves_event_booking/models/notification/notification_model.dart';
 import 'package:ves_event_booking/widgets/notifications_screen_widgets/offer_card.dart';
 
 class OfferTab extends StatelessWidget {
-  const OfferTab({super.key});
+  final List<NotificationModel> notifications;
+  const OfferTab({super.key, required this.notifications});
 
   @override
   Widget build(BuildContext context) {

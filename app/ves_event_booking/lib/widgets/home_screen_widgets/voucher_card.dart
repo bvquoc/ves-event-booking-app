@@ -1,23 +1,17 @@
 import 'package:flutter/material.dart';
-import '../../models/voucher_model.dart';
+import 'package:ves_event_booking/models/voucher/voucher_status_model.dart';
 
 class VoucherCard extends StatelessWidget {
-  final VoucherModel voucher;
-  final VoidCallback? onUse;
+  final VoucherStatusModel voucherStatus;
   final VoidCallback? onDetail;
 
-  const VoucherCard({
-    super.key,
-    required this.voucher,
-    this.onUse,
-    this.onDetail,
-  });
+  const VoucherCard({super.key, required this.voucherStatus, this.onDetail});
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       width: 300,
-      height: 100, 
+      height: 100,
       child: DecoratedBox(
         decoration: BoxDecoration(
           border: Border.all(color: Colors.blue, width: 1.5),
@@ -28,11 +22,14 @@ class VoucherCard extends StatelessWidget {
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(14, 12, 10, 12),
-                child: _VoucherContent(voucher: voucher, onDetail: onDetail),
+                child: _VoucherContent(
+                  voucherStatus: voucherStatus,
+                  onDetail: onDetail,
+                ),
               ),
             ),
 
-            _VoucherAction(isUsed: voucher.isUsed ?? false, onUse: onUse),
+            _VoucherAction(onDetail: onDetail),
           ],
         ),
       ),
@@ -41,10 +38,10 @@ class VoucherCard extends StatelessWidget {
 }
 
 class _VoucherContent extends StatelessWidget {
-  final VoucherModel voucher;
+  final VoucherStatusModel voucherStatus;
   final VoidCallback? onDetail;
 
-  const _VoucherContent({required this.voucher, this.onDetail});
+  const _VoucherContent({required this.voucherStatus, this.onDetail});
 
   @override
   Widget build(BuildContext context) {
@@ -54,7 +51,7 @@ class _VoucherContent extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
-          voucher.title,
+          voucherStatus.voucher.title,
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
           style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14),
@@ -64,21 +61,8 @@ class _VoucherContent extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'HSD : ${_formatDate(voucher.endDate)}',
+              'HSD : ${_formatDate(voucherStatus.voucher.endDate)}',
               style: const TextStyle(fontSize: 12, fontStyle: FontStyle.italic),
-            ),
-
-            GestureDetector(
-              onTap: onDetail,
-              child: const Text(
-                'Chi tiết',
-                style: TextStyle(
-                  color: Colors.blue,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 12,
-                  fontStyle: FontStyle.italic
-                ),
-              ),
             ),
           ],
         ),
@@ -94,10 +78,9 @@ class _VoucherContent extends StatelessWidget {
 }
 
 class _VoucherAction extends StatelessWidget {
-  final bool isUsed;
-  final VoidCallback? onUse;
+  final VoidCallback? onDetail;
 
-  const _VoucherAction({required this.isUsed, this.onUse});
+  const _VoucherAction({this.onDetail});
 
   @override
   Widget build(BuildContext context) {
@@ -108,13 +91,13 @@ class _VoucherAction extends StatelessWidget {
         color: Colors.blue,
         borderRadius: const BorderRadius.horizontal(right: Radius.circular(14)),
         child: InkWell(
-          onTap: isUsed ? null : onUse,
+          onTap: onDetail,
           borderRadius: const BorderRadius.horizontal(
             right: Radius.circular(14),
           ),
           child: const Center(
             child: Text(
-              'ĐỔI',
+              'Chi tiết',
               style: TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,

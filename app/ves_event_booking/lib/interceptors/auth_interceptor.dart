@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthInterceptor extends Interceptor {
   static const _publicEndpoints = ['/auth/token', '/auth/register'];
+  static const _logoutEndpoint = '/auth/logout';
 
   bool _isPublicEndpoint(String path) {
     return _publicEndpoints.any((e) => path.contains(e));
@@ -25,6 +26,17 @@ class AuthInterceptor extends Interceptor {
     }
 
     handler.next(options);
+  }
+
+  @override
+  void onResponse(Response response, ResponseInterceptorHandler handler) async {
+    // ✅ Handle logout success
+    if (response.requestOptions.path.contains(_logoutEndpoint)) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('accessToken');
+    }
+
+    handler.next(response);
   }
 
   @override

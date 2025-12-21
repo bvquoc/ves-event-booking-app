@@ -2,11 +2,12 @@ import 'package:dio/dio.dart';
 import 'package:ves_event_booking/models/notification/notification_model.dart';
 import 'package:ves_event_booking/models/utils/api_response.dart';
 import 'package:ves_event_booking/models/utils/pagination_request.dart';
+import 'package:ves_event_booking/models/utils/pagination_response.dart';
 
 class NotificationService {
   final Dio _dio = Dio();
 
-  Future<NotificationModel> getNotifications({
+  Future<PageResult<NotificationModel>> getNotifications({
     required PaginationRequest pageable,
     bool unreadOnly = false,
   }) async {
@@ -21,7 +22,8 @@ class NotificationService {
 
       final apiResponse = ApiResponse.fromJson(
         response.data,
-        (json) => NotificationModel.fromJson(json),
+        (json) =>
+            PageResult.fromJson(json, (e) => NotificationModel.fromJson(e)),
       );
 
       return apiResponse.result;
