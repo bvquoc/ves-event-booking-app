@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:ves_event_booking/config/dio_client.dart';
 import 'package:ves_event_booking/models/auth_model.dart';
+import 'package:ves_event_booking/models/logout_request.dart';
 
 class AuthService {
   final Dio _dio = DioClient.dio;
@@ -61,6 +62,15 @@ class AuthService {
       throw e.error.toString();
     } catch (e) {
       throw 'Đã xảy ra lỗi kết nối';
+    }
+  }
+
+  /// POST /auth/logout
+  Future<void> logout(LogoutRequest request) async {
+    try {
+      await _dio.post('/auth/logout', data: request.toJson());
+    } on DioException catch (e) {
+      throw Exception(e.response?.data?['message'] ?? 'Failed to logout');
     }
   }
 }

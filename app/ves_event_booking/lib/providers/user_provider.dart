@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:ves_event_booking/models/logout_request.dart';
 import 'package:ves_event_booking/models/user/user_model.dart';
 import 'package:ves_event_booking/models/user/user_model_update_request.dart';
+import 'package:ves_event_booking/services/auth_service.dart';
 import 'package:ves_event_booking/services/user_service.dart';
 
 class UserProvider extends ChangeNotifier {
+  final AuthService _authService = AuthService();
   final UserService _userService = UserService();
 
   bool _isLoading = false;
@@ -46,6 +50,29 @@ class UserProvider extends ChangeNotifier {
       _errorMessage = "Error at here";
     } finally {
       _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> logout() async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('accessToken');
+
+      if (token == null) {
+        throw Exception('No access token found');
+      }
+
+      await _authService.logout(LogoutRequest(token: token));
+      _user = null;
+    } catch (e) {
+      _errorMessage = e.toString();
+      _isLoading = true;
+    } finally {
       notifyListeners();
     }
   }

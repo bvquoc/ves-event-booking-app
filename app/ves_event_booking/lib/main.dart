@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ves_event_booking/providers/event_provider.dart';
+import 'package:ves_event_booking/providers/home_provider.dart';
+import 'package:ves_event_booking/providers/notification_provider.dart';
 import 'package:ves_event_booking/providers/ticket_provider.dart';
 import 'package:ves_event_booking/providers/user_provider.dart';
 import 'screens/login_screen.dart';
@@ -17,6 +19,8 @@ void main() {
         ChangeNotifierProvider(create: (_) => TicketProvider()),
         ChangeNotifierProvider(create: (_) => EventProvider()),
         ChangeNotifierProvider(create: (_) => UserProvider()),
+        ChangeNotifierProvider(create: (_) => NotificationProvider()),
+        ChangeNotifierProvider(create: (_) => HomeProvider()),
       ],
       child: const MainApp(),
     ),
