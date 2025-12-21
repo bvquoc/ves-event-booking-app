@@ -7,6 +7,7 @@ import 'package:ves_event_booking/screens/notifications/notifications_screen.dar
 import 'package:ves_event_booking/screens/profile/profile_creen.dart';
 import 'package:ves_event_booking/screens/tickets/tickets_screen.dart';
 import 'package:ves_event_booking/widgets/profile_widgets.dart';
+import 'package:ves_event_booking/config/app_image_config.dart';
 
 class ExploreScreen extends StatefulWidget {
   const ExploreScreen({super.key});
@@ -244,9 +245,14 @@ class ExploreScreenState extends State<ExploreScreen> {
   Widget _buildExploreCard(
     BuildContext context, {
     required String title,
-    required String imageUrl,
+    String? imageUrl,
     required VoidCallback onTap,
   }) {
+    //String finalImage = (imageUrl != null && imageUrl.isNotEmpty)
+    //    ? imageUrl
+    //   : AppImages.getFallbackByTitle(title);
+    String finalImage = AppImages.getFallbackByTitle(title);
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -254,10 +260,6 @@ class ExploreScreenState extends State<ExploreScreen> {
         margin: const EdgeInsets.only(right: 16),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
-          image: DecorationImage(
-            image: NetworkImage(imageUrl),
-            fit: BoxFit.cover,
-          ),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.1),
@@ -265,24 +267,27 @@ class ExploreScreenState extends State<ExploreScreen> {
               offset: const Offset(0, 4),
             ),
           ],
+          image: DecorationImage(
+            image: NetworkImage(finalImage),
+            fit: BoxFit.cover,
+          ),
         ),
         child: Stack(
           children: [
-            // Lớp phủ Gradient đen mờ
             Positioned.fill(
               child: Container(
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(16),
                   gradient: LinearGradient(
-                    colors: [Colors.transparent, Colors.black.withOpacity(0.7)],
+                    colors: [Colors.transparent, Colors.black.withOpacity(0.8)],
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
-                    stops: const [0.6, 1.0],
+                    stops: const [0.5, 1.0],
                   ),
                 ),
               ),
             ),
-            // Text Tiêu đề
+            // Title
             Positioned(
               bottom: 12,
               left: 12,
@@ -293,7 +298,7 @@ class ExploreScreenState extends State<ExploreScreen> {
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
-                  letterSpacing: 1.0, // Giãn chữ
+                  letterSpacing: 1.0,
                 ),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,

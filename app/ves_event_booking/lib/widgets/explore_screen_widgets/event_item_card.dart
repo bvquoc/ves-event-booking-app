@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:ves_event_booking/models/event/event_model.dart';
-// import 'package:ves_event_booking/screens/notifications/event_details_screen.dart';
+import 'package:ves_event_booking/screens/event_detail/event_detail_screen.dart';
 
 class EventItemCard extends StatelessWidget {
   final EventModel event;
@@ -17,8 +17,12 @@ class EventItemCard extends StatelessWidget {
 
     return GestureDetector(
       onTap: () {
-        // Xử lý khi bấm vào card (mở trang mua vé)
-        // Navigator.push(context, MaterialPageRoute(builder: (_) => EventDetailScreen(event: event)));
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => EventDetailScreen(eventId: event.id),
+          ),
+        );
       },
       child: Container(
         decoration: BoxDecoration(

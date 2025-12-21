@@ -29,7 +29,7 @@ class _EventCardItemState extends State<TicketCardItem> {
         // Navigator.push(
         //   context,
         //   MaterialPageRoute(
-        //     builder: (context) => TicketDetailScreen(event: widget.event),
+        //     builder: (context) => TicketQRScreen(event: widget.event),
         //   ),
         // );
       },
