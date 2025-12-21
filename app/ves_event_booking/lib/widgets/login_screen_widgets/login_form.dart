@@ -109,6 +109,12 @@ class _LoginFormState extends State<LoginForm> {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),
           child: ElevatedButton(
+            // onPressed: () {
+            //   Navigator.pushReplacement(
+            //     context,
+            //     MaterialPageRoute(builder: (context) => const HomeScreen()),
+            //   );
+            // },
             onPressed: (_isButtonEnabled && !authProvider.isLoading)
                 ? () async {
                     bool success = await authProvider.login(_email, _password);
