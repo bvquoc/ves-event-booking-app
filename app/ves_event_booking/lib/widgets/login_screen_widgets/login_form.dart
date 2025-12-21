@@ -109,34 +109,34 @@ class _LoginFormState extends State<LoginForm> {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),
           child: ElevatedButton(
-            onPressed: () {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => const HomeScreen()),
-              );
-            },
-            // onPressed: (_isButtonEnabled && !authProvider.isLoading)
-            //     ? () async {
-            //         bool success = await authProvider.login(_email, _password);
+            // onPressed: () {
+            //   Navigator.pushReplacement(
+            //     context,
+            //     MaterialPageRoute(builder: (context) => const HomeScreen()),
+            //   );
+            // },
+            onPressed: (_isButtonEnabled && !authProvider.isLoading)
+                ? () async {
+                    bool success = await authProvider.login(_email, _password);
 
-            //         if (success) {
-            //           Navigator.pushReplacement(
-            //             context,
-            //             MaterialPageRoute(
-            //               builder: (context) => const HomeScreen(),
-            //             ),
-            //           );
-            //         } else {
-            //           ScaffoldMessenger.of(context).showSnackBar(
-            //             SnackBar(
-            //               content: Text(
-            //                 authProvider.errorMessage ?? 'Lỗi đăng nhập',
-            //               ),
-            //             ),
-            //           );
-            //         }
-            //       }
-            //     : null,
+                    if (success) {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const HomeScreen(),
+                        ),
+                      );
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            authProvider.errorMessage ?? 'Lỗi đăng nhập',
+                          ),
+                        ),
+                      );
+                    }
+                  }
+                : null,
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.blueAccent,
               padding: const EdgeInsets.symmetric(vertical: 10),
