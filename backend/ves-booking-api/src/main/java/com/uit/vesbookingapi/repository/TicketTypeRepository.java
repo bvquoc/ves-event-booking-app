@@ -20,5 +20,8 @@ public interface TicketTypeRepository extends JpaRepository<TicketType, String> 
 
     @Query("SELECT SUM(tt.available) FROM TicketType tt WHERE tt.event.id = :eventId")
     Integer sumAvailableTicketsByEventId(@Param("eventId") String eventId);
+
+    @Query("SELECT tt FROM TicketType tt WHERE tt.event.id IN :eventIds")
+    List<TicketType> findByEventIdIn(@Param("eventIds") List<String> eventIds);
 }
 

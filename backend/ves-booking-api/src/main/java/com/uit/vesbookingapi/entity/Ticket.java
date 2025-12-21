@@ -15,6 +15,11 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Entity
+@Table(indexes = {
+        @Index(name = "idx_ticket_user", columnList = "user_id"),
+        @Index(name = "idx_ticket_status", columnList = "status"),
+        @Index(name = "idx_ticket_purchase_date", columnList = "purchaseDate")
+})
 public class Ticket {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

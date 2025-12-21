@@ -13,6 +13,7 @@ import com.uit.vesbookingapi.exception.ErrorCode;
 import com.uit.vesbookingapi.mapper.TicketMapper;
 import com.uit.vesbookingapi.repository.TicketRepository;
 import com.uit.vesbookingapi.repository.TicketTypeRepository;
+import com.uit.vesbookingapi.repository.UserRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -33,6 +34,7 @@ public class TicketService {
     TicketTypeRepository ticketTypeRepository;
     TicketMapper ticketMapper;
     CancellationService cancellationService;
+    UserRepository userRepository;
 
     /**
      * Get user tickets with optional status filter
@@ -139,6 +141,10 @@ public class TicketService {
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new AppException(ErrorCode.UNAUTHENTICATED);
         }
-        return authentication.getName();
+        // authentication.getName() returns username, not user ID
+        String username = authentication.getName();
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED))
+                .getId();
     }
 }

@@ -27,6 +27,7 @@ public enum ErrorCode {
     INVALID_TICKET_QUANTITY(3003, "Invalid ticket quantity", HttpStatus.BAD_REQUEST),
     TICKET_NOT_FOUND(3004, "Ticket not found", HttpStatus.NOT_FOUND),
     TICKET_NOT_CANCELLABLE(3005, "Ticket cannot be cancelled", HttpStatus.BAD_REQUEST),
+    TICKET_TYPE_HAS_SOLD_TICKETS(3006, "Cannot delete ticket type with sold tickets", HttpStatus.BAD_REQUEST),
 
     // Seat errors (4xxx)
     SEAT_NOT_FOUND(4001, "Seat not found", HttpStatus.NOT_FOUND),
