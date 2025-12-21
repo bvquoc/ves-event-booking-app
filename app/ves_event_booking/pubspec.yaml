@@ -17,7 +17,7 @@ dependencies:
   intl: ^0.20.2
   crypto: ^3.0.3
   shared_preferences: ^2.2.3
-  
+
   dotted_border: ^3.1.0
 
 dev_dependencies:
@@ -35,3 +35,4 @@ flutter:
     - assets/images/image 91.png
     - assets/images/event_image.jpeg
     - assets/images/logo.png
+    - assets/images/exhibition_bg.png

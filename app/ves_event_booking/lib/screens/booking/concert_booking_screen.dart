@@ -1,103 +1,241 @@
 import 'package:flutter/material.dart';
 import 'package:ves_event_booking/models/booking_request.dart';
-import 'package:ves_event_booking/models/event_model.dart';
-import 'package:ves_event_booking/widgets/tickets_screen_widgets/ticket_item/selected_zone_item.dart';
+import 'package:ves_event_booking/models/event/event_model.dart';
+import 'package:ves_event_booking/widgets/event/event_info_card.dart';
+import 'payment_screen.dart';
 
 class ConcertBookingScreen extends StatefulWidget {
   final EventModel event;
 
-  const ConcertBookingScreen({super.key, required this.event});
+  const ConcertBookingScreen({
+    super.key,
+    required this.event,
+  });
 
   @override
-  State<ConcertBookingScreen> createState() =>
-      _ConcertBookingScreenState();
+  State<ConcertBookingScreen> createState() => _ConcertBookingScreenState();
 }
 
 class _ConcertBookingScreenState extends State<ConcertBookingScreen> {
-  late BookingRequest booking;
+  late final List<_ZoneTicket> zones;
+  final Map<String, _ZoneTicket> selectedZones = {};
 
   @override
   void initState() {
     super.initState();
-    booking = BookingRequest(eventId: widget.event.id);
+
+    zones = widget.event.ticketTypes.map((t) {
+      return _ZoneTicket(
+        id: t.id,
+        name: t.name,
+        price: t.price.toInt(),
+      );
+    }).toList();
+  }
+
+  int get totalPrice {
+    return selectedZones.values.fold(
+      0,
+      (sum, z) => sum + z.price * z.quantity,
+    );
+  }
+
+  void _onContinue() {
+    final booking = BookingRequest(
+      eventId: widget.event.id,
+      items: {
+        for (final z in selectedZones.values) z.id: z.quantity,
+      },
+    );
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PaymentScreen(
+          event: widget.event,
+          booking: booking,
+          totalPrice: totalPrice.toDouble(),
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Chọn khu vực vé')),
+      backgroundColor: Colors.white,
+      appBar: AppBar(title: const Text('Chọn vé concert'), backgroundColor: Colors.white,),
+      bottomNavigationBar: _BottomBar(
+        totalPrice: totalPrice,
+        onContinue: _onContinue,
+      ),
       body: Column(
         children: [
-          _buildVenueMap(),
-          Expanded(child: _buildSelectedZones()),
-          _buildContinueButton(),
+
+          EventInfoCard(event: widget.event),
+          
+          /// ZONE LIST (MAP)
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              children: zones.map(_buildZoneItem).toList(),
+            ),
+          ),
+
+          const Divider(),
+
+          /// SELECTED ZONES
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.all(16),
+              children:
+                  selectedZones.values.map(_selectedZoneItem).toList(),
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildVenueMap() {
-    return Container(
-      height: 250,
-      color: Colors.black87,
-      alignment: Alignment.center,
-      child: const Text(
-        'Venue Map (tap zone)',
-        style: TextStyle(color: Colors.white),
-      ),
-    );
-  }
+  Widget _buildZoneItem(_ZoneTicket zone) {
+    final isSelected = selectedZones.containsKey(zone.id);
 
-  Widget _buildSelectedZones() {
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: widget.event.ticketTypes!.map((zone) {
-        final quantity = booking.items[zone.id] ?? 0;
-
-        if (quantity == 0) return const SizedBox();
-
-        return SelectedZoneItem(
-          name: zone.name,
-          price: zone.price,
-          quantity: quantity,
-          onAdd: () {
-            setState(() {
-              booking.items[zone.id] = quantity + 1;
-            });
-          },
-          onRemove: () {
-            setState(() {
-              if (quantity <= 1) {
-                booking.items.remove(zone.id);
-              } else {
-                booking.items[zone.id] = quantity - 1;
-              }
-            });
-          },
-          onDelete: () {
-            setState(() {
-              booking.items.remove(zone.id);
-            });
-          },
-        );
-      }).toList(),
-    );
-  }
-
-  Widget _buildContinueButton() {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: SizedBox(
-        width: double.infinity,
-        child: ElevatedButton(
-          onPressed: booking.totalQuantity > 0
-              ? () {
-                  // sang payment
-                }
-              : null,
-          child: const Text('Tiếp tục'),
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          if (isSelected) {
+            selectedZones.remove(zone.id);
+          } else {
+            selectedZones[zone.id] = _ZoneTicket(
+              id: zone.id,
+              name: zone.name,
+              price: zone.price,
+            );
+          }
+        });
+      },
+      child: Container(
+        width: 140,
+        height: 64,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.green : Colors.grey.shade400,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Text(
+          zone.name,
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ),
     );
   }
+
+  Widget _selectedZoneItem(_ZoneTicket zone) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.blueGrey),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 14,
+            child: Text(zone.quantity.toString()),
+          ),
+          const SizedBox(width: 12),
+
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  zone.name,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text('${zone.price} VND'),
+              ],
+            ),
+          ),
+
+          IconButton(
+            icon: const Icon(Icons.remove),
+            onPressed: zone.quantity > 1
+                ? () => setState(() => zone.quantity--)
+                : null,
+          ),
+          Text(zone.quantity.toString()),
+          IconButton(
+            icon: const Icon(Icons.add),
+            onPressed: () => setState(() => zone.quantity++),
+          ),
+          IconButton(
+            icon: const Icon(Icons.close, color: Colors.red),
+            onPressed: () =>
+                setState(() => selectedZones.remove(zone.id)),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _BottomBar extends StatelessWidget {
+  final int totalPrice;
+  final VoidCallback onContinue;
+
+  const _BottomBar({
+    required this.totalPrice,
+    required this.onContinue,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: const BoxDecoration(color: Colors.white),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              'Tổng tiền\n$totalPrice VND',
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: totalPrice == 0 ? null : onContinue,
+            child: const Text('Tiếp tục'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ZoneTicket {
+  final String id; // ticketTypeId
+  final String name;
+  final int price;
+  int quantity;
+
+  _ZoneTicket({
+    required this.id,
+    required this.name,
+    required this.price,
+    this.quantity = 1,
+  });
 }

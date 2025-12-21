@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:ves_event_booking/models/event/event_model.dart';
 import 'package:ves_event_booking/screens/booking/concert_booking_screen.dart';
 import 'package:ves_event_booking/screens/booking/exhibition_booking_screen.dart';
-import '../../models/event_model.dart';
 
 class EventBottomBar extends StatelessWidget {
   final EventModel event;
@@ -10,9 +10,10 @@ class EventBottomBar extends StatelessWidget {
   const EventBottomBar({super.key, required this.event});
 
   void onBookingPressed(BuildContext context) {
-    print(event.category);
-    switch (event.category) {
-      case 'exhibition':
+    print(event.category.name);
+    final String i = '0';
+    switch (i) {
+      case '0': //Triển lãm
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -21,7 +22,7 @@ class EventBottomBar extends StatelessWidget {
         );
         break;
 
-      case 'concert':
+      case '1': //Concert
         Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => ConcertBookingScreen(event: event)),

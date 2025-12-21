@@ -28,10 +28,10 @@ class TicketCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.blue),
-      ),
+      // decoration: BoxDecoration(
+      //   borderRadius: BorderRadius.circular(16),
+      //   border: Border.all(color: Colors.blue),
+      // ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../models/event_model.dart';
+import 'package:ves_event_booking/models/event/event_model.dart';
 
 class EventAppBar extends StatelessWidget {
   final EventModel event;

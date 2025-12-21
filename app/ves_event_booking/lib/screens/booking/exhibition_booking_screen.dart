@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:ves_event_booking/models/payment_model.dart';
-import 'package:ves_event_booking/models/ticket_model.dart';
-import 'package:ves_event_booking/models/ticket_type_model.dart';
+import 'package:ves_event_booking/models/event/event_model.dart';
+import 'package:ves_event_booking/models/ticket/ticket_model.dart';
+import 'package:ves_event_booking/models/ticket/ticket_type_model.dart';
 import 'package:ves_event_booking/screens/booking/payment_screen.dart'
     hide PaymentMethod;
 import 'package:ves_event_booking/widgets/tickets_screen_widgets/ticket_item/ticket_card.dart';
-import '../../models/event_model.dart';
 import '../../models/booking_request.dart';
 import '../../widgets/event/event_info_card.dart';
 
@@ -264,7 +263,12 @@ class _ExhibitionBookingScreenState extends State<ExhibitionBookingScreen> {
     final tickets = widget.event.ticketTypes;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Chọn loại vé'), centerTitle: true),
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        title: const Text('Chọn loại vé'),
+        backgroundColor: Colors.white,
+        centerTitle: true,
+      ),
       body: Column(
         children: [
           // Thông tin sự kiện
@@ -279,28 +283,60 @@ class _ExhibitionBookingScreenState extends State<ExhibitionBookingScreen> {
                 final ticket = tickets[index];
                 final quantity = booking.items[ticket.id] ?? 0;
 
-                return TicketCard(
-                  title: ticket.name,
-                  description: ticket.description,
-                  price: ticket.price,
-                  quantity: quantity,
-                  onAdd: () {
-                    setState(() {
-                      booking.items[ticket.id] = quantity + 1;
-                    });
-                  },
-                  onRemove: () {
-                    setState(() {
-                      if (quantity <= 1) {
-                        booking.items.remove(ticket.id);
-                      } else {
-                        booking.items[ticket.id] = quantity - 1;
-                      }
-                    });
-                  },
-                  onViewDetail: () {
-                    _showTicketDetail(context, ticket);
-                  },
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.blue),
+                  ),
+                  child: ClipRRect(
+                    child: Stack(
+                      children: [
+                        /// BACKGROUND IMAGE
+                        Positioned.fill(
+                          child: Image.asset(
+                            'assets/images/exhibition_bg.png',
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+
+                        /// OVERLAY (để chữ dễ đọc)
+                        Positioned.fill(
+                          child: Container(
+                            color: Colors.white.withOpacity(0.55),
+                          ),
+                        ),
+
+                        /// CONTENT
+                        Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: TicketCard(
+                            title: ticket.name,
+                            description: ticket.description,
+                            price: ticket.price,
+                            quantity: quantity,
+                            onAdd: () {
+                              setState(() {
+                                booking.items[ticket.id] = quantity + 1;
+                              });
+                            },
+                            onRemove: () {
+                              setState(() {
+                                if (quantity <= 1) {
+                                  booking.items.remove(ticket.id);
+                                } else {
+                                  booking.items[ticket.id] = quantity - 1;
+                                }
+                              });
+                            },
+                            onViewDetail: () {
+                              _showTicketDetail(context, ticket);
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 );
               },
             ),

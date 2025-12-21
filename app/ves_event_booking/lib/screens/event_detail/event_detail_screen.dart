@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:ves_event_booking/models/event_model.dart';
-import 'package:ves_event_booking/models/ticket_type_model.dart';
+import 'package:ves_event_booking/data/home_mock.dart';
+import 'package:ves_event_booking/models/event/event_model.dart';
 import 'package:ves_event_booking/widgets/event_detail/event_bottom_bar.dart';
 import '../../widgets/event_detail/event_appbar.dart';
 
@@ -89,7 +89,6 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
         venueId: _event!.venueId,
         venueName: _event!.venueName,
         venueAddress: _event!.venueAddress,
-        venueCapacity: _event!.venueCapacity,
         minPrice: _event!.minPrice,
         maxPrice: _event!.maxPrice,
         currency: _event!.currency,
@@ -97,15 +96,18 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
         ticketTypes: _event!.ticketTypes,
         isTrending: _event!.isTrending,
         isFavorite: !_event!.isFavorite, // Toggle
-        organizer: _event!.organizer,
         terms: _event!.terms,
         cancellationPolicy: _event!.cancellationPolicy,
         tags: _event!.tags,
+        venue: _event!.venue,
+        organizerId: _event!.organizerId,
+        organizerName: _event!.organizerName,
+        organizerLogo: _event!.organizerLogo,
+        createdAt: _event!.createdAt,
+        updatedAt: _event!.updatedAt,
       );
     });
   }
-
-  
 
   String formatCurrency(int amount) {
     final formatter = NumberFormat('#,###', 'vi_VN');
@@ -127,10 +129,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
     return Scaffold(
       body: CustomScrollView(
         slivers: [
-          EventAppBar(
-            event: _event!,
-            onFavoritePressed: _toggleFavorite,
-          ),
+          EventAppBar(event: _event!, onFavoritePressed: _toggleFavorite),
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.all(20),
@@ -146,7 +145,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                     ),
 
                     width: double.infinity,
-                    padding: EdgeInsets.all(8),
+                    padding: EdgeInsets.all(12),
                     child: Text(
                       'Giới thiệu',
                       style: TextStyle(
@@ -158,7 +157,12 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                   ),
                   Container(
                     padding: EdgeInsets.symmetric(horizontal: 20),
-                    decoration: BoxDecoration(color: Colors.grey.shade200, borderRadius: BorderRadius.vertical(bottom: Radius.circular(20))),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade200,
+                      borderRadius: BorderRadius.vertical(
+                        bottom: Radius.circular(20),
+                      ),
+                    ),
                     child: Column(
                       children: [
                         Text(
@@ -170,10 +174,10 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                           ),
                           textAlign: TextAlign.center,
                         ),
-                    
+
                         Container(height: 1, color: Colors.grey.shade500),
                         const SizedBox(height: 12),
-                    
+
                         Text(
                           'THÔNG TIN CHUNG',
                           style: TextStyle(
@@ -184,15 +188,15 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                           textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 12),
-                    
+
                         Text(
                           'Thời gian dự kiến: ${_formatDateTime()} \nĐịa điểm: ${_formatLocation()}',
                         ),
                         const SizedBox(height: 12),
-                    
+
                         Container(height: 1, color: Colors.grey.shade500),
                         const SizedBox(height: 12),
-                    
+
                         Text(
                           'TÓM TẮT QUY ĐỊNH VÀ ĐIỀU KHOẢN',
                           style: TextStyle(
@@ -205,9 +209,9 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                         const SizedBox(height: 12),
                         Text(_getMockEvent().description),
                         const SizedBox(height: 12),
-                    
+
                         Text(_getMockEvent().longDescription!),
-                    
+
                         const SizedBox(height: 20),
                       ],
                     ),
@@ -215,9 +219,15 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                   const SizedBox(height: 20),
 
                   Container(
-                    decoration: BoxDecoration(color: Colors.blue.shade700),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.shade700,
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(20),
+                        topRight: Radius.circular(20),
+                      ),
+                    ),
                     width: double.infinity,
-                    padding: EdgeInsets.all(8),
+                    padding: EdgeInsets.all(12),
                     child: Text(
                       'Thông tin vé',
                       style: TextStyle(
@@ -228,12 +238,18 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                     ),
                   ),
                   Container(
-                    decoration: BoxDecoration(gradient: LinearGradient(colors: [Colors.blue.shade100, Colors.blue.shade900])),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [Colors.blue.shade100, Colors.blue.shade900],
+                      ),
+                      borderRadius: BorderRadius.vertical(
+                        bottom: Radius.circular(20),
+                      ),
+                    ),
                     child: ListView.separated(
-                      
                       padding: EdgeInsets.all(12),
                       shrinkWrap: true,
-                    
+
                       physics: const NeverScrollableScrollPhysics(),
                       itemCount: _getMockEvent().ticketTypes!.length,
                       separatorBuilder: (context, index) =>
@@ -242,13 +258,14 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                         final ticket = _getMockEvent().ticketTypes![index];
                         return Container(
                           decoration: BoxDecoration(
-                            color: const Color.fromARGB(255, 13, 32, 74).withOpacity(
-                              0.8,
-                            ), 
-                            borderRadius: BorderRadius.circular(12), 
-                            border: Border.all(
-                              color: Colors.white10,
-                            ), 
+                            color: const Color.fromARGB(
+                              255,
+                              13,
+                              32,
+                              74,
+                            ).withOpacity(0.8),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.white10),
                             boxShadow: [
                               BoxShadow(
                                 color: Colors.black.withOpacity(0.3),
@@ -258,27 +275,23 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                             ],
                           ),
                           child: ListTile(
-                    
                             leading: const Icon(
-                              Icons.confirmation_number_outlined, 
+                              Icons.confirmation_number_outlined,
                               color: Colors.white,
                               size: 30,
                             ),
-                    
+
                             title: Text(
-                              ticket.name
-                                  .toUpperCase(),
+                              ticket.name.toUpperCase(),
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.w600,
                                 fontSize: 16,
                               ),
                             ),
-                    
+
                             trailing: Text(
-                              formatCurrency(
-                                ticket.price.toInt(),
-                              ),
+                              formatCurrency(ticket.price.toInt()),
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold,
@@ -290,16 +303,13 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                       },
                     ),
                   ),
-
                 ],
               ),
             ),
           ),
         ],
       ),
-      bottomNavigationBar: EventBottomBar(
-        event: _getMockEvent(),
-      ),
+      bottomNavigationBar: EventBottomBar(event: _getMockEvent()),
     );
   }
 
@@ -328,55 +338,38 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
   // Mock data - TODO: Remove when integrating with API
   EventModel _getMockEvent() {
     return EventModel(
-      id: '1',
-      name: 'VAN GOGH MONET ART LIGHTING',
-      slug: 'van-gogh-monet-art',
-      description: 'Triển lãm ánh sáng nghệ thuật độc đáo',
+      id: 'evt_1',
+      name: 'School Fest 2024',
+      slug: 'school-fest-2024',
+      description: 'Lễ hội âm nhạc dành cho học sinh – sinh viên',
       longDescription:
-          '''Chào mừng đến với triển lãm nghệ thuật ánh sáng Van Gogh & Monet! 
-
-Đắm chìm trong thế giới màu sắc rực rỡ của hai bậc thầy hội họa. Công nghệ chiếu sáng hiện đại kết hợp với những tác phẩm kinh điển tạo nên trải nghiệm độc đáo và khó quên.
-
-Triển lãm mang đến không gian nghệ thuật 360 độ, nơi bạn có thể cảm nhận từng nét vẽ, từng sắc màu như đang bước vào trong tranh.''',
-      category: 'exhibition',
-      thumbnail: 'https://images.unsplash.com/photo-1549880338-65ddcdfd017b',
-      startDate: DateTime(2025, 1, 20, 18, 0),
-      endDate: DateTime(2025, 1, 20, 23, 0),
-      city: 'TP. Hồ Chí Minh',
-      venueName: 'Trung tâm Triển lãm Saigon',
-      venueAddress: 'Quận 1',
-      venueCapacity: 500,
-      minPrice: 250000,
-      maxPrice: 900000,
+          'School Fest 2024 là lễ hội âm nhạc sôi động với sự góp mặt của nhiều nghệ sĩ trẻ nổi tiếng.',
+      thumbnail: 'assets/images/image_106.png',
+      images: ['assets/images/image_106.png', 'assets/images/image_107.png'],
+      startDate: DateTime(2024, 11, 16, 18, 0),
+      endDate: DateTime(2024, 11, 16, 22, 0),
+      category: concertCategory,
+      city: hoChiMinhCity,
+      venueId: nhaThiDauVenue.id,
+      venue: nhaThiDauVenue,
+      venueName: nhaThiDauVenue.name,
+      venueAddress: nhaThiDauVenue.address,
       currency: 'VND',
-      availableTickets: 150,
       isTrending: true,
+      organizerId: 'org_1',
+      organizerName: 'VES Entertainment',
+      organizerLogo: 'assets/images/logo.png',
+      terms: 'Không hoàn tiền sau khi mua vé.',
+      cancellationPolicy: 'Hủy trước 48 giờ để được hoàn tiền 50%.',
+      tags: ['music', 'festival', 'student'],
+      ticketTypes: [vipTicket, standardTicket],
+      minPrice: 250000,
+      maxPrice: 500000,
+      availableTickets: 400,
       isFavorite: false,
-      tags: ['Nghệ thuật', 'Triển lãm', 'Ánh sáng', 'Van Gogh'],
-      ticketTypes: [
-        TicketTypeModel(
-          id: '1',
-          name: 'STARRY NIGHT',
-          description: 'Vé tiêu chuẩn - Trải nghiệm đầy đủ',
-          price: 990000,
-          currency: 'VND',
-          available: 50,
-          maxPerOrder: 10,
-          benefits: ['Tham quan không giới hạn', 'Ảnh chụp tự do'],
-          requiresSeatSelection: false,
-        ),
-        TicketTypeModel(
-          id: '2',
-          name: 'SUNFLOWER',
-          description: 'Vé phổ thông',
-          price: 580000,
-          currency: 'VND',
-          available: 100,
-          maxPerOrder: 10,
-          benefits: ['Tham quan 2 giờ'],
-          requiresSeatSelection: false,
-        ),
-      ],
+      createdAt: DateTime.now().subtract(const Duration(days: 10)),
+      updatedAt: DateTime.now(),
     );
+    ;
   }
 }
