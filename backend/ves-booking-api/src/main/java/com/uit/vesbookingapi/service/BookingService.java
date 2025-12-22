@@ -80,8 +80,8 @@ public class BookingService {
                 throw new AppException(ErrorCode.INVALID_TICKET_QUANTITY);
             }
 
-            // Check seats are available (not already sold/reserved)
-            List<String> occupiedSeats = ticketRepository.findOccupiedSeatIds(
+            // Check seats are available with pessimistic locking to prevent double booking
+            List<String> occupiedSeats = ticketRepository.findOccupiedSeatIdsWithLock(
                     request.getEventId(),
                     request.getSeatIds()
             );

@@ -304,6 +304,13 @@ public class EventService {
         if (!eventRepository.existsById(eventId)) {
             throw new AppException(ErrorCode.EVENT_NOT_FOUND);
         }
+
+        // Validate no tickets sold before deletion
+        Long soldCount = eventRepository.countSoldTickets(eventId);
+        if (soldCount > 0) {
+            throw new AppException(ErrorCode.EVENT_HAS_SOLD_TICKETS);
+        }
+
         eventRepository.deleteById(eventId);
     }
 

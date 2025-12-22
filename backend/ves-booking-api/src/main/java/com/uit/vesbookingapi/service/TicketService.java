@@ -105,10 +105,8 @@ public class TicketService {
             ticket.setCancellationReason(request.getReason());
         }
 
-        // 5. Increment ticketType.available
-        TicketType ticketType = ticket.getTicketType();
-        ticketType.setAvailable(ticketType.getAvailable() + 1);
-        ticketTypeRepository.save(ticketType);
+        // 5. Increment ticketType.available atomically
+        ticketTypeRepository.incrementAvailable(ticket.getTicketType().getId(), 1);
 
         // 6. Release seat (if seat was assigned)
         if (ticket.getSeat() != null) {
