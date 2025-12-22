@@ -75,6 +75,7 @@ public class VenueService {
         return venueMapper.toVenueResponse(venue);
     }
 
+    @org.springframework.transaction.annotation.Transactional
     @org.springframework.security.access.prepost.PreAuthorize("hasRole('ADMIN')")
     public void deleteVenue(String venueId) {
         if (!venueRepository.existsById(venueId)) {

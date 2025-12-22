@@ -16,8 +16,7 @@ import java.util.Map;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Entity
 @Table(indexes = {
-        @Index(name = "idx_notification_user", columnList = "user_id"),
-        @Index(name = "idx_notification_read", columnList = "isRead")
+        @Index(name = "idx_notification_user_read", columnList = "user_id,isRead")
 })
 public class Notification {
     @Id

@@ -30,6 +30,7 @@ public class VoucherService {
     EventRepository eventRepository;
     TicketTypeRepository ticketTypeRepository;
     VoucherMapper voucherMapper;
+    UserRepository userRepository;
 
     /**
      * Get all public vouchers that are currently valid (not expired)
@@ -213,6 +214,10 @@ public class VoucherService {
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new AppException(ErrorCode.UNAUTHENTICATED);
         }
-        return authentication.getName();
+        // authentication.getName() returns username, not user ID
+        String username = authentication.getName();
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED))
+                .getId();
     }
 }

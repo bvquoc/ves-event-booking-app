@@ -20,6 +20,7 @@ public enum ErrorCode {
     EVENT_NOT_FOUND(2001, "Event not found", HttpStatus.NOT_FOUND),
     EVENT_SLUG_EXISTED(2002, "Event slug already exists", HttpStatus.BAD_REQUEST),
     INVALID_EVENT_DATE(2003, "Invalid event date range", HttpStatus.BAD_REQUEST),
+    EVENT_HAS_SOLD_TICKETS(2004, "Cannot delete event with sold tickets", HttpStatus.BAD_REQUEST),
 
     // Ticket errors (3xxx)
     TICKET_TYPE_NOT_FOUND(3001, "Ticket type not found", HttpStatus.NOT_FOUND),
@@ -27,6 +28,7 @@ public enum ErrorCode {
     INVALID_TICKET_QUANTITY(3003, "Invalid ticket quantity", HttpStatus.BAD_REQUEST),
     TICKET_NOT_FOUND(3004, "Ticket not found", HttpStatus.NOT_FOUND),
     TICKET_NOT_CANCELLABLE(3005, "Ticket cannot be cancelled", HttpStatus.BAD_REQUEST),
+    TICKET_TYPE_HAS_SOLD_TICKETS(3006, "Cannot delete ticket type with sold tickets", HttpStatus.BAD_REQUEST),
 
     // Seat errors (4xxx)
     SEAT_NOT_FOUND(4001, "Seat not found", HttpStatus.NOT_FOUND),

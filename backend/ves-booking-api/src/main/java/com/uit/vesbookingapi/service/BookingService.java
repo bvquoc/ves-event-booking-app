@@ -80,8 +80,8 @@ public class BookingService {
                 throw new AppException(ErrorCode.INVALID_TICKET_QUANTITY);
             }
 
-            // Check seats are available (not already sold/reserved)
-            List<String> occupiedSeats = ticketRepository.findOccupiedSeatIds(
+            // Check seats are available with pessimistic locking to prevent double booking
+            List<String> occupiedSeats = ticketRepository.findOccupiedSeatIdsWithLock(
                     request.getEventId(),
                     request.getSeatIds()
             );
@@ -133,6 +133,13 @@ public class BookingService {
 
         order = orderRepository.save(order);
         log.info("Order created: orderId={}, total={}", order.getId(), order.getTotal());
+
+        // Increment voucher usage count if voucher was applied
+        if (voucher != null) {
+            voucher.setUsedCount(voucher.getUsedCount() + 1);
+            voucherRepository.save(voucher);
+            log.info("Voucher usage incremented: code={}, usedCount={}", voucher.getCode(), voucher.getUsedCount());
+        }
 
         // 10. Create tickets (reserved state)
         List<Ticket> tickets = new ArrayList<>();

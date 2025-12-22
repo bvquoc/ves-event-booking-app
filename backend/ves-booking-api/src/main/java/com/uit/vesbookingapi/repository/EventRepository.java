@@ -15,7 +15,10 @@ public interface EventRepository extends JpaRepository<Event, String>, JpaSpecif
 
     boolean existsBySlug(String slug);
 
-    @Query("SELECT COUNT(t) FROM Ticket t WHERE t.ticketType.event.id = :eventId AND t.status = 'CONFIRMED'")
+    @Query("SELECT COUNT(t) FROM Ticket t WHERE t.ticketType.event.id = :eventId AND t.status = 'ACTIVE'")
     Long countSoldTickets(@Param("eventId") String eventId);
+
+    @Query("SELECT COUNT(t) FROM Ticket t WHERE t.ticketType.id = :ticketTypeId AND t.status IN ('ACTIVE', 'USED')")
+    Long countSoldTicketsByTicketType(@Param("ticketTypeId") String ticketTypeId);
 }
 

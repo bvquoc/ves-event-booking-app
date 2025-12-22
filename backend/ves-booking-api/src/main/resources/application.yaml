@@ -5,7 +5,7 @@ server:
 
 spring:
   datasource:
-    url: ${DBMS_CONNECTION:jdbc:mysql://localhost:3306/ves_booking_api}
+    url: ${DBMS_CONNECTION:jdbc:mysql://localhost:3306/ves_booking_api?useUnicode=true&useSSL=false&serverTimezone=Asia/Ho_Chi_Minh}
     driverClassName: "com.mysql.cj.jdbc.Driver"
     password: ${DBMS_PASSWORD:root}
     username: ${DBMS_USERNAME:root}

@@ -10,6 +10,7 @@ import com.uit.vesbookingapi.exception.AppException;
 import com.uit.vesbookingapi.exception.ErrorCode;
 import com.uit.vesbookingapi.mapper.NotificationMapper;
 import com.uit.vesbookingapi.repository.NotificationRepository;
+import com.uit.vesbookingapi.repository.UserRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -29,6 +30,7 @@ import java.util.Map;
 public class NotificationService {
     NotificationRepository notificationRepository;
     NotificationMapper notificationMapper;
+    UserRepository userRepository;
 
     /**
      * Get user's notifications with optional filter
@@ -186,6 +188,10 @@ public class NotificationService {
                 || authentication instanceof AnonymousAuthenticationToken) {
             throw new AppException(ErrorCode.UNAUTHENTICATED);
         }
-        return authentication.getName();
+        // authentication.getName() returns username, not user ID
+        String username = authentication.getName();
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED))
+                .getId();
     }
 }

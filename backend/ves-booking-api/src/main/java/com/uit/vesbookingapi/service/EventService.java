@@ -26,10 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -80,11 +77,20 @@ public class EventService {
                 ? new HashSet<>(favoriteRepository.findEventIdsByUserId(currentUserId))
                 : Collections.emptySet();
 
+        // Batch load ticket types for all events (N+1 query fix)
+        List<String> eventIds = eventPage.getContent().stream()
+                .map(Event::getId)
+                .collect(Collectors.toList());
+
+        Map<String, List<TicketType>> ticketTypesByEvent = ticketTypeRepository.findByEventIdIn(eventIds).stream()
+                .collect(Collectors.groupingBy(tt -> tt.getEvent().getId()));
+
         // Map to response with calculated fields
         List<EventResponse> eventResponses = eventPage.getContent().stream()
                 .map(event -> {
                     EventResponse response = eventMapper.toEventResponse(event);
-                    enrichEventResponse(response, event, favoriteEventIds);
+                    List<TicketType> ticketTypes = ticketTypesByEvent.getOrDefault(event.getId(), Collections.emptyList());
+                    enrichEventResponse(response, event, ticketTypes, favoriteEventIds);
                     return response;
                 })
                 .collect(Collectors.toList());
@@ -249,7 +255,13 @@ public class EventService {
         event.setCity(city);
         event.setVenue(venue);
 
-        // Update ticket types (delete old ones and create new ones)
+        // Update ticket types (validate no tickets sold before deletion)
+        for (TicketType ticketType : event.getTicketTypes()) {
+            Long soldCount = eventRepository.countSoldTicketsByTicketType(ticketType.getId());
+            if (soldCount > 0) {
+                throw new AppException(ErrorCode.TICKET_TYPE_HAS_SOLD_TICKETS);
+            }
+        }
         ticketTypeRepository.deleteAll(event.getTicketTypes());
         final Event finalEvent = event;
         if (request.getTicketTypes() != null && !request.getTicketTypes().isEmpty()) {
@@ -286,11 +298,19 @@ public class EventService {
         return response;
     }
 
+    @Transactional
     @org.springframework.security.access.prepost.PreAuthorize("hasRole('ADMIN')")
     public void deleteEvent(String eventId) {
         if (!eventRepository.existsById(eventId)) {
             throw new AppException(ErrorCode.EVENT_NOT_FOUND);
         }
+
+        // Validate no tickets sold before deletion
+        Long soldCount = eventRepository.countSoldTickets(eventId);
+        if (soldCount > 0) {
+            throw new AppException(ErrorCode.EVENT_HAS_SOLD_TICKETS);
+        }
+
         eventRepository.deleteById(eventId);
     }
 
@@ -325,20 +345,30 @@ public class EventService {
         return PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
     }
 
-    private void enrichEventResponse(EventResponse response, Event event, Set<String> favoriteEventIds) {
+    private void enrichEventResponse(EventResponse response, Event event, List<TicketType> ticketTypes, Set<String> favoriteEventIds) {
         // Set venueId
         if (event.getVenue() != null) {
             response.setVenueId(event.getVenue().getId());
         }
 
-        // Calculate min/max price and available tickets
-        Integer minPrice = ticketTypeRepository.findMinPriceByEventId(event.getId());
-        Integer maxPrice = ticketTypeRepository.findMaxPriceByEventId(event.getId());
-        Integer availableTickets = ticketTypeRepository.sumAvailableTicketsByEventId(event.getId());
+        // Calculate min/max price and available tickets in memory (avoid N+1 queries)
+        Integer minPrice = ticketTypes.stream()
+                .map(TicketType::getPrice)
+                .min(Integer::compareTo)
+                .orElse(null);
+
+        Integer maxPrice = ticketTypes.stream()
+                .map(TicketType::getPrice)
+                .max(Integer::compareTo)
+                .orElse(null);
+
+        Integer availableTickets = ticketTypes.stream()
+                .map(TicketType::getAvailable)
+                .reduce(0, Integer::sum);
 
         response.setMinPrice(minPrice);
         response.setMaxPrice(maxPrice);
-        response.setAvailableTickets(availableTickets != null ? availableTickets : 0);
+        response.setAvailableTickets(availableTickets);
         response.setIsFavorite(favoriteEventIds.contains(event.getId()));
     }
 
@@ -360,18 +390,14 @@ public class EventService {
     }
 
     private String getCurrentUserId() {
-        try {
-            var context = SecurityContextHolder.getContext();
-            if (context.getAuthentication() == null || !context.getAuthentication().isAuthenticated()) {
-                return null;
-            }
-            String username = context.getAuthentication().getName();
-            return userRepository.findByUsername(username)
-                    .map(User::getId)
-                    .orElse(null);
-        } catch (Exception e) {
+        var context = SecurityContextHolder.getContext();
+        if (context == null || context.getAuthentication() == null || !context.getAuthentication().isAuthenticated()) {
             return null;
         }
+        String username = context.getAuthentication().getName();
+        return userRepository.findByUsername(username)
+                .map(User::getId)
+                .orElse(null);
     }
 }
 

@@ -6,6 +6,7 @@ import com.uit.vesbookingapi.dto.response.VenueResponse;
 import com.uit.vesbookingapi.dto.response.VenueSeatingResponse;
 import com.uit.vesbookingapi.service.VenueService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -63,7 +64,7 @@ public class VenueController {
     @GetMapping("/{venueId}/seats")
     public ApiResponse<VenueSeatingResponse> getVenueSeating(
             @PathVariable String venueId,
-            @RequestParam String eventId) {
+            @RequestParam @NotBlank(message = "Event ID is required") String eventId) {
         return ApiResponse.<VenueSeatingResponse>builder()
                 .result(venueService.getVenueSeating(venueId, eventId))
                 .build();

@@ -54,6 +54,9 @@ public class Voucher {
     @Column(nullable = false)
     Integer usedCount;
 
+    @Version
+    Long version;
+
     @ElementCollection
     @CollectionTable(name = "voucher_applicable_events", joinColumns = @JoinColumn(name = "voucher_id"))
     @Column(name = "event_id")

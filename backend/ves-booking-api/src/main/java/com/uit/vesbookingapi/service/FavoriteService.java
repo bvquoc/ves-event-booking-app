@@ -111,6 +111,10 @@ public class FavoriteService {
                 || authentication instanceof AnonymousAuthenticationToken) {
             throw new AppException(ErrorCode.UNAUTHENTICATED);
         }
-        return authentication.getName();
+        // authentication.getName() returns username, not user ID
+        String username = authentication.getName();
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED))
+                .getId();
     }
 }
