@@ -29,3 +29,21 @@ springdoc:
     operationsSorter: method
     tagsSorter: alpha
     try-it-out-enabled: true
+
+# ZaloPay Configuration
+zalopay:
+  sandbox:
+    enabled: ${ZALOPAY_SANDBOX_ENABLED:true}
+    app-id: ${ZALOPAY_SANDBOX_APP_ID:}
+    key1: ${ZALOPAY_SANDBOX_KEY1:}
+    key2: ${ZALOPAY_SANDBOX_KEY2:}
+    endpoint: https://sb-openapi.zalopay.vn/v2/create
+  production:
+    enabled: ${ZALOPAY_PRODUCTION_ENABLED:false}
+    app-id: ${ZALOPAY_APP_ID:}
+    key1: ${ZALOPAY_KEY1:}
+    key2: ${ZALOPAY_KEY2:}
+    endpoint: https://openapi.zalopay.vn/v2/create
+  callback-url: ${ZALOPAY_CALLBACK_URL:http://localhost:8080/api/payments/zalopay/callback}
+  redirect-url: ${ZALOPAY_REDIRECT_URL:http://localhost:3000/payment/success}
+  query-status-url: ${ZALOPAY_QUERY_STATUS_URL:https://sb-openapi.zalopay.vn/v2/query}

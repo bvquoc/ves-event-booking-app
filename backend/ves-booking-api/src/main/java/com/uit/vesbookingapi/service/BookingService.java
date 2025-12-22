@@ -4,10 +4,12 @@ import com.uit.vesbookingapi.dto.request.PurchaseRequest;
 import com.uit.vesbookingapi.dto.response.PurchaseResponse;
 import com.uit.vesbookingapi.entity.*;
 import com.uit.vesbookingapi.enums.OrderStatus;
+import com.uit.vesbookingapi.enums.PaymentMethod;
 import com.uit.vesbookingapi.enums.TicketStatus;
 import com.uit.vesbookingapi.exception.AppException;
 import com.uit.vesbookingapi.exception.ErrorCode;
 import com.uit.vesbookingapi.mapper.OrderMapper;
+import com.uit.vesbookingapi.payment.zalopay.ZaloPayService;
 import com.uit.vesbookingapi.repository.*;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -37,6 +39,7 @@ public class BookingService {
     UserRepository userRepository;
     VoucherRepository voucherRepository;
     OrderMapper orderMapper;
+    ZaloPayService zaloPayService;
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public PurchaseResponse purchaseTickets(PurchaseRequest request) {
@@ -127,12 +130,36 @@ public class BookingService {
                 .voucher(voucher)
                 .status(OrderStatus.PENDING)
                 .paymentMethod(request.getPaymentMethod())
-                .paymentUrl(generatePaymentUrl())
+                .paymentUrl(null) // Will be set after order creation
                 .expiresAt(LocalDateTime.now().plusMinutes(15))
                 .build();
 
         order = orderRepository.save(order);
         log.info("Order created: orderId={}, total={}", order.getId(), order.getTotal());
+
+        // 9.1. Generate payment URL based on payment method
+        if (request.getPaymentMethod() == PaymentMethod.ZALOPAY) {
+            try {
+                var zalopayResponse = zaloPayService.createPaymentOrder(order);
+                order.setPaymentUrl(zalopayResponse.getOrderUrl());
+                // Store app_trans_id for callback verification
+                // Generate app_trans_id same way as in ZaloPayService
+                String appTransId = zaloPayService.generateAppTransIdFromOrderId(order.getId());
+                order.setZalopayTransactionId(appTransId);
+                order = orderRepository.save(order);
+                log.info("ZaloPay order created: orderId={}, appTransId={}, orderUrl={}",
+                        order.getId(), appTransId, zalopayResponse.getOrderUrl());
+            } catch (Exception e) {
+                log.error("Failed to create ZaloPay order for orderId={}", order.getId(), e);
+                throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
+            }
+        } else {
+            String paymentUrl = generatePaymentUrl(order);
+            order.setPaymentUrl(paymentUrl);
+            order = orderRepository.save(order);
+            log.info("Payment URL generated: orderId={}, paymentMethod={}, paymentUrl={}",
+                    order.getId(), request.getPaymentMethod(), paymentUrl);
+        }
 
         // Increment voucher usage count if voucher was applied
         if (voucher != null) {
@@ -239,8 +266,9 @@ public class BookingService {
         return Math.min(discount, orderAmount); // Discount cannot exceed order amount
     }
 
-    private String generatePaymentUrl() {
-        return "http://ves-booking.io.vn/payments/order/" + UUID.randomUUID();
+    private String generatePaymentUrl(Order order) {
+        // Mock payment URL for non-ZaloPay payment methods
+        return "http://ves-booking.io.vn/payments/order/" + order.getId();
     }
 
     private String generateQrCode() {

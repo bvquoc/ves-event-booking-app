@@ -61,7 +61,9 @@ public class Order {
     @Enumerated(EnumType.STRING)
     PaymentMethod paymentMethod;
 
-    String paymentUrl; // Mock payment gateway URL
+    String paymentUrl; // Payment gateway URL (ZaloPay order URL or mock URL)
+
+    String zalopayTransactionId; // ZaloPay transaction ID (app_trans_id)
 
     LocalDateTime expiresAt; // Payment timeout
 

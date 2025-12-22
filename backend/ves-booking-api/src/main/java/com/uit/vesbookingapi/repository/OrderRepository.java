@@ -20,4 +20,7 @@ public interface OrderRepository extends JpaRepository<Order, String> {
     // Find expired pending orders for cleanup
     @Query("SELECT o FROM Order o WHERE o.status = 'PENDING' AND o.expiresAt < :now")
     List<Order> findExpiredPendingOrders(@Param("now") LocalDateTime now);
+
+    // Find order by ZaloPay transaction ID
+    Order findByZalopayTransactionId(String zalopayTransactionId);
 }
