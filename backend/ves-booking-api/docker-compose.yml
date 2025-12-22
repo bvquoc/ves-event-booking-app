@@ -11,6 +11,7 @@ services:
       - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
+      - ./docker/mysql/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
     command: >
       --character-set-server=utf8mb4
       --collation-server=utf8mb4_unicode_ci
@@ -32,7 +33,10 @@ services:
           memory: 512M
     healthcheck:
       test:
-        ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot"]
+        [
+          "CMD-SHELL",
+          "mysqladmin ping -h localhost -u root -proot && mysql -uroot -proot -e 'USE ves_booking_api;'",
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -49,7 +53,7 @@ services:
     ports:
       - "8080:8080"
     environment:
-      DBMS_CONNECTION: "jdbc:mysql://mysql:3306/ves_booking_api?useUnicode=true&useSSL=false&serverTimezone=Asia/Ho_Chi_Minh"
+      DBMS_CONNECTION: "jdbc:mysql://mysql:3306/ves_booking_api?useUnicode=true&useSSL=false&serverTimezone=Asia/Ho_Chi_Minh&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true"
       DBMS_USERNAME: root
       DBMS_PASSWORD: root
       SPRING_PROFILES_ACTIVE: prod

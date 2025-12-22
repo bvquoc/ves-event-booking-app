@@ -69,9 +69,15 @@ echo ""
 # Network connectivity test
 echo "🔗 Network Test:"
 if docker exec ves-booking-api ping -c 1 mysql > /dev/null 2>&1; then
-    echo "  ✅ App can reach MySQL"
+    echo "  ✅ App can reach MySQL (ping successful)"
 else
-    echo "  ❌ App cannot reach MySQL"
+    echo "  ⚠️  App cannot ping MySQL (this might be normal if ping is disabled)"
+    # Try alternative test
+    if docker exec ves-booking-api sh -c "nc -z mysql 3306" > /dev/null 2>&1; then
+        echo "  ✅ App can reach MySQL port 3306"
+    else
+        echo "  ❌ App cannot reach MySQL port 3306"
+    fi
 fi
 echo ""
 
