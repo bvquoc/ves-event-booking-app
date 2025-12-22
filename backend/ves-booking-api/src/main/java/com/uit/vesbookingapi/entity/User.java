@@ -24,6 +24,13 @@ public class User {
     String username;
 
     String password;
+
+    @Column(nullable = false, unique = true)
+    String email;
+
+    @Column(nullable = false)
+    String phone;
+    
     String firstName;
     LocalDate dob;
     String lastName;

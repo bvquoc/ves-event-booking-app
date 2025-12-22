@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
-import { permissionApi, PermissionResponse } from '@/lib/api';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { useEffect, useState } from "react";
+import { permissionApi, PermissionResponse } from "@/lib/api";
+import { usePermissions } from "@/hooks/usePermissions";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -9,8 +10,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { Plus, Trash2 } from 'lucide-react';
+} from "@/components/ui/table";
+import { Plus, Trash2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -18,18 +19,19 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 export default function Permissions() {
+  const { canManagePermissions } = usePermissions();
   const [permissions, setPermissions] = useState<PermissionResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [formData, setFormData] = useState({
-    name: '',
-    description: '',
+    name: "",
+    description: "",
   });
 
   useEffect(() => {
@@ -41,7 +43,7 @@ export default function Permissions() {
       const response = await permissionApi.getPermissions();
       setPermissions(response.result);
     } catch (error) {
-      console.error('Failed to load permissions:', error);
+      console.error("Failed to load permissions:", error);
     } finally {
       setLoading(false);
     }
@@ -49,8 +51,8 @@ export default function Permissions() {
 
   const handleCreate = () => {
     setFormData({
-      name: '',
-      description: '',
+      name: "",
+      description: "",
     });
     setDialogOpen(true);
   };
@@ -65,19 +67,24 @@ export default function Permissions() {
       setDialogOpen(false);
       loadPermissions();
     } catch (error: any) {
-      console.error('Failed to create permission:', error);
-      alert(error.response?.data?.message || 'Failed to create permission');
+      console.error("Failed to create permission:", error);
+      alert(error.response?.data?.message || "Failed to create permission");
     }
   };
 
   const handleDelete = async (permissionName: string) => {
-    if (!confirm(`Are you sure you want to delete permission "${permissionName}"?`)) return;
+    if (
+      !confirm(
+        `Are you sure you want to delete permission "${permissionName}"?`
+      )
+    )
+      return;
     try {
       await permissionApi.deletePermission(permissionName);
       loadPermissions();
     } catch (error) {
-      console.error('Failed to delete permission:', error);
-      alert('Failed to delete permission');
+      console.error("Failed to delete permission:", error);
+      alert("Failed to delete permission");
     }
   };
 
@@ -92,10 +99,12 @@ export default function Permissions() {
           <h1 className="text-3xl font-bold">Permissions</h1>
           <p className="text-muted-foreground">Manage system permissions</p>
         </div>
-        <Button onClick={handleCreate}>
-          <Plus className="mr-2 h-4 w-4" />
-          Add Permission
-        </Button>
+        {canManagePermissions() && (
+          <Button onClick={handleCreate}>
+            <Plus className="mr-2 h-4 w-4" />
+            Add Permission
+          </Button>
+        )}
       </div>
 
       <Card>
@@ -111,16 +120,20 @@ export default function Permissions() {
             <TableBody>
               {permissions.map((permission) => (
                 <TableRow key={permission.name}>
-                  <TableCell className="font-medium">{permission.name}</TableCell>
-                  <TableCell>{permission.description || '-'}</TableCell>
+                  <TableCell className="font-medium">
+                    {permission.name}
+                  </TableCell>
+                  <TableCell>{permission.description || "-"}</TableCell>
                   <TableCell className="text-right">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleDelete(permission.name)}
-                    >
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
+                    {canManagePermissions() && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDelete(permission.name)}
+                      >
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}
@@ -133,7 +146,9 @@ export default function Permissions() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Create Permission</DialogTitle>
-            <DialogDescription>Add a new permission to the system</DialogDescription>
+            <DialogDescription>
+              Add a new permission to the system
+            </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit}>
             <div className="space-y-4 py-4">
@@ -142,7 +157,9 @@ export default function Permissions() {
                 <Input
                   id="name"
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, name: e.target.value })
+                  }
                   required
                 />
               </div>
@@ -151,13 +168,19 @@ export default function Permissions() {
                 <Textarea
                   id="description"
                   value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, description: e.target.value })
+                  }
                   rows={3}
                 />
               </div>
             </div>
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setDialogOpen(false)}
+              >
                 Cancel
               </Button>
               <Button type="submit">Create</Button>

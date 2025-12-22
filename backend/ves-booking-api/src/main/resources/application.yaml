@@ -5,14 +5,35 @@ server:
 
 spring:
   datasource:
-    url: ${DBMS_CONNECTION:jdbc:mysql://localhost:3306/ves_booking_api?useUnicode=true&useSSL=false&serverTimezone=Asia/Ho_Chi_Minh}
+    url: ${DBMS_CONNECTION:jdbc:mysql://localhost:3306/ves_booking_api?useUnicode=true&useSSL=false&serverTimezone=Asia/Ho_Chi_Minh&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true}
     driverClassName: "com.mysql.cj.jdbc.Driver"
     password: ${DBMS_PASSWORD:root}
     username: ${DBMS_USERNAME:root}
+    hikari:
+      # Connection pool settings
+      minimum-idle: 5
+      maximum-pool-size: 20
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      # Connection validation
+      connection-test-query: SELECT 1
+      validation-timeout: 5000
+      # Leak detection
+      leak-detection-threshold: 60000
+      # Health check
+      health-check-properties:
+        connectTimeout: 5000
   jpa:
     hibernate:
       ddl-auto: update
     show-sql: true
+    properties:
+      hibernate:
+        jdbc:
+          batch_size: 20
+        order_inserts: true
+        order_updates: true
 
 jwt:
   signerKey: "1TjXchw5FloESb63Kc+DFhTARvpWL4jUGCwfGWxuG5SIf/1y/LgJxHnMqaF6A/ij"

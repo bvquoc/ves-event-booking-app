@@ -14,6 +14,8 @@ import java.util.Set;
 public class UserResponse {
     String id;
     String username;
+    String email;
+    String phone;
     String firstName;
     String lastName;
     LocalDate dob;
