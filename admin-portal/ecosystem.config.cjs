@@ -1,5 +1,5 @@
 // PM2 ecosystem configuration for VES Booking Admin Portal
-export default {
+module.exports = {
   apps: [
     {
       name: "ves-admin-portal",

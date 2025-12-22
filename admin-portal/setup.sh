@@ -62,7 +62,7 @@ fi
 echo "🚀 Starting server..."
 pm2 stop ves-admin-portal 2>/dev/null || true
 pm2 delete ves-admin-portal 2>/dev/null || true
-pm2 start ecosystem.config.js
+pm2 start ecosystem.config.cjs
 pm2 save
 
 # Setup startup
