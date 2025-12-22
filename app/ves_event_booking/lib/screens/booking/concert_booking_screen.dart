@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:ves_event_booking/models/booking_request.dart';
-import 'package:ves_event_booking/models/event/event_model.dart';
+import 'package:ves_event_booking/models/ticket/ticket_details_model.dart';
 import 'package:ves_event_booking/widgets/event/event_info_card.dart';
 import 'payment_screen.dart';
 
 class ConcertBookingScreen extends StatefulWidget {
-  final EventModel event;
+  final EventDetailsModel event;
 
   const ConcertBookingScreen({super.key, required this.event});
 
@@ -21,11 +21,9 @@ class _ConcertBookingScreenState extends State<ConcertBookingScreen> {
   void initState() {
     super.initState();
 
-    zones = widget.event.ticketTypes != null
-        ? widget.event.ticketTypes!.map((t) {
-            return _ZoneTicket(id: t.id, name: t.name, price: t.price.toInt());
-          }).toList()
-        : [];
+    zones = widget.event.ticketTypes.map((t) {
+      return _ZoneTicket(id: t.id, name: t.name, price: t.price.toInt());
+    }).toList();
   }
 
   int get totalPrice {

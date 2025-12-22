@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:ves_event_booking/models/category/category_model.dart';
 import 'package:ves_event_booking/models/city/city_model.dart';
 import 'package:ves_event_booking/models/event/event_model.dart';
+import 'package:ves_event_booking/models/ticket/ticket_details_model.dart';
 import 'package:ves_event_booking/models/utils/pagination_request.dart';
 import 'package:ves_event_booking/services/category_service.dart';
 import 'package:ves_event_booking/services/city_service.dart';
@@ -17,14 +18,14 @@ class EventProvider extends ChangeNotifier {
   List<EventModel> _events = [];
   List<CategoryModel> _categories = [];
   List<CityModel> _cities = [];
-  EventModel? _event;
+  EventDetailsModel? _event;
 
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
   List<EventModel> get events => _events;
   List<CategoryModel> get categories => _categories;
   List<CityModel> get cities => _cities;
-  EventModel? get event => _event;
+  EventDetailsModel? get event => _event;
 
   Future<void> fetchEvents({
     required PaginationRequest pageable,
@@ -66,7 +67,9 @@ class EventProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _event = await _eventService.getEvent(eventId);
+      final responseData = await _eventService.getEvent(eventId);
+      // Lưu ý: service của bạn cần trả về EventDetailsModel thay vì EventModel
+      _event = responseData;
     } catch (e) {
       _errorMessage = e.toString();
     } finally {

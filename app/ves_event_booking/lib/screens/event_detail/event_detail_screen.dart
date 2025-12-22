@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:ves_event_booking/models/event/event_model.dart';
+import 'package:ves_event_booking/models/ticket/ticket_details_model.dart';
 import 'package:ves_event_booking/providers/event_provider.dart';
 import 'package:ves_event_booking/widgets/event_detail/event_bottom_bar.dart';
 
@@ -50,9 +51,9 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
           );
         }
 
-        final _event = provider.event;
+        final event = provider.event;
 
-        if (_event == null) {
+        if (event == null) {
           return const Scaffold(
             body: Center(child: Text('Không tìm thấy sự kiện')),
           );
@@ -61,7 +62,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
         return Scaffold(
           body: CustomScrollView(
             slivers: [
-              EventAppBar(event: _event!, onFavoritePressed: () {}),
+              EventAppBar(event: event, onFavoritePressed: () {}),
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.all(20),
@@ -98,7 +99,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                         child: Column(
                           children: [
                             Text(
-                              _event.name,
+                              event.name,
                               style: TextStyle(
                                 color: Colors.black,
                                 fontSize: 30,
@@ -122,7 +123,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                             const SizedBox(height: 12),
 
                             Text(
-                              'Thời gian dự kiến: ${_formatDateTime(_event)} \nĐịa điểm: ${_formatLocation(_event)}',
+                              'Thời gian dự kiến: ${_formatDateTime(event)} \nĐịa điểm: ${_formatLocation(event)}',
                             ),
                             const SizedBox(height: 12),
 
@@ -130,7 +131,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                             const SizedBox(height: 12),
 
                             Text(
-                              'TÓM TẮT QUY ĐỊNH VÀ ĐIỀU KHOẢN',
+                              'THÔNG TIN NỘI DUNG SỰ KIỆN',
                               style: TextStyle(
                                 color: Colors.black,
                                 fontSize: 16,
@@ -139,7 +140,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                               textAlign: TextAlign.center,
                             ),
                             const SizedBox(height: 12),
-                            Text(_event.description ?? ''),
+                            Text(event.description ?? ''),
                             const SizedBox(height: 12),
 
                             Text(""),
@@ -186,11 +187,11 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                           shrinkWrap: true,
 
                           physics: const NeverScrollableScrollPhysics(),
-                          itemCount: 0,
+                          itemCount: event.ticketTypes.length,
                           separatorBuilder: (context, index) =>
                               const SizedBox(height: 12),
                           itemBuilder: (context, index) {
-                            final ticket = _event.ticketTypes![index];
+                            final ticket = event.ticketTypes[index];
                             return Container(
                               decoration: BoxDecoration(
                                 color: const Color.fromARGB(
@@ -244,13 +245,13 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
               ),
             ],
           ),
-          bottomNavigationBar: EventBottomBar(event: _event),
+          bottomNavigationBar: EventBottomBar(event: event),
         );
       },
     );
   }
 
-  String _formatDateTime(EventModel event) {
+  String _formatDateTime(EventDetailsModel event) {
     final dateFormat = DateFormat('HH:mm - dd/MM/yyyy');
     String result = dateFormat.format(event.startDate);
 
@@ -259,7 +260,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
     return result;
   }
 
-  String _formatLocation(EventModel event) {
+  String _formatLocation(EventDetailsModel event) {
     String location = event.venueName ?? '';
     location += ' ${event.city}';
 

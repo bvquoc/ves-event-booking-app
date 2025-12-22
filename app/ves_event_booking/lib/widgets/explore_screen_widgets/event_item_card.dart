@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:ves_event_booking/models/event/event_model.dart';
-import 'package:ves_event_booking/screens/event_detail/event_detail_screen.dart';
 
 class EventItemCard extends StatelessWidget {
   final EventModel event;

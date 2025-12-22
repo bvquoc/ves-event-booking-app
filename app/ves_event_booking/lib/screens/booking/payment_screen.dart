@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:ves_event_booking/models/booking_request.dart';
-import 'package:ves_event_booking/models/event/event_model.dart';
 import 'package:ves_event_booking/models/payment_model.dart';
 import 'package:ves_event_booking/models/purchase/purchase_model_request.dart';
+import 'package:ves_event_booking/models/ticket/ticket_details_model.dart';
 import 'package:ves_event_booking/models/ticket/ticket_type_model.dart';
 import 'package:ves_event_booking/models/user/user_model.dart';
 import 'package:ves_event_booking/providers/ticket_provider.dart';
 
 class PaymentScreen extends StatefulWidget {
-  final EventModel event;
+  final EventDetailsModel event;
   final BookingRequest booking;
   final double totalPrice;
 
@@ -41,8 +41,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
     });
 
     _ticketItems = widget.booking.items.entries.map((entry) {
-      final TicketTypeModel ticket = widget.event.ticketTypes != null
-          ? widget.event.ticketTypes!.firstWhere(
+      final TicketTypeModel ticket = widget.event.ticketTypes.isNotEmpty
+          ? widget.event.ticketTypes.firstWhere(
               (t) => t.id == entry.key,
               orElse: () =>
                   throw Exception('TicketType not found for id=${entry.key}'),
@@ -97,7 +97,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 const SizedBox(height: 12),
                 _ticketDetailCard(), // ✅ ĐÃ SỬA
                 const SizedBox(height: 12),
-                _buyerInfoCard(user!), // ✅ ĐÃ SỬA
+                _buyerInfoCard(user), // ✅ ĐÃ SỬA
                 const SizedBox(height: 12),
                 _paymentMethodCard(),
                 const SizedBox(height: 80),
@@ -220,7 +220,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
     );
   }
 
-  Widget _buyerInfoCard(UserModel user) {
+  Widget _buyerInfoCard(UserModel? user) {
     return _card(
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -229,9 +229,12 @@ class _PaymentScreenState extends State<PaymentScreen> {
           const SizedBox(height: 8),
           _row(
             'Họ tên',
-            user.firstName != null && user.lastName != null
-                ? '${user.firstName} ${user.lastName}'
-                : user.username,
+            // Kiểm tra nếu user là null thì hiện "Đang tải..."
+            user == null
+                ? 'Đang tải thông tin...'
+                : (user.firstName != null && user.lastName != null
+                      ? '${user.firstName} ${user.lastName}'
+                      : user.username),
           ),
         ],
       ),

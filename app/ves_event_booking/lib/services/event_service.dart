@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:ves_event_booking/config/dio_client.dart';
+import 'package:ves_event_booking/models/ticket/ticket_details_model.dart';
 import 'package:ves_event_booking/models/utils/api_response.dart';
 import 'package:ves_event_booking/models/event/event_model.dart';
 import 'package:ves_event_booking/models/event/event_model_request.dart';
@@ -36,13 +37,13 @@ class EventService {
   }
 
   // GET
-  Future<EventModel> getEvent(String eventId) async {
+  Future<EventDetailsModel> getEvent(String eventId) async {
     try {
       final res = await _dio.get('/events/$eventId');
 
       final apiResponse = ApiResponse.fromJson(
         res.data,
-        (json) => EventModel.fromJson(json),
+        (json) => EventDetailsModel.fromJson(json),
       );
       return apiResponse.result;
     } on DioException catch (e) {

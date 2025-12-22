@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:ves_event_booking/models/utils/pagination_request.dart';
 import 'package:ves_event_booking/providers/home_provider.dart';
 import 'package:ves_event_booking/screens/explore/explore_screen.dart';
+import 'package:ves_event_booking/screens/explore/filtered_events_screen.dart';
 import 'package:ves_event_booking/screens/notifications/notifications_screen.dart';
 import 'package:ves_event_booking/screens/profile/profile_creen.dart';
 import 'package:ves_event_booking/screens/tickets/tickets_screen.dart';
@@ -29,38 +30,52 @@ class HomeScreenState extends State<HomeScreen> {
       context.read<HomeProvider>().fetchEvents(
         pageable: PaginationRequest(page: 0, size: 50),
       );
+      context.read<HomeProvider>().fetchCategoties();
     });
+  }
+
+  void _onSearchSubmitted(String keyword) {
+    context.read<HomeProvider>().fetchEvents(
+      pageable: PaginationRequest(page: 0, size: 50),
+      search: keyword,
+    );
+  }
+
+  void _onViewAllEvents(String categorySlug) {
+    final categories = context.read<HomeProvider>().categories;
+
+    try {
+      final category = categories.firstWhere((cat) => cat.slug == categorySlug);
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => FilteredEventsScreen(
+            title: category.name,
+            categoryId: category.id,
+          ),
+        ),
+      );
+    } catch (e) {
+      SnackBar(content: Text('Không tìm thấy danh mục sự kiện.'));
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Consumer<HomeProvider>(
       builder: (context, provider, _) {
-        // ⏳ Loading
-        if (provider.isLoading) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
-        // ❌ Error
-        if (provider.errorMessage != null) {
-          return Center(
-            child: Text(
-              provider.errorMessage!,
-              style: const TextStyle(color: Colors.red),
-            ),
-          );
-        }
-
         final listVoucherStatus = provider.vouchers;
 
         return Scaffold(
           backgroundColor: Colors.white,
           body: Stack(
+            fit: StackFit.expand,
             children: [
               SingleChildScrollView(
-                padding: EdgeInsets.only(bottom: 120),
+                padding: const EdgeInsets.only(bottom: 120),
                 child: Column(
                   children: [
+                    // --- PHẦN HEADER & BANNER (LUÔN HIỂN THỊ) ---
                     Stack(
                       children: [
                         Container(
@@ -80,7 +95,9 @@ class HomeScreenState extends State<HomeScreen> {
                         ),
                         Column(
                           children: [
-                            const HomeHeader(),
+                            HomeHeader(
+                              onSearch: (value) => _onSearchSubmitted(value),
+                            ),
                             const SizedBox(height: 20),
                             const PosterCard(),
                           ],
@@ -88,39 +105,69 @@ class HomeScreenState extends State<HomeScreen> {
                       ],
                     ),
                     const SizedBox(height: 20),
-                    VoucherSection(
-                      voucherStatusList: listVoucherStatus, // hoặc data từ API
-                    ),
+
+                    // --- PHẦN VOUCHER (LUÔN HIỂN THỊ) ---
+                    VoucherSection(voucherStatusList: listVoucherStatus),
                     const SizedBox(height: 20),
 
-                    EventSection(
-                      title: 'Buổi hòa nhạc',
-                      events: provider.events
-                          .where((e) => e.category?.slug == 'buoi-hoa-nhac')
-                          .toList(),
-                    ),
-                    const SizedBox(height: 20),
-                    EventSection(
-                      title: 'Sân khấu kịch',
-                      events: provider.events
-                          .where((e) => e.category?.slug == 'san-khau-kich')
-                          .toList(),
-                    ),
-                    const SizedBox(height: 20),
-                    EventSection(
-                      title: 'Thể thao',
-                      events: provider.events
-                          .where((e) => e.category?.slug == 'the-thao')
-                          .toList(),
-                    ),
-                    const SizedBox(height: 20),
-                    EventSection(
-                      title: 'Triển lãm',
-                      events: provider.events
-                          .where((e) => e.category?.slug == 'trien-lam')
-                          .toList(),
-                    ),
-                    const SizedBox(height: 20),
+                    // --- PHẦN SỰ KIỆN (THAY ĐỔI THEO TRẠNG THÁI LOADING) ---
+                    // Kiểm tra: Nếu đang loading thì hiện vòng xoay
+                    if (provider.isLoading)
+                      const Padding(
+                        padding: EdgeInsets.only(top: 50),
+                        child: Center(child: CircularProgressIndicator()),
+                      )
+                    // Kiểm tra: Nếu có lỗi thì hiện thông báo lỗi ở đây
+                    else if (provider.errorMessage != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 50),
+                        child: Center(
+                          child: Text(
+                            provider.errorMessage!,
+                            style: const TextStyle(color: Colors.red),
+                          ),
+                        ),
+                      )
+                    // Loading thành công: hiện danh sách Event
+                    else
+                      Column(
+                        children: [
+                          EventSection(
+                            title: 'Buổi hòa nhạc',
+                            events: provider.events
+                                .where((e) => e.category?.slug == 'hoa-nhac')
+                                .toList(),
+                            onViewAll: () => _onViewAllEvents('hoa-nhac'),
+                          ),
+                          const SizedBox(height: 20),
+                          EventSection(
+                            title: 'Sân khấu kịch',
+                            events: provider.events
+                                .where(
+                                  (e) => e.category?.slug == 'san-khau-kich',
+                                )
+                                .toList(),
+                            onViewAll: () => _onViewAllEvents('san-khau-kich'),
+                          ),
+                          const SizedBox(height: 20),
+                          EventSection(
+                            title: 'Thể thao',
+                            events: provider.events
+                                .where((e) => e.category?.slug == 'the-thao')
+                                .toList(),
+                            onViewAll: () => _onViewAllEvents('the-thao'),
+                          ),
+                          const SizedBox(height: 20),
+                          EventSection(
+                            title: 'Triển lãm',
+                            events: provider.events
+                                .where((e) => e.category?.slug == 'trien-lam')
+                                .toList(),
+                            onViewAll: () => _onViewAllEvents('trien-lam'),
+                          ),
+                          const SizedBox(height: 20),
+                        ],
+                      ),
                   ],
                 ),
               ),
@@ -134,7 +181,10 @@ class HomeScreenState extends State<HomeScreen> {
                     vertical: 12,
                     horizontal: 32,
                   ),
-                  padding: EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 8,
+                    horizontal: 8,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFF0f0c29),
                     borderRadius: BorderRadius.circular(40),

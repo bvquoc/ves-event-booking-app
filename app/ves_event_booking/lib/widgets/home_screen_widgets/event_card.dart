@@ -61,6 +61,28 @@ class _EventImage extends StatelessWidget {
             image: imageUrl.startsWith('http')
                 ? NetworkImage(imageUrl)
                 : AssetImage(imageUrl) as ImageProvider,
+            errorBuilder: (context, error, stackTrace) {
+              return Container(
+                height: 100,
+                width: double.infinity,
+                color: Colors.grey[300], // Màu nền xám nhạt
+                alignment: Alignment.center,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: const [
+                    Icon(Icons.broken_image, color: Colors.grey, size: 24),
+                    SizedBox(height: 4),
+                    Text(
+                      "img not found",
+                      style: TextStyle(
+                        color: Colors.grey, // Chữ màu xám đậm
+                        fontSize: 10,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
           ),
 
           Positioned(

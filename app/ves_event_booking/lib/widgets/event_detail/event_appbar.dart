@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:ves_event_booking/models/event/event_model.dart';
+import 'package:ves_event_booking/models/ticket/ticket_details_model.dart';
 
 class EventAppBar extends StatelessWidget {
-  final EventModel event;
+  final EventDetailsModel event;
   final VoidCallback onFavoritePressed;
 
   const EventAppBar({
-    Key? key,
+    super.key,
     required this.event,
     required this.onFavoritePressed,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -28,12 +28,8 @@ class EventAppBar extends StatelessWidget {
       actions: [
         IconButton(
           icon: Icon(
-            event.isFavorite != null && event.isFavorite == true
-                ? Icons.favorite
-                : Icons.favorite_border,
-            color: event.isFavorite != null && event.isFavorite == true
-                ? Colors.red
-                : Colors.white,
+            event.isFavorite == true ? Icons.favorite : Icons.favorite_border,
+            color: event.isFavorite == true ? Colors.red : Colors.white,
           ),
           onPressed: onFavoritePressed,
         ),
