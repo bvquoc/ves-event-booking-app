@@ -246,9 +246,30 @@ export default function Tickets() {
                 const ticketTypeName = isAdminTicket
                   ? ticket.ticketType.name
                   : ticket.ticketTypeName;
-                const seatNumber = isAdminTicket
-                  ? ticket.seat?.seatNumber
-                  : ticket.seatNumber;
+                // For admin tickets, seat info is in ticket.seat (optional)
+                // For regular tickets, seat info is in ticket.seatNumber (optional)
+                // Seat can be null if:
+                // 1. Ticket type doesn't require seat selection (general admission)
+                // 2. Seat hasn't been assigned yet
+                let seatDisplay = "General admission";
+                if (isAdminTicket) {
+                  if (ticket.seat) {
+                    // Show full seat info: Section - Row - SeatNumber
+                    const parts = [
+                      ticket.seat.section,
+                      ticket.seat.row,
+                      ticket.seat.seatNumber,
+                    ].filter(Boolean);
+                    seatDisplay =
+                      parts.length > 0
+                        ? parts.join(" - ")
+                        : "General admission";
+                  }
+                  // else: seatDisplay already set to "General admission"
+                } else if (ticket.seatNumber) {
+                  seatDisplay = ticket.seatNumber;
+                }
+                // else: seatDisplay already set to "General admission"
                 const purchaseDate = ticket.purchaseDate;
 
                 return (
@@ -271,7 +292,7 @@ export default function Tickets() {
                     )}
                     <TableCell className="font-medium">{eventName}</TableCell>
                     <TableCell>{ticketTypeName}</TableCell>
-                    <TableCell>{seatNumber || "-"}</TableCell>
+                    <TableCell>{seatDisplay}</TableCell>
                     <TableCell>
                       <span
                         className={`px-2 py-1 rounded text-xs font-medium ${getStatusColor(
@@ -407,13 +428,26 @@ export default function Tickets() {
                   </p>
                 </div>
                 <div>
-                  <Label className="text-muted-foreground">Seat Number</Label>
+                  <Label className="text-muted-foreground">
+                    Seat Information
+                  </Label>
                   <p>
-                    {"seat" in selectedTicket && selectedTicket.seat
-                      ? `${selectedTicket.seat.section} - ${selectedTicket.seat.row} - ${selectedTicket.seat.seatNumber}`
-                      : "seatNumber" in selectedTicket
-                      ? selectedTicket.seatNumber || "-"
-                      : "-"}
+                    {"seat" in selectedTicket && selectedTicket.seat ? (
+                      <span>
+                        {selectedTicket.seat.section &&
+                          `${selectedTicket.seat.section} - `}
+                        {selectedTicket.seat.row &&
+                          `${selectedTicket.seat.row} - `}
+                        {selectedTicket.seat.seatNumber}
+                      </span>
+                    ) : "seatNumber" in selectedTicket &&
+                      selectedTicket.seatNumber ? (
+                      selectedTicket.seatNumber
+                    ) : (
+                      <span className="text-muted-foreground italic">
+                        General admission / No seat assigned
+                      </span>
+                    )}
                   </p>
                 </div>
                 <div>
