@@ -1,37 +1,47 @@
 import 'package:ves_event_booking/models/category/category_model.dart';
 import 'package:ves_event_booking/models/city/city_model.dart';
 import 'package:ves_event_booking/models/ticket/ticket_type_model.dart';
-import 'package:ves_event_booking/models/venue/venue_model.dart';
+import 'package:ves_event_booking/models/venue/venue_seat_map_model.dart';
 
 class EventModel {
   final String id;
   final String name;
   final String slug;
-  final String description;
+  final String? description;
   final String? longDescription;
-  final String thumbnail;
-  final List<String> images;
+  final String? thumbnail;
+  final List<String>? images;
+
   final DateTime startDate;
   final DateTime endDate;
-  final CategoryModel category;
-  final CityModel city;
-  final VenueModel? venue;
-  final String venueId;
-  final String venueName;
-  final String venueAddress;
-  final String currency;
-  final bool isTrending;
-  final String organizerId;
-  final String organizerName;
-  final String organizerLogo;
+
+  final CategoryModel? category;
+  final CityModel? city;
+
+  final String? venueId;
+  final VenueSeatMapModel? venue;
+  final String? venueName;
+  final String? venueAddress;
+
+  final String? currency;
+  final bool? isTrending;
+
+  final String? organizerId;
+  final String? organizerName;
+  final String? organizerLogo;
+
   final String? terms;
   final String? cancellationPolicy;
-  final List<String> tags;
-  final List<TicketTypeModel> ticketTypes;
-  final double minPrice;
-  final double maxPrice;
-  final int availableTickets;
-  final bool isFavorite;
+
+  final List<String>? tags;
+  final List<TicketTypeModel>? ticketTypes;
+
+  final double? minPrice;
+  final double? maxPrice;
+  final int? availableTickets;
+
+  final bool? isFavorite;
+
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -39,38 +49,36 @@ class EventModel {
     required this.id,
     required this.name,
     required this.slug,
-    required this.description,
+    this.description,
     this.longDescription,
-    required this.thumbnail,
-    required this.images,
+    this.thumbnail,
+    this.images,
     required this.startDate,
     required this.endDate,
-    required this.category,
-    required this.city,
+    this.category,
+    this.city,
+    this.venueId,
     this.venue,
-    required this.venueId,
-    required this.venueName,
-    required this.venueAddress,
-    required this.currency,
-    required this.isTrending,
-    required this.organizerId,
-    required this.organizerName,
-    required this.organizerLogo,
+    this.venueName,
+    this.venueAddress,
+    this.currency,
+    this.isTrending,
+    this.organizerId,
+    this.organizerName,
+    this.organizerLogo,
     this.terms,
     this.cancellationPolicy,
-    required this.tags,
-    required this.ticketTypes,
-    required this.minPrice,
-    required this.maxPrice,
-    required this.availableTickets,
-    required this.isFavorite,
+    this.tags,
+    this.ticketTypes,
+    this.minPrice,
+    this.maxPrice,
+    this.availableTickets,
+    this.isFavorite,
     this.createdAt,
     this.updatedAt,
   });
 
   factory EventModel.fromJson(Map<String, dynamic> json) {
-    List<TicketTypeModel> temp = [];
-
     return EventModel(
       id: json['id'],
       name: json['name'],
@@ -78,13 +86,17 @@ class EventModel {
       description: json['description'],
       longDescription: json['longDescription'],
       thumbnail: json['thumbnail'],
-      images: List<String>.from(json['images']),
+      images: (json['images'] as List?)?.cast<String>(),
       startDate: DateTime.parse(json['startDate']),
       endDate: DateTime.parse(json['endDate']),
-      category: CategoryModel.fromJson(json['category']),
-      city: CityModel.fromJson(json['city']),
+      category: json['category'] != null
+          ? CategoryModel.fromJson(json['category'])
+          : null,
+      city: json['city'] != null ? CityModel.fromJson(json['city']) : null,
       venueId: json['venueId'],
-      venue: VenueModel.fromJson(json['venue']),
+      venue: json['venue'] != null
+          ? VenueSeatMapModel.fromJson(json['venue'])
+          : null,
       venueName: json['venueName'],
       venueAddress: json['venueAddress'],
       currency: json['currency'],
@@ -94,18 +106,20 @@ class EventModel {
       organizerLogo: json['organizerLogo'],
       terms: json['terms'],
       cancellationPolicy: json['cancellationPolicy'],
-      tags: List<String>.from(json['tags']),
-      ticketTypes: json['ticketTypes'] != null
-          ? (json['ticketTypes'] as List)
-                .map((e) => TicketTypeModel.fromJson(e))
-                .toList()
-          : temp,
-      minPrice: (json['minPrice'] as num).toDouble(),
-      maxPrice: (json['maxPrice'] as num).toDouble(),
+      tags: (json['tags'] as List?)?.cast<String>(),
+      ticketTypes: (json['ticketTypes'] as List?)
+          ?.map((e) => TicketTypeModel.fromJson(e))
+          .toList(),
+      minPrice: (json['minPrice'] as num?)?.toDouble(),
+      maxPrice: (json['maxPrice'] as num?)?.toDouble(),
       availableTickets: json['availableTickets'],
       isFavorite: json['isFavorite'],
-      createdAt: DateTime.parse(json['createdAt']),
-      updatedAt: DateTime.parse(json['updatedAt']),
+      createdAt: json['createdAt'] != null
+          ? DateTime.parse(json['createdAt'])
+          : null,
+      updatedAt: json['updatedAt'] != null
+          ? DateTime.parse(json['updatedAt'])
+          : null,
     );
   }
 }

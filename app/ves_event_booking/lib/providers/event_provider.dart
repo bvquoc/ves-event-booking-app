@@ -17,12 +17,14 @@ class EventProvider extends ChangeNotifier {
   List<EventModel> _events = [];
   List<CategoryModel> _categories = [];
   List<CityModel> _cities = [];
+  EventModel? _event;
 
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
   List<EventModel> get events => _events;
   List<CategoryModel> get categories => _categories;
   List<CityModel> get cities => _cities;
+  EventModel? get event => _event;
 
   Future<void> fetchEvents({
     required PaginationRequest pageable,
@@ -50,6 +52,21 @@ class EventProvider extends ChangeNotifier {
         sortBy: sortBy,
       );
       _events = response.content;
+    } catch (e) {
+      _errorMessage = e.toString();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> fetchEventById(String eventId) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      _event = await _eventService.getEvent(eventId);
     } catch (e) {
       _errorMessage = e.toString();
     } finally {

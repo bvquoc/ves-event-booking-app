@@ -84,18 +84,18 @@ class _ExhibitionBookingScreenState extends State<ExhibitionBookingScreen> {
                 const SizedBox(height: 12),
 
                 /// Description
-                Text(ticket.description),
+                Text(ticket.description ?? 'Không có mô tả'),
 
                 const SizedBox(height: 12),
 
                 /// Benefits
-                if (ticket.benefits.isNotEmpty) ...[
+                if (ticket.benefits != null && ticket.benefits!.isNotEmpty) ...[
                   const Text(
                     'Quyền lợi:',
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 6),
-                  ...ticket.benefits.map(
+                  ...ticket.benefits!.map(
                     (b) => Row(
                       children: [
                         const Icon(Icons.check, size: 16, color: Colors.green),
@@ -312,7 +312,7 @@ class _ExhibitionBookingScreenState extends State<ExhibitionBookingScreen> {
                           padding: const EdgeInsets.all(12),
                           child: TicketCard(
                             title: ticket.name,
-                            description: ticket.description,
+                            description: ticket.description ?? '',
                             price: ticket.price,
                             quantity: quantity,
                             onAdd: () {

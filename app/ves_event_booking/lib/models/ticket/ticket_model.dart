@@ -1,79 +1,97 @@
 class TicketModel {
   final String id;
+
+  // Event info
   final String eventId;
   final String eventName;
-  final String eventThumbnail;
+  final String? eventDescription;
+  final String? eventThumbnail;
   final DateTime eventStartDate;
+  final DateTime? eventEndDate;
+
+  // Venue info
   final String venueName;
+  final String? venueAddress;
+
+  // Ticket type
+  final String? ticketTypeId;
   final String ticketTypeName;
+  final String? ticketTypeDescription;
+  final double? ticketTypePrice;
+
+  // Seat & QR
   final String? seatNumber;
-  final String status;
   final String qrCode;
+  final String? qrCodeImage;
+
+  // Status & lifecycle
+  final String status; // ACTIVE, USED, CANCELLED
   final DateTime purchaseDate;
+  final DateTime? checkedInAt;
+
+  // Cancellation & refund
+  final String? cancellationReason;
+  final double? refundAmount;
+  final String? refundStatus;
+  final DateTime? cancelledAt;
 
   TicketModel({
     required this.id,
     required this.eventId,
     required this.eventName,
-    required this.eventThumbnail,
+    this.eventDescription,
+    this.eventThumbnail,
     required this.eventStartDate,
+    this.eventEndDate,
     required this.venueName,
+    this.venueAddress,
+    this.ticketTypeId,
     required this.ticketTypeName,
+    this.ticketTypeDescription,
+    this.ticketTypePrice,
     this.seatNumber,
-    required this.status,
     required this.qrCode,
+    this.qrCodeImage,
+    required this.status,
     required this.purchaseDate,
+    this.checkedInAt,
+    this.cancellationReason,
+    this.refundAmount,
+    this.refundStatus,
+    this.cancelledAt,
   });
 
   factory TicketModel.fromJson(Map<String, dynamic> json) {
     return TicketModel(
-      id: json['id'] as String,
-      eventId: json['eventId'] as String,
-      eventName: json['eventName'] as String,
-      eventThumbnail: json['eventThumbnail'] as String,
+      id: json['id'],
+      eventId: json['eventId'],
+      eventName: json['eventName'],
+      eventDescription: json['eventDescription'],
+      eventThumbnail: json['eventThumbnail'],
       eventStartDate: DateTime.parse(json['eventStartDate']),
-      venueName: json['venueName'] as String,
-      ticketTypeName: json['ticketTypeName'] as String,
-      seatNumber: json['seatNumber'], // nullable
-      status: json['status'] as String,
-      qrCode: json['qrCode'] as String,
+      eventEndDate: json['eventEndDate'] != null
+          ? DateTime.parse(json['eventEndDate'])
+          : null,
+      venueName: json['venueName'],
+      venueAddress: json['venueAddress'],
+      ticketTypeId: json['ticketTypeId'],
+      ticketTypeName: json['ticketTypeName'],
+      ticketTypeDescription: json['ticketTypeDescription'],
+      ticketTypePrice: (json['ticketTypePrice'] as num?)?.toDouble(),
+      seatNumber: json['seatNumber'],
+      qrCode: json['qrCode'],
+      qrCodeImage: json['qrCodeImage'],
+      status: json['status'],
       purchaseDate: DateTime.parse(json['purchaseDate']),
-    );
-  }
-}
-
-// 2. Model cho Đơn hàng sau khi mua (Order/Purchase Response)
-class OrderModel {
-  final String orderId;
-  final String status; // pending, completed
-  final String eventId;
-  final String eventName;
-  final String paymentUrl;
-  final double total;
-  final String currency;
-  final DateTime expiresAt;
-
-  OrderModel({
-    required this.orderId,
-    required this.status,
-    required this.eventId,
-    required this.eventName,
-    required this.paymentUrl,
-    required this.total,
-    required this.currency,
-    required this.expiresAt,
-  });
-
-  factory OrderModel.fromJson(Map<String, dynamic> json) {
-    return OrderModel(
-      orderId: json['orderId'] as String,
-      status: json['status'] as String,
-      eventId: json['eventId'] as String,
-      eventName: json['eventName'] as String,
-      paymentUrl: json['paymentUrl'] as String,
-      total: (json['total'] as num).toDouble(),
-      currency: json['currency'] as String,
-      expiresAt: DateTime.parse(json['expiresAt']),
+      checkedInAt: json['checkedInAt'] != null
+          ? DateTime.parse(json['checkedInAt'])
+          : null,
+      cancellationReason: json['cancellationReason'],
+      refundAmount: (json['refundAmount'] as num?)?.toDouble(),
+      refundStatus: json['refundStatus'],
+      cancelledAt: json['cancelledAt'] != null
+          ? DateTime.parse(json['cancelledAt'])
+          : null,
     );
   }
 }

@@ -46,7 +46,7 @@ class CancelledTicketCard extends StatelessWidget {
         child: Stack(
           children: [
             Image.network(
-              ticket.eventThumbnail,
+              ticket.eventThumbnail ?? '',
               height: 180,
               width: double.infinity,
               fit: BoxFit.cover,

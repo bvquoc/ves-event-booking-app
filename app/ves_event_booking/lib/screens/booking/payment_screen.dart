@@ -41,11 +41,13 @@ class _PaymentScreenState extends State<PaymentScreen> {
     });
 
     _ticketItems = widget.booking.items.entries.map((entry) {
-      final TicketTypeModel ticket = widget.event.ticketTypes.firstWhere(
-        (t) => t.id == entry.key,
-        orElse: () =>
-            throw Exception('TicketType not found for id=${entry.key}'),
-      );
+      final TicketTypeModel ticket = widget.event.ticketTypes != null
+          ? widget.event.ticketTypes!.firstWhere(
+              (t) => t.id == entry.key,
+              orElse: () =>
+                  throw Exception('TicketType not found for id=${entry.key}'),
+            )
+          : throw Exception('No ticket types available for this event');
 
       return _PaymentTicketItem(
         id: ticket.id,
@@ -124,7 +126,10 @@ class _PaymentScreenState extends State<PaymentScreen> {
             ),
           ),
           const SizedBox(height: 8),
-          _iconText(Icons.location_on, widget.event.venueName),
+          _iconText(
+            Icons.location_on,
+            widget.event.venueName ?? 'Địa điểm chưa xác định',
+          ),
           _iconText(Icons.calendar_today, '${widget.event.startDate}'),
         ],
       ),

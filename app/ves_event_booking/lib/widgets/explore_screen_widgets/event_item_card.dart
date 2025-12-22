@@ -49,7 +49,7 @@ class EventItemCard extends StatelessWidget {
                   child: AspectRatio(
                     aspectRatio: 1.4, // Tỉ lệ khung hình
                     child: Image.network(
-                      event.thumbnail,
+                      event.thumbnail ?? '',
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stackTrace) =>
                           Container(color: Colors.grey[300]),
@@ -74,7 +74,9 @@ class EventItemCard extends StatelessWidget {
                       ],
                     ),
                     child: Icon(
-                      event.isFavorite ? Icons.favorite : Icons.favorite_border,
+                      event.isFavorite != null && event.isFavorite == true
+                          ? Icons.favorite
+                          : Icons.favorite_border,
                       size: 18,
                       color: Colors.red,
                     ),

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:ves_event_booking/data/home_mock.dart';
+import 'package:ves_event_booking/models/utils/pagination_request.dart';
 import 'package:ves_event_booking/providers/home_provider.dart';
 import 'package:ves_event_booking/screens/explore/explore_screen.dart';
 import 'package:ves_event_booking/screens/notifications/notifications_screen.dart';
@@ -26,6 +26,9 @@ class HomeScreenState extends State<HomeScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       context.read<HomeProvider>().fetchMyVouchers();
+      context.read<HomeProvider>().fetchEvents(
+        pageable: PaginationRequest(page: 0, size: 50),
+      );
     });
   }
 
@@ -90,13 +93,33 @@ class HomeScreenState extends State<HomeScreen> {
                     ),
                     const SizedBox(height: 20),
 
-                    EventSection(title: 'Buổi hòa nhạc', events: []),
+                    EventSection(
+                      title: 'Buổi hòa nhạc',
+                      events: provider.events
+                          .where((e) => e.category?.slug == 'buoi-hoa-nhac')
+                          .toList(),
+                    ),
                     const SizedBox(height: 20),
-                    EventSection(title: 'Sân khấu kịch', events: []),
+                    EventSection(
+                      title: 'Sân khấu kịch',
+                      events: provider.events
+                          .where((e) => e.category?.slug == 'san-khau-kich')
+                          .toList(),
+                    ),
                     const SizedBox(height: 20),
-                    EventSection(title: 'Thể thao', events: []),
+                    EventSection(
+                      title: 'Thể thao',
+                      events: provider.events
+                          .where((e) => e.category?.slug == 'the-thao')
+                          .toList(),
+                    ),
                     const SizedBox(height: 20),
-                    EventSection(title: 'Triển lãm', events: []),
+                    EventSection(
+                      title: 'Triển lãm',
+                      events: provider.events
+                          .where((e) => e.category?.slug == 'trien-lam')
+                          .toList(),
+                    ),
                     const SizedBox(height: 20),
                   ],
                 ),

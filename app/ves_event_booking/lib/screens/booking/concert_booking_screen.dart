@@ -21,9 +21,11 @@ class _ConcertBookingScreenState extends State<ConcertBookingScreen> {
   void initState() {
     super.initState();
 
-    zones = widget.event.ticketTypes.map((t) {
-      return _ZoneTicket(id: t.id, name: t.name, price: t.price.toInt());
-    }).toList();
+    zones = widget.event.ticketTypes != null
+        ? widget.event.ticketTypes!.map((t) {
+            return _ZoneTicket(id: t.id, name: t.name, price: t.price.toInt());
+          }).toList()
+        : [];
   }
 
   int get totalPrice {

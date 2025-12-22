@@ -36,14 +36,15 @@ class EventService {
   }
 
   // GET
-  Future<ApiResponse<EventModel>> getEvent(String eventId) async {
+  Future<EventModel> getEvent(String eventId) async {
     try {
       final res = await _dio.get('/events/$eventId');
 
-      return ApiResponse.fromJson(
+      final apiResponse = ApiResponse.fromJson(
         res.data,
         (json) => EventModel.fromJson(json),
       );
+      return apiResponse.result;
     } on DioException catch (e) {
       throw Exception(e.response?.data?['message'] ?? 'Failed to get event');
     }

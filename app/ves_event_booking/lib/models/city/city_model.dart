@@ -8,14 +8,14 @@ class CityModel {
     required this.id,
     required this.name,
     required this.slug,
-    required this.eventCount,
+    this.eventCount,
   });
 
   factory CityModel.fromJson(Map<String, dynamic> json) {
     return CityModel(
-      id: json['id'] as String,
-      name: json['name'] as String,
-      slug: json['slug'] as String,
+      id: json['id'],
+      name: json['name'],
+      slug: json['slug'],
       eventCount: json['eventCount'],
     );
   }

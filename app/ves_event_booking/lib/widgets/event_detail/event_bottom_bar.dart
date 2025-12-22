@@ -10,7 +10,6 @@ class EventBottomBar extends StatelessWidget {
   const EventBottomBar({super.key, required this.event});
 
   void onBookingPressed(BuildContext context) {
-    print(event.category.name);
     final String i = '0';
     switch (i) {
       case '0': //Triển lãm
