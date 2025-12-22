@@ -941,6 +941,12 @@ public class ApplicationInitConfig {
         if (orderRepository.count() > 0) return;
 
         LocalDateTime now = LocalDateTime.now();
+        
+        // Helper method to get available seats for an event
+        java.util.function.Function<Event, List<Seat>> getAvailableSeats = (event) -> {
+            if (event.getVenue() == null) return new ArrayList<>();
+            return seatRepository.findByVenueId(event.getVenue().getId());
+        };
 
         User regularUser = userRepository.findByUsername("regularuser").orElseThrow();
         User vipUser = userRepository.findByUsername("vipuser").orElseThrow();
@@ -980,12 +986,23 @@ public class ApplicationInitConfig {
                 .completedAt(now.minusDays(20))
                 .build());
 
+        // Get seats for pastConcert if ticket type requires seat selection
+        List<Seat> pastConcertSeats = pastConcertVIP.getRequiresSeatSelection() 
+                ? getAvailableSeats.apply(pastConcert) 
+                : new ArrayList<>();
+        int seatIndex = 0; // Track seat index to avoid conflicts
+        
         for (int i = 0; i < 2; i++) {
+            Seat assignedSeat = pastConcertVIP.getRequiresSeatSelection() && !pastConcertSeats.isEmpty()
+                    ? pastConcertSeats.get(seatIndex++ % pastConcertSeats.size())
+                    : null;
+            
             ticketRepository.save(Ticket.builder()
                     .order(regularOrder1)
                     .user(regularUser)
                     .event(pastConcert)
                     .ticketType(pastConcertVIP)
+                    .seat(assignedSeat)
                     .qrCode("QR-PAST-" + qrCounter.incrementAndGet())
                     .qrCodeImage("https://example.com/qr/past-" + qrCounter.get() + ".png")
                     .status(TicketStatus.USED)
@@ -1014,12 +1031,23 @@ public class ApplicationInitConfig {
                 .completedAt(now.minusDays(2))
                 .build());
 
+        // Get seats for soonExhibit if ticket type requires seat selection
+        List<Seat> soonExhibitSeats = soonExhibitTicket.getRequiresSeatSelection()
+                ? getAvailableSeats.apply(soonExhibit)
+                : new ArrayList<>();
+        int soonExhibitSeatIndex = 0;
+        
         for (int i = 0; i < 2; i++) {
+            Seat assignedSeat = soonExhibitTicket.getRequiresSeatSelection() && !soonExhibitSeats.isEmpty()
+                    ? soonExhibitSeats.get(soonExhibitSeatIndex++ % soonExhibitSeats.size())
+                    : null;
+            
             ticketRepository.save(Ticket.builder()
                     .order(regularOrder2)
                     .user(regularUser)
                     .event(soonExhibit)
                     .ticketType(soonExhibitTicket)
+                    .seat(assignedSeat)
                     .qrCode("QR-SOON-" + qrCounter.incrementAndGet())
                     .qrCodeImage("https://example.com/qr/soon-" + qrCounter.get() + ".png")
                     .status(TicketStatus.ACTIVE)
@@ -1048,12 +1076,23 @@ public class ApplicationInitConfig {
                 .completedAt(now.minusDays(10))
                 .build());
 
+        // Get seats for pastMatch if ticket type requires seat selection
+        List<Seat> pastMatchSeats = pastMatchTribune.getRequiresSeatSelection()
+                ? getAvailableSeats.apply(pastMatch)
+                : new ArrayList<>();
+        int pastMatchSeatIndex = 0;
+        
         for (int i = 0; i < 4; i++) {
+            Seat assignedSeat = pastMatchTribune.getRequiresSeatSelection() && !pastMatchSeats.isEmpty()
+                    ? pastMatchSeats.get(pastMatchSeatIndex++ % pastMatchSeats.size())
+                    : null;
+            
             ticketRepository.save(Ticket.builder()
                     .order(vipOrder1)
                     .user(vipUser)
                     .event(pastMatch)
                     .ticketType(pastMatchTribune)
+                    .seat(assignedSeat)
                     .qrCode("QR-VIP-PAST-" + qrCounter.incrementAndGet())
                     .status(TicketStatus.USED)
                     .purchaseDate(now.minusDays(10))
@@ -1079,12 +1118,23 @@ public class ApplicationInitConfig {
                 .completedAt(now.minusDays(5))
                 .build());
 
+        // Get seats for futureEvent if ticket type requires seat selection
+        List<Seat> futureEventSeats = futureVIP.getRequiresSeatSelection()
+                ? getAvailableSeats.apply(futureEvent)
+                : new ArrayList<>();
+        int futureEventSeatIndex = 0;
+        
         for (int i = 0; i < 4; i++) {
+            Seat assignedSeat = futureVIP.getRequiresSeatSelection() && !futureEventSeats.isEmpty()
+                    ? futureEventSeats.get(futureEventSeatIndex++ % futureEventSeats.size())
+                    : null;
+            
             ticketRepository.save(Ticket.builder()
                     .order(vipOrder2)
                     .user(vipUser)
                     .event(futureEvent)
                     .ticketType(futureVIP)
+                    .seat(assignedSeat)
                     .qrCode("QR-VIP-FUTURE-" + qrCounter.incrementAndGet())
                     .status(TicketStatus.ACTIVE)
                     .purchaseDate(now.minusDays(5))
@@ -1109,12 +1159,23 @@ public class ApplicationInitConfig {
                 .completedAt(now.minusDays(3))
                 .build());
 
+        // Get seats for soonConcert if ticket type requires seat selection
+        List<Seat> soonConcertSeats = monsoonVIP.getRequiresSeatSelection()
+                ? getAvailableSeats.apply(soonConcert)
+                : new ArrayList<>();
+        int soonConcertSeatIndex = 0;
+        
         for (int i = 0; i < 2; i++) {
+            Seat assignedSeat = monsoonVIP.getRequiresSeatSelection() && !soonConcertSeats.isEmpty()
+                    ? soonConcertSeats.get(soonConcertSeatIndex++ % soonConcertSeats.size())
+                    : null;
+            
             ticketRepository.save(Ticket.builder()
                     .order(vipOrder3)
                     .user(vipUser)
                     .event(soonConcert)
                     .ticketType(monsoonVIP)
+                    .seat(assignedSeat)
                     .qrCode("QR-VIP-MONSOON-" + qrCounter.incrementAndGet())
                     .status(TicketStatus.ACTIVE)
                     .purchaseDate(now.minusDays(3))
@@ -1173,11 +1234,18 @@ public class ApplicationInitConfig {
                 .completedAt(now.minusDays(25))
                 .build());
 
+        // Get seat for cancelled order if ticket type requires seat selection
+        // Use a different seat index to avoid conflicts with regularOrder1
+        Seat cancelledSeat = pastConcertVIP.getRequiresSeatSelection() && !pastConcertSeats.isEmpty()
+                ? pastConcertSeats.get(2 % pastConcertSeats.size()) // Use seat index 2 (after regularOrder1's 2 seats)
+                : null;
+        
         ticketRepository.save(Ticket.builder()
                 .order(cancelledOrder)
                 .user(regularUser)
                 .event(pastConcert)
                 .ticketType(pastConcertVIP)
+                .seat(cancelledSeat)
                 .qrCode("QR-CANCELLED-" + qrCounter.incrementAndGet())
                 .status(TicketStatus.REFUNDED)
                 .purchaseDate(now.minusDays(25))
