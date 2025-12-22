@@ -4,18 +4,20 @@ import com.uit.vesbookingapi.dto.request.CancelTicketRequest;
 import com.uit.vesbookingapi.dto.response.CancellationResponse;
 import com.uit.vesbookingapi.dto.response.TicketDetailResponse;
 import com.uit.vesbookingapi.dto.response.TicketResponse;
+import com.uit.vesbookingapi.dto.zalopay.ZaloPayRefundResponse;
+import com.uit.vesbookingapi.entity.Order;
+import com.uit.vesbookingapi.entity.Refund;
 import com.uit.vesbookingapi.entity.Ticket;
 import com.uit.vesbookingapi.enums.RefundStatus;
 import com.uit.vesbookingapi.enums.TicketStatus;
 import com.uit.vesbookingapi.exception.AppException;
 import com.uit.vesbookingapi.exception.ErrorCode;
 import com.uit.vesbookingapi.mapper.TicketMapper;
-import com.uit.vesbookingapi.repository.TicketRepository;
-import com.uit.vesbookingapi.repository.TicketTypeRepository;
-import com.uit.vesbookingapi.repository.UserRepository;
+import com.uit.vesbookingapi.repository.*;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
@@ -28,12 +30,16 @@ import java.time.LocalDateTime;
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+@Slf4j
 public class TicketService {
     TicketRepository ticketRepository;
     TicketTypeRepository ticketTypeRepository;
     TicketMapper ticketMapper;
     CancellationService cancellationService;
     UserRepository userRepository;
+    RefundRepository refundRepository;
+    OrderRepository orderRepository;
+    ZaloPayService zaloPayService;
 
     /**
      * Get user tickets with optional status filter
@@ -104,10 +110,57 @@ public class TicketService {
             ticket.setCancellationReason(request.getReason());
         }
 
-        // 5. Increment ticketType.available atomically
+        // 5. Check if payment was made via ZaloPay
+        Order order = ticket.getOrder();
+        if ("ZALOPAY".equals(order.getPaymentGateway()) &&
+                order.getZpTransId() != null &&
+                refundResult.getRefundAmount() > 0) {
+
+            // Create refund record
+            String mRefundId = generateMRefundId(ticket.getId());
+            Refund refund = Refund.builder()
+                    .ticket(ticket)
+                    .order(order)
+                    .mRefundId(mRefundId)
+                    .zpTransId(order.getZpTransId())
+                    .amount(refundResult.getRefundAmount())
+                    .status(RefundStatus.PENDING)
+                    .build();
+            refund = refundRepository.save(refund);
+
+            // Call ZaloPay refund API
+            try {
+                ZaloPayRefundResponse zpResponse = zaloPayService.refund(refund);
+
+                if (zpResponse.getReturnCode() == 1) {
+                    refund.setStatus(RefundStatus.COMPLETED);
+                    refund.setZpRefundId(String.valueOf(zpResponse.getRefundId()));
+                    ticket.setRefundStatus(RefundStatus.COMPLETED);
+                } else if (zpResponse.getReturnCode() == 2) {
+                    refund.setStatus(RefundStatus.PROCESSING);
+                    ticket.setRefundStatus(RefundStatus.PROCESSING);
+                } else {
+                    refund.setStatus(RefundStatus.FAILED);
+                    refund.setReturnCode(zpResponse.getReturnCode());
+                    refund.setReturnMessage(zpResponse.getReturnMessage());
+                    ticket.setRefundStatus(RefundStatus.FAILED);
+                }
+
+                refundRepository.save(refund);
+
+            } catch (Exception e) {
+                log.error("ZaloPay refund failed: {}", e.getMessage());
+                refund.setStatus(RefundStatus.FAILED);
+                refund.setReturnMessage(e.getMessage());
+                refundRepository.save(refund);
+                ticket.setRefundStatus(RefundStatus.PENDING);  // Will retry
+            }
+        }
+
+        // 6. Increment ticketType.available atomically
         ticketTypeRepository.incrementAvailable(ticket.getTicketType().getId(), 1);
 
-        // 6. Release seat (if seat was assigned)
+        // 7. Release seat (if seat was assigned)
         if (ticket.getSeat() != null) {
             ticket.setSeat(null);
         }
@@ -115,10 +168,10 @@ public class TicketService {
         // Save ticket changes
         ticket = ticketRepository.save(ticket);
 
-        // 7. Create notification (TODO: Phase 8 - Notification System)
+        // 8. Create notification (TODO: Phase 8 - Notification System)
         // notificationService.createCancellationNotification(ticket);
 
-        // 8. Return cancellation response
+        // 9. Return cancellation response
         return CancellationResponse.builder()
                 .ticketId(ticket.getId())
                 .status(ticket.getStatus())
@@ -128,6 +181,14 @@ public class TicketService {
                 .cancelledAt(ticket.getCancelledAt())
                 .message("Ticket cancelled successfully. Refund will be processed within 3-5 business days.")
                 .build();
+    }
+
+    /**
+     * Generate idempotent m_refund_id: YYMMDD_ticketId
+     */
+    private String generateMRefundId(String ticketId) {
+        String datePart = LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyMMdd"));
+        return datePart + "_" + ticketId.substring(0, Math.min(8, ticketId.length()));
     }
 
     /**

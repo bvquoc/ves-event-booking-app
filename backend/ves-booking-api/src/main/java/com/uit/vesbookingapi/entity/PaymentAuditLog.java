@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "payment_audit_logs", indexes = {
         @Index(name = "idx_pal_order", columnList = "order_id"),
-        @Index(name = "idx_pal_created", columnList = "createdAt"),
+        @Index(name = "idx_pal_created", columnList = "created_at"),
         @Index(name = "idx_pal_action", columnList = "action")
 })
 public class PaymentAuditLog {
@@ -26,11 +26,13 @@ public class PaymentAuditLog {
     @Column(name = "order_id")
     String orderId;
 
+    @Column(name = "app_trans_id")
     String appTransId;
 
     @Column(nullable = false)
     String action;  // CREATE_ORDER, CALLBACK_RECEIVED, QUERY_STATUS, REFUND_INITIATED
 
+    @Column(name = "ip_address")
     String ipAddress;
 
     @Column(columnDefinition = "TEXT")
@@ -39,7 +41,7 @@ public class PaymentAuditLog {
     @Column(length = 500)
     String result;
 
-    @Column(nullable = false)
+    @Column(name = "created_at", nullable = false)
     LocalDateTime createdAt;
 
     @PrePersist

@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 @Table(name = "refunds", indexes = {
         @Index(name = "idx_refund_ticket", columnList = "ticket_id"),
         @Index(name = "idx_refund_status", columnList = "status"),
-        @Index(name = "idx_refund_m_refund_id", columnList = "mRefundId")
+        @Index(name = "idx_refund_m_refund_id", columnList = "m_refund_id")
 })
 public class Refund {
     @Id
@@ -32,9 +32,10 @@ public class Refund {
     @JoinColumn(name = "order_id", nullable = false)
     Order order;
 
-    @Column(unique = true, nullable = false)
+    @Column(name = "m_refund_id", unique = true, nullable = false)
     String mRefundId;  // Idempotent refund ID: YYMMDD_ticketId
 
+    @Column(name = "zp_trans_id")
     String zpTransId;  // Original payment transaction ID
 
     @Column(nullable = false)
@@ -44,16 +45,19 @@ public class Refund {
     @Column(nullable = false)
     RefundStatus status;  // PENDING, PROCESSING, COMPLETED, FAILED
 
+    @Column(name = "return_code")
     Integer returnCode;
 
-    @Column(length = 500)
+    @Column(length = 500, name = "return_message")
     String returnMessage;
 
+    @Column(name = "zp_refund_id")
     String zpRefundId;  // ZaloPay refund transaction ID
 
-    @Column(nullable = false)
+    @Column(name = "created_at", nullable = false)
     LocalDateTime createdAt;
 
+    @Column(name = "processed_at")
     LocalDateTime processedAt;
 
     @PrePersist
