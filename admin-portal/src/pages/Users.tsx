@@ -34,6 +34,8 @@ export default function Users() {
   const [formData, setFormData] = useState({
     username: "",
     password: "",
+    email: "",
+    phone: "",
     firstName: "",
     lastName: "",
     dob: "",
@@ -70,6 +72,8 @@ export default function Users() {
     setFormData({
       username: "",
       password: "",
+      email: "",
+      phone: "",
       firstName: "",
       lastName: "",
       dob: "",
@@ -83,6 +87,8 @@ export default function Users() {
     setFormData({
       username: user.username,
       password: "",
+      email: user.email || "",
+      phone: user.phone || "",
       firstName: user.firstName || "",
       lastName: user.lastName || "",
       dob: user.dob || "",
@@ -96,6 +102,8 @@ export default function Users() {
     try {
       if (editingUser) {
         await userApi.updateUser(editingUser.id, {
+          email: formData.email,
+          phone: formData.phone,
           firstName: formData.firstName,
           lastName: formData.lastName,
           dob: formData.dob || undefined,
@@ -106,6 +114,8 @@ export default function Users() {
         await userApi.createUser({
           username: formData.username,
           password: formData.password,
+          email: formData.email,
+          phone: formData.phone,
           firstName: formData.firstName || undefined,
           lastName: formData.lastName || undefined,
           dob: formData.dob || undefined,
@@ -155,6 +165,8 @@ export default function Users() {
             <TableHeader>
               <TableRow>
                 <TableHead>Username</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Phone</TableHead>
                 <TableHead>First Name</TableHead>
                 <TableHead>Last Name</TableHead>
                 <TableHead>Date of Birth</TableHead>
@@ -166,6 +178,8 @@ export default function Users() {
               {users.map((user) => (
                 <TableRow key={user.id}>
                   <TableCell className="font-medium">{user.username}</TableCell>
+                  <TableCell>{user.email}</TableCell>
+                  <TableCell>{user.phone}</TableCell>
                   <TableCell>{user.firstName}</TableCell>
                   <TableCell>{user.lastName}</TableCell>
                   <TableCell>{user.dob || "-"}</TableCell>
@@ -240,6 +254,30 @@ export default function Users() {
                     setFormData({ ...formData, password: e.target.value })
                   }
                   required={!editingUser}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="email">Email *</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) =>
+                    setFormData({ ...formData, email: e.target.value })
+                  }
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="phone">Phone *</Label>
+                <Input
+                  id="phone"
+                  type="tel"
+                  value={formData.phone}
+                  onChange={(e) =>
+                    setFormData({ ...formData, phone: e.target.value })
+                  }
+                  required
                 />
               </div>
               <div className="space-y-2">

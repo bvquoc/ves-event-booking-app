@@ -17,7 +17,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Configuration
@@ -79,6 +82,8 @@ public class ApplicationInitConfig {
                 User adminUser = User.builder()
                         .username(ADMIN_USER_NAME)
                         .password(passwordEncoder.encode(ADMIN_PASSWORD))
+                        .email("admin@vesbooking.com")
+                        .phone("0900000001")
                         .roles(adminRoles)
                         .build();
 
@@ -92,6 +97,8 @@ public class ApplicationInitConfig {
                 User normalUser = User.builder()
                         .username(NORMAL_USER_NAME)
                         .password(passwordEncoder.encode(NORMAL_PASSWORD))
+                        .email("user1@vesbooking.com")
+                        .phone("0900000002")
                         .roles(normalUserRoles)
                         .build();
 
@@ -104,6 +111,8 @@ public class ApplicationInitConfig {
                 User newUser = User.builder()
                         .username("newuser")
                         .password(passwordEncoder.encode("123456"))
+                        .email("newuser@example.com")
+                        .phone("0900000003")
                         .firstName("Minh")
                         .lastName("Nguyen")
                         .dob(LocalDate.of(2000, 5, 15))
@@ -116,6 +125,8 @@ public class ApplicationInitConfig {
                 User regularUser = User.builder()
                         .username("regularuser")
                         .password(passwordEncoder.encode("123456"))
+                        .email("regularuser@example.com")
+                        .phone("0900000004")
                         .firstName("Lan")
                         .lastName("Tran")
                         .dob(LocalDate.of(1995, 8, 22))
@@ -128,6 +139,8 @@ public class ApplicationInitConfig {
                 User vipUser = User.builder()
                         .username("vipuser")
                         .password(passwordEncoder.encode("123456"))
+                        .email("vipuser@example.com")
+                        .phone("0900000005")
                         .firstName("Hung")
                         .lastName("Le")
                         .dob(LocalDate.of(1988, 3, 10))

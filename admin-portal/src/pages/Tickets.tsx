@@ -4,6 +4,7 @@ import {
   adminTicketApi,
   TicketResponse,
   TicketDetailResponse,
+  AdminTicketResponse,
 } from "@/lib/api";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -32,7 +33,9 @@ import { usePermissions } from "@/hooks/usePermissions";
 
 export default function Tickets() {
   const { isAdmin } = usePermissions();
-  const [tickets, setTickets] = useState<TicketResponse[]>([]);
+  const [tickets, setTickets] = useState<
+    (TicketResponse | AdminTicketResponse)[]
+  >([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
@@ -44,10 +47,12 @@ export default function Tickets() {
   const [eventIdFilter, setEventIdFilter] = useState("");
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
-  const [selectedTicket, setSelectedTicket] =
-    useState<TicketDetailResponse | null>(null);
-  const [cancellingTicket, setCancellingTicket] =
-    useState<TicketResponse | null>(null);
+  const [selectedTicket, setSelectedTicket] = useState<
+    TicketDetailResponse | AdminTicketResponse | null
+  >(null);
+  const [cancellingTicket, setCancellingTicket] = useState<
+    TicketResponse | AdminTicketResponse | null
+  >(null);
   const [cancelReason, setCancelReason] = useState("");
 
   const loadTickets = async () => {
@@ -108,7 +113,7 @@ export default function Tickets() {
     }
   };
 
-  const handleCancel = (ticket: TicketResponse) => {
+  const handleCancel = (ticket: TicketResponse | AdminTicketResponse) => {
     if (ticket.status !== "ACTIVE") {
       alert("Only active tickets can be cancelled");
       return;
@@ -121,7 +126,8 @@ export default function Tickets() {
   const confirmCancel = async () => {
     if (!cancellingTicket) return;
     try {
-      await ticketApi.cancelTicket(cancellingTicket.id, {
+      const ticketId = cancellingTicket.id;
+      await ticketApi.cancelTicket(ticketId, {
         reason: cancelReason || undefined,
       });
       setCancelDialogOpen(false);
@@ -222,6 +228,7 @@ export default function Tickets() {
           <Table>
             <TableHeader>
               <TableRow>
+                {isAdmin() && <TableHead>User</TableHead>}
                 <TableHead>Event</TableHead>
                 <TableHead>Ticket Type</TableHead>
                 <TableHead>Seat</TableHead>
@@ -231,47 +238,75 @@ export default function Tickets() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {tickets.map((ticket) => (
-                <TableRow key={ticket.id}>
-                  <TableCell className="font-medium">
-                    {ticket.eventName}
-                  </TableCell>
-                  <TableCell>{ticket.ticketTypeName}</TableCell>
-                  <TableCell>{ticket.seatNumber || "-"}</TableCell>
-                  <TableCell>
-                    <span
-                      className={`px-2 py-1 rounded text-xs font-medium ${getStatusColor(
-                        ticket.status
-                      )}`}
-                    >
-                      {ticket.status}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    {format(new Date(ticket.purchaseDate), "MMM dd, yyyy")}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleView(ticket.id)}
+              {tickets.map((ticket) => {
+                const isAdminTicket = "user" in ticket;
+                const eventName = isAdminTicket
+                  ? ticket.event.name
+                  : ticket.eventName;
+                const ticketTypeName = isAdminTicket
+                  ? ticket.ticketType.name
+                  : ticket.ticketTypeName;
+                const seatNumber = isAdminTicket
+                  ? ticket.seat?.seatNumber
+                  : ticket.seatNumber;
+                const purchaseDate = ticket.purchaseDate;
+
+                return (
+                  <TableRow key={ticket.id}>
+                    {isAdmin() && (
+                      <TableCell>
+                        {isAdminTicket ? (
+                          <div>
+                            <div className="font-medium">
+                              {ticket.user.fullName || ticket.user.username}
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              {ticket.user.email}
+                            </div>
+                          </div>
+                        ) : (
+                          "-"
+                        )}
+                      </TableCell>
+                    )}
+                    <TableCell className="font-medium">{eventName}</TableCell>
+                    <TableCell>{ticketTypeName}</TableCell>
+                    <TableCell>{seatNumber || "-"}</TableCell>
+                    <TableCell>
+                      <span
+                        className={`px-2 py-1 rounded text-xs font-medium ${getStatusColor(
+                          ticket.status
+                        )}`}
                       >
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      {ticket.status === "ACTIVE" && isAdmin() && (
+                        {ticket.status}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      {format(new Date(purchaseDate), "MMM dd, yyyy")}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => handleCancel(ticket)}
+                          onClick={() => handleView(ticket.id)}
                         >
-                          <X className="h-4 w-4 text-destructive" />
+                          <Eye className="h-4 w-4" />
                         </Button>
-                      )}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
+                        {ticket.status === "ACTIVE" && isAdmin() && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleCancel(ticket)}
+                          >
+                            <X className="h-4 w-4 text-destructive" />
+                          </Button>
+                        )}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </CardContent>
@@ -302,10 +337,42 @@ export default function Tickets() {
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Ticket Details</DialogTitle>
-            <DialogDescription>{selectedTicket?.eventName}</DialogDescription>
+            <DialogDescription>
+              {selectedTicket && "event" in selectedTicket
+                ? selectedTicket.event.name
+                : selectedTicket?.eventName}
+            </DialogDescription>
           </DialogHeader>
           {selectedTicket && (
             <div className="space-y-4">
+              {isAdmin() && "user" in selectedTicket && (
+                <div className="border-b pb-4">
+                  <h3 className="font-semibold mb-2">User Information</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label className="text-muted-foreground">Name</Label>
+                      <p>
+                        {selectedTicket.user.fullName ||
+                          selectedTicket.user.username}
+                      </p>
+                    </div>
+                    <div>
+                      <Label className="text-muted-foreground">Email</Label>
+                      <p>{selectedTicket.user.email}</p>
+                    </div>
+                    <div>
+                      <Label className="text-muted-foreground">Phone</Label>
+                      <p>{selectedTicket.user.phone}</p>
+                    </div>
+                    <div>
+                      <Label className="text-muted-foreground">User ID</Label>
+                      <p className="font-mono text-xs">
+                        {selectedTicket.user.id}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label className="text-muted-foreground">Ticket ID</Label>
@@ -325,83 +392,149 @@ export default function Tickets() {
                 </div>
                 <div>
                   <Label className="text-muted-foreground">Ticket Type</Label>
-                  <p>{selectedTicket.ticketTypeName}</p>
+                  <p>
+                    {"ticketType" in selectedTicket
+                      ? selectedTicket.ticketType.name
+                      : selectedTicket.ticketTypeName}
+                  </p>
                 </div>
                 <div>
                   <Label className="text-muted-foreground">Price</Label>
-                  <p>{selectedTicket.ticketTypePrice}</p>
+                  <p>
+                    {"ticketType" in selectedTicket
+                      ? `${selectedTicket.ticketType.price} ${selectedTicket.ticketType.currency}`
+                      : selectedTicket.ticketTypePrice}
+                  </p>
                 </div>
                 <div>
                   <Label className="text-muted-foreground">Seat Number</Label>
-                  <p>{selectedTicket.seatNumber || "-"}</p>
+                  <p>
+                    {"seat" in selectedTicket && selectedTicket.seat
+                      ? `${selectedTicket.seat.section} - ${selectedTicket.seat.row} - ${selectedTicket.seat.seatNumber}`
+                      : "seatNumber" in selectedTicket
+                      ? selectedTicket.seatNumber || "-"
+                      : "-"}
+                  </p>
                 </div>
                 <div>
                   <Label className="text-muted-foreground">Venue</Label>
-                  <p>{selectedTicket.venueName || "-"}</p>
+                  <p>
+                    {"event" in selectedTicket
+                      ? selectedTicket.event.venueName || "-"
+                      : "venueName" in selectedTicket
+                      ? selectedTicket.venueName || "-"
+                      : "-"}
+                  </p>
                 </div>
                 <div>
                   <Label className="text-muted-foreground">Event Start</Label>
                   <p>
-                    {format(new Date(selectedTicket.eventStartDate), "PPpp")}
+                    {format(
+                      new Date(
+                        "event" in selectedTicket
+                          ? selectedTicket.event.startDate
+                          : selectedTicket.eventStartDate
+                      ),
+                      "PPpp"
+                    )}
                   </p>
                 </div>
                 <div>
                   <Label className="text-muted-foreground">Purchase Date</Label>
                   <p>{format(new Date(selectedTicket.purchaseDate), "PPpp")}</p>
                 </div>
-                {selectedTicket.checkedInAt && (
-                  <div>
-                    <Label className="text-muted-foreground">Checked In</Label>
-                    <p>
-                      {format(new Date(selectedTicket.checkedInAt), "PPpp")}
-                    </p>
-                  </div>
+                {isAdmin() && "order" in selectedTicket && (
+                  <>
+                    <div>
+                      <Label className="text-muted-foreground">Order ID</Label>
+                      <p className="font-mono text-xs">
+                        {selectedTicket.order.id}
+                      </p>
+                    </div>
+                    <div>
+                      <Label className="text-muted-foreground">
+                        Order Status
+                      </Label>
+                      <p>{selectedTicket.order.status}</p>
+                    </div>
+                    <div>
+                      <Label className="text-muted-foreground">
+                        Payment Method
+                      </Label>
+                      <p>{selectedTicket.order.paymentMethod}</p>
+                    </div>
+                    <div>
+                      <Label className="text-muted-foreground">
+                        Order Total
+                      </Label>
+                      <p>
+                        {selectedTicket.order.total}{" "}
+                        {selectedTicket.order.currency}
+                      </p>
+                    </div>
+                  </>
                 )}
-                {selectedTicket.cancelledAt && (
-                  <div>
-                    <Label className="text-muted-foreground">
-                      Cancelled At
-                    </Label>
-                    <p>
-                      {format(new Date(selectedTicket.cancelledAt), "PPpp")}
-                    </p>
-                  </div>
-                )}
-                {selectedTicket.refundAmount && (
-                  <div>
-                    <Label className="text-muted-foreground">
-                      Refund Amount
-                    </Label>
-                    <p>{selectedTicket.refundAmount}</p>
-                  </div>
-                )}
-                {selectedTicket.refundStatus && (
-                  <div>
-                    <Label className="text-muted-foreground">
-                      Refund Status
-                    </Label>
-                    <p>{selectedTicket.refundStatus}</p>
-                  </div>
-                )}
+                {"checkedInAt" in selectedTicket &&
+                  selectedTicket.checkedInAt && (
+                    <div>
+                      <Label className="text-muted-foreground">
+                        Checked In
+                      </Label>
+                      <p>
+                        {format(new Date(selectedTicket.checkedInAt), "PPpp")}
+                      </p>
+                    </div>
+                  )}
+                {"cancelledAt" in selectedTicket &&
+                  selectedTicket.cancelledAt && (
+                    <div>
+                      <Label className="text-muted-foreground">
+                        Cancelled At
+                      </Label>
+                      <p>
+                        {format(new Date(selectedTicket.cancelledAt), "PPpp")}
+                      </p>
+                    </div>
+                  )}
+                {"refundAmount" in selectedTicket &&
+                  selectedTicket.refundAmount && (
+                    <div>
+                      <Label className="text-muted-foreground">
+                        Refund Amount
+                      </Label>
+                      <p>{selectedTicket.refundAmount}</p>
+                    </div>
+                  )}
+                {"refundStatus" in selectedTicket &&
+                  selectedTicket.refundStatus && (
+                    <div>
+                      <Label className="text-muted-foreground">
+                        Refund Status
+                      </Label>
+                      <p>{selectedTicket.refundStatus}</p>
+                    </div>
+                  )}
               </div>
-              {selectedTicket.cancellationReason && (
-                <div>
-                  <Label className="text-muted-foreground">
-                    Cancellation Reason
-                  </Label>
-                  <p>{selectedTicket.cancellationReason}</p>
-                </div>
-              )}
-              {selectedTicket.qrCodeImage && (
-                <div>
-                  <Label className="text-muted-foreground">QR Code</Label>
-                  <img
-                    src={selectedTicket.qrCodeImage}
-                    alt="QR Code"
-                    className="mt-2 border rounded"
-                  />
-                </div>
-              )}
+              {"cancellationReason" in selectedTicket &&
+                selectedTicket.cancellationReason && (
+                  <div>
+                    <Label className="text-muted-foreground">
+                      Cancellation Reason
+                    </Label>
+                    <p>{selectedTicket.cancellationReason}</p>
+                  </div>
+                )}
+              {"qrCodeImage" in selectedTicket &&
+                selectedTicket.qrCodeImage && (
+                  <div>
+                    <Label className="text-muted-foreground">QR Code</Label>
+                    <img
+                      src={selectedTicket.qrCodeImage}
+                      alt="QR Code"
+                      className="mt-2 border rounded"
+                    />
+                  </div>
+                )}
             </div>
           )}
         </DialogContent>

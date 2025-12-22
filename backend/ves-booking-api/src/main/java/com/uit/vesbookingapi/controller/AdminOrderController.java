@@ -1,7 +1,7 @@
 package com.uit.vesbookingapi.controller;
 
 import com.uit.vesbookingapi.dto.request.ApiResponse;
-import com.uit.vesbookingapi.dto.response.OrderResponse;
+import com.uit.vesbookingapi.dto.response.AdminOrderResponse;
 import com.uit.vesbookingapi.enums.OrderStatus;
 import com.uit.vesbookingapi.service.AdminOrderService;
 import lombok.AccessLevel;
@@ -32,23 +32,24 @@ public class AdminOrderController {
      */
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ApiResponse<Page<OrderResponse>> getAllOrders(
+    public ApiResponse<Page<AdminOrderResponse>> getAllOrders(
             @RequestParam(required = false) String userId,
             @RequestParam(required = false) String eventId,
             @RequestParam(required = false) OrderStatus status,
             @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
-        return ApiResponse.<Page<OrderResponse>>builder()
+        return ApiResponse.<Page<AdminOrderResponse>>builder()
                 .result(adminOrderService.getAllOrders(userId, eventId, status, pageable))
                 .build();
     }
 
     /**
      * Get order details by ID (Admin can view any order)
+     * Returns rich admin response with user, event, ticket type, and tickets information
      */
     @GetMapping("/{orderId}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ApiResponse<OrderResponse> getOrderDetails(@PathVariable String orderId) {
-        return ApiResponse.<OrderResponse>builder()
+    public ApiResponse<AdminOrderResponse> getOrderDetails(@PathVariable String orderId) {
+        return ApiResponse.<AdminOrderResponse>builder()
                 .result(adminOrderService.getOrderDetails(orderId))
                 .build();
     }

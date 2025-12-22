@@ -1,12 +1,11 @@
 package com.uit.vesbookingapi.service;
 
-import com.uit.vesbookingapi.dto.response.TicketDetailResponse;
-import com.uit.vesbookingapi.dto.response.TicketResponse;
+import com.uit.vesbookingapi.dto.response.AdminTicketResponse;
 import com.uit.vesbookingapi.entity.Ticket;
 import com.uit.vesbookingapi.enums.TicketStatus;
 import com.uit.vesbookingapi.exception.AppException;
 import com.uit.vesbookingapi.exception.ErrorCode;
-import com.uit.vesbookingapi.mapper.TicketMapper;
+import com.uit.vesbookingapi.mapper.AdminTicketMapper;
 import com.uit.vesbookingapi.repository.TicketRepository;
 import jakarta.persistence.criteria.Predicate;
 import lombok.AccessLevel;
@@ -28,13 +27,14 @@ import java.util.List;
 @Slf4j
 public class AdminTicketService {
     TicketRepository ticketRepository;
-    TicketMapper ticketMapper;
+    AdminTicketMapper adminTicketMapper;
 
     /**
      * Get all tickets with optional filters (Admin only)
+     * Returns rich admin response with user, order, event, and seat information
      */
     @PreAuthorize("hasRole('ADMIN')")
-    public Page<TicketResponse> getAllTickets(
+    public Page<AdminTicketResponse> getAllTickets(
             String userId,
             String eventId,
             TicketStatus status,
@@ -42,19 +42,20 @@ public class AdminTicketService {
         
         Specification<Ticket> spec = buildSpecification(userId, eventId, status);
         Page<Ticket> ticketPage = ticketRepository.findAll(spec, pageable);
-        
-        return ticketPage.map(ticketMapper::toTicketResponse);
+
+        return ticketPage.map(adminTicketMapper::toAdminTicketResponse);
     }
 
     /**
      * Get ticket details by ID (Admin can view any ticket)
+     * Returns rich admin response with all related information
      */
     @PreAuthorize("hasRole('ADMIN')")
-    public TicketDetailResponse getTicketDetails(String ticketId) {
+    public AdminTicketResponse getTicketDetails(String ticketId) {
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new AppException(ErrorCode.TICKET_NOT_FOUND));
-        
-        return ticketMapper.toTicketDetailResponse(ticket);
+
+        return adminTicketMapper.toAdminTicketResponse(ticket);
     }
 
     /**

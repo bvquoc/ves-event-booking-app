@@ -1,11 +1,11 @@
 package com.uit.vesbookingapi.service;
 
-import com.uit.vesbookingapi.dto.response.OrderResponse;
+import com.uit.vesbookingapi.dto.response.AdminOrderResponse;
 import com.uit.vesbookingapi.entity.Order;
 import com.uit.vesbookingapi.enums.OrderStatus;
 import com.uit.vesbookingapi.exception.AppException;
 import com.uit.vesbookingapi.exception.ErrorCode;
-import com.uit.vesbookingapi.mapper.OrderMapper;
+import com.uit.vesbookingapi.mapper.AdminOrderMapper;
 import com.uit.vesbookingapi.repository.OrderRepository;
 import jakarta.persistence.criteria.Predicate;
 import lombok.AccessLevel;
@@ -27,13 +27,14 @@ import java.util.List;
 @Slf4j
 public class AdminOrderService {
     OrderRepository orderRepository;
-    OrderMapper orderMapper;
+    AdminOrderMapper adminOrderMapper;
 
     /**
      * Get all orders with optional filters (Admin only)
+     * Returns rich admin response with user, event, ticket type, and tickets information
      */
     @PreAuthorize("hasRole('ADMIN')")
-    public Page<OrderResponse> getAllOrders(
+    public Page<AdminOrderResponse> getAllOrders(
             String userId,
             String eventId,
             OrderStatus status,
@@ -41,19 +42,28 @@ public class AdminOrderService {
         
         Specification<Order> spec = buildSpecification(userId, eventId, status);
         Page<Order> orderPage = orderRepository.findAll(spec, pageable);
-        
-        return orderPage.map(orderMapper::toOrderResponse);
+
+        return orderPage.map(order -> {
+            AdminOrderResponse response = adminOrderMapper.toAdminOrderResponse(order);
+            // Set zalopayTransactionId if exists (check for appTransId or zpTransId)
+            // Note: This field may not exist in Order entity yet, so it will be null
+            return response;
+        });
     }
 
     /**
      * Get order details by ID (Admin can view any order)
+     * Returns rich admin response with all related information
      */
     @PreAuthorize("hasRole('ADMIN')")
-    public OrderResponse getOrderDetails(String orderId) {
+    public AdminOrderResponse getOrderDetails(String orderId) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND));
-        
-        return orderMapper.toOrderResponse(order);
+
+        AdminOrderResponse response = adminOrderMapper.toAdminOrderResponse(order);
+        // Set zalopayTransactionId if exists
+        // Note: This field may not exist in Order entity yet, so it will be null
+        return response;
     }
 
     /**

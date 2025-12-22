@@ -69,6 +69,8 @@ export interface AuthenticationResponse {
 export interface UserResponse {
   id: string;
   username: string;
+  email: string;
+  phone: string;
   firstName: string;
   lastName: string;
   dob?: string;
@@ -78,6 +80,8 @@ export interface UserResponse {
 export interface UserCreationRequest {
   username: string;
   password: string;
+  email: string;
+  phone: string;
   firstName?: string;
   lastName?: string;
   dob?: string;
@@ -85,6 +89,8 @@ export interface UserCreationRequest {
 
 export interface UserUpdateRequest {
   password?: string;
+  email: string;
+  phone: string;
   firstName?: string;
   lastName?: string;
   dob?: string;
@@ -848,6 +854,131 @@ export const referenceApi = {
   },
 };
 
+// Admin API types - Rich data structures
+export interface UserInfo {
+  id: string;
+  username: string;
+  email: string;
+  phone: string;
+  firstName: string;
+  lastName: string;
+  fullName: string;
+}
+
+export interface EventInfo {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  thumbnail?: string;
+  venueName?: string;
+  venueAddress?: string;
+  startDate: string;
+  endDate?: string;
+}
+
+export interface OrderInfo {
+  id: string;
+  status: "PENDING" | "COMPLETED" | "CANCELLED" | "EXPIRED" | "REFUNDED";
+  paymentMethod: "CREDIT_CARD" | "DEBIT_CARD" | "E_WALLET" | "BANK_TRANSFER";
+  total: number;
+  currency: string;
+  createdAt: string;
+  completedAt?: string;
+}
+
+export interface TicketTypeInfo {
+  id: string;
+  name: string;
+  description?: string;
+  price: number;
+  currency: string;
+}
+
+export interface SeatInfo {
+  id: string;
+  seatNumber: string;
+  section: string;
+  row: string;
+}
+
+export interface TicketSummary {
+  id: string;
+  qrCode?: string;
+  seatNumber?: string;
+  status: "ACTIVE" | "USED" | "CANCELLED" | "REFUNDED";
+  purchaseDate: string;
+  checkedInAt?: string;
+  cancelledAt?: string;
+}
+
+export interface AdminTicketResponse {
+  id: string;
+  qrCode?: string;
+  qrCodeImage?: string;
+  status: "ACTIVE" | "USED" | "CANCELLED" | "REFUNDED";
+  purchaseDate: string;
+  checkedInAt?: string;
+  cancelledAt?: string;
+  cancellationReason?: string;
+  refundAmount?: number;
+  refundStatus?: "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED";
+  user: UserInfo;
+  order: OrderInfo;
+  event: EventInfo;
+  ticketType: TicketTypeInfo;
+  seat?: SeatInfo;
+}
+
+export interface PageAdminTicketResponse {
+  totalElements: number;
+  totalPages: number;
+  size: number;
+  content: AdminTicketResponse[];
+  number: number;
+  sort: SortObject;
+  pageable: PageableObject;
+  numberOfElements: number;
+  first: boolean;
+  last: boolean;
+  empty: boolean;
+}
+
+export interface AdminOrderResponse {
+  id: string;
+  status: "PENDING" | "COMPLETED" | "CANCELLED" | "EXPIRED" | "REFUNDED";
+  paymentMethod: "CREDIT_CARD" | "DEBIT_CARD" | "E_WALLET" | "BANK_TRANSFER";
+  paymentUrl?: string;
+  zalopayTransactionId?: string;
+  expiresAt?: string;
+  createdAt: string;
+  completedAt?: string;
+  user: UserInfo;
+  event: EventInfo;
+  ticketType: TicketTypeInfo;
+  quantity: number;
+  subtotal: number;
+  discount: number;
+  total: number;
+  currency: string;
+  voucherCode?: string;
+  tickets: TicketSummary[];
+}
+
+export interface PageAdminOrderResponse {
+  totalElements: number;
+  totalPages: number;
+  size: number;
+  content: AdminOrderResponse[];
+  number: number;
+  sort: SortObject;
+  pageable: PageableObject;
+  numberOfElements: number;
+  first: boolean;
+  last: boolean;
+  empty: boolean;
+}
+
 // Admin APIs
 export const adminTicketApi = {
   getAllTickets: async (params?: {
@@ -856,14 +987,14 @@ export const adminTicketApi = {
     status?: "ACTIVE" | "USED" | "CANCELLED" | "REFUNDED";
     pageable: Pageable;
   }) => {
-    const response = await apiClient.get<ApiResponse<PageTicketResponse>>(
+    const response = await apiClient.get<ApiResponse<PageAdminTicketResponse>>(
       "/admin/tickets",
       { params }
     );
     return response.data;
   },
   getTicketDetails: async (ticketId: string) => {
-    const response = await apiClient.get<ApiResponse<TicketDetailResponse>>(
+    const response = await apiClient.get<ApiResponse<AdminTicketResponse>>(
       `/admin/tickets/${ticketId}`
     );
     return response.data;
@@ -877,14 +1008,14 @@ export const adminOrderApi = {
     status?: "PENDING" | "COMPLETED" | "CANCELLED" | "EXPIRED" | "REFUNDED";
     pageable: Pageable;
   }) => {
-    const response = await apiClient.get<ApiResponse<PageOrderResponse>>(
+    const response = await apiClient.get<ApiResponse<PageAdminOrderResponse>>(
       "/admin/orders",
       { params }
     );
     return response.data;
   },
   getOrderDetails: async (orderId: string) => {
-    const response = await apiClient.get<ApiResponse<OrderResponse>>(
+    const response = await apiClient.get<ApiResponse<AdminOrderResponse>>(
       `/admin/orders/${orderId}`
     );
     return response.data;

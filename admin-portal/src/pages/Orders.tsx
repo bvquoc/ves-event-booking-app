@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { adminOrderApi, OrderResponse } from "@/lib/api";
+import { adminOrderApi, AdminOrderResponse } from "@/lib/api";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -26,7 +26,7 @@ import { usePermissions } from "@/hooks/usePermissions";
 
 export default function Orders() {
   const { isAdmin } = usePermissions();
-  const [orders, setOrders] = useState<OrderResponse[]>([]);
+  const [orders, setOrders] = useState<AdminOrderResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
@@ -37,21 +37,19 @@ export default function Orders() {
   const [userIdFilter, setUserIdFilter] = useState("");
   const [eventIdFilter, setEventIdFilter] = useState("");
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
-  const [selectedOrder, setSelectedOrder] = useState<OrderResponse | null>(
+  const [selectedOrder, setSelectedOrder] = useState<AdminOrderResponse | null>(
     null
   );
-
-  useEffect(() => {
-    if (!isAdmin()) {
-      return;
-    }
-    loadOrders();
-  }, [page, statusFilter, userIdFilter, eventIdFilter]);
 
   const loadOrders = async () => {
     try {
       setLoading(true);
-      const params: any = {
+      const params: {
+        pageable: { page: number; size: number };
+        status?: "PENDING" | "COMPLETED" | "CANCELLED" | "EXPIRED" | "REFUNDED";
+        userId?: string;
+        eventId?: string;
+      } = {
         pageable: { page, size: 10 },
       };
       if (statusFilter) {
@@ -74,6 +72,14 @@ export default function Orders() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (!isAdmin()) {
+      return;
+    }
+    loadOrders();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, statusFilter, userIdFilter, eventIdFilter]);
 
   const handleView = async (orderId: string) => {
     try {
@@ -192,7 +198,7 @@ export default function Orders() {
             <TableHeader>
               <TableRow>
                 <TableHead>Order ID</TableHead>
-                <TableHead>User ID</TableHead>
+                <TableHead>User</TableHead>
                 <TableHead>Event</TableHead>
                 <TableHead>Ticket Type</TableHead>
                 <TableHead>Quantity</TableHead>
@@ -209,13 +215,20 @@ export default function Orders() {
                   <TableCell className="font-mono text-xs">
                     {order.id.substring(0, 8)}...
                   </TableCell>
-                  <TableCell className="font-mono text-xs">
-                    {order.userId.substring(0, 8)}...
+                  <TableCell>
+                    <div>
+                      <div className="font-medium">
+                        {order.user.fullName || order.user.username}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {order.user.email}
+                      </div>
+                    </div>
                   </TableCell>
                   <TableCell className="font-medium">
-                    {order.eventName}
+                    {order.event.name}
                   </TableCell>
-                  <TableCell>{order.ticketTypeName}</TableCell>
+                  <TableCell>{order.ticketType.name}</TableCell>
                   <TableCell>{order.quantity}</TableCell>
                   <TableCell>
                     {formatCurrency(order.total, order.currency)}
@@ -274,30 +287,84 @@ export default function Orders() {
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Order Details</DialogTitle>
-            <DialogDescription>{selectedOrder?.eventName}</DialogDescription>
+            <DialogDescription>{selectedOrder?.event.name}</DialogDescription>
           </DialogHeader>
           {selectedOrder && (
             <div className="space-y-4">
+              {/* User Information */}
+              <div className="border-b pb-4">
+                <h3 className="font-semibold mb-2">User Information</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-muted-foreground">Name</Label>
+                    <p>
+                      {selectedOrder.user.fullName ||
+                        selectedOrder.user.username}
+                    </p>
+                  </div>
+                  <div>
+                    <Label className="text-muted-foreground">Email</Label>
+                    <p>{selectedOrder.user.email}</p>
+                  </div>
+                  <div>
+                    <Label className="text-muted-foreground">Phone</Label>
+                    <p>{selectedOrder.user.phone}</p>
+                  </div>
+                  <div>
+                    <Label className="text-muted-foreground">User ID</Label>
+                    <p className="font-mono text-xs">{selectedOrder.user.id}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Event Information */}
+              <div className="border-b pb-4">
+                <h3 className="font-semibold mb-2">Event Information</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-muted-foreground">Event Name</Label>
+                    <p>{selectedOrder.event.name}</p>
+                  </div>
+                  <div>
+                    <Label className="text-muted-foreground">Event ID</Label>
+                    <p className="font-mono text-xs">
+                      {selectedOrder.event.id}
+                    </p>
+                  </div>
+                  <div>
+                    <Label className="text-muted-foreground">Venue</Label>
+                    <p>{selectedOrder.event.venueName || "-"}</p>
+                  </div>
+                  <div>
+                    <Label className="text-muted-foreground">Start Date</Label>
+                    <p>
+                      {format(new Date(selectedOrder.event.startDate), "PPpp")}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Order Information */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label className="text-muted-foreground">Order ID</Label>
                   <p className="font-mono text-sm">{selectedOrder.id}</p>
                 </div>
                 <div>
-                  <Label className="text-muted-foreground">User ID</Label>
-                  <p className="font-mono text-sm">{selectedOrder.userId}</p>
-                </div>
-                <div>
-                  <Label className="text-muted-foreground">Event ID</Label>
-                  <p className="font-mono text-sm">{selectedOrder.eventId}</p>
-                </div>
-                <div>
-                  <Label className="text-muted-foreground">Event Name</Label>
-                  <p>{selectedOrder.eventName}</p>
+                  <Label className="text-muted-foreground">Status</Label>
+                  <p>
+                    <span
+                      className={`px-2 py-1 rounded text-xs font-medium ${getStatusColor(
+                        selectedOrder.status
+                      )}`}
+                    >
+                      {selectedOrder.status}
+                    </span>
+                  </p>
                 </div>
                 <div>
                   <Label className="text-muted-foreground">Ticket Type</Label>
-                  <p>{selectedOrder.ticketTypeName}</p>
+                  <p>{selectedOrder.ticketType.name}</p>
                 </div>
                 <div>
                   <Label className="text-muted-foreground">Quantity</Label>
@@ -306,19 +373,28 @@ export default function Orders() {
                 <div>
                   <Label className="text-muted-foreground">Subtotal</Label>
                   <p>
-                    {formatCurrency(selectedOrder.subtotal, selectedOrder.currency)}
+                    {formatCurrency(
+                      selectedOrder.subtotal,
+                      selectedOrder.currency
+                    )}
                   </p>
                 </div>
                 <div>
                   <Label className="text-muted-foreground">Discount</Label>
                   <p>
-                    {formatCurrency(selectedOrder.discount, selectedOrder.currency)}
+                    {formatCurrency(
+                      selectedOrder.discount,
+                      selectedOrder.currency
+                    )}
                   </p>
                 </div>
                 <div>
                   <Label className="text-muted-foreground">Total</Label>
                   <p className="font-semibold">
-                    {formatCurrency(selectedOrder.total, selectedOrder.currency)}
+                    {formatCurrency(
+                      selectedOrder.total,
+                      selectedOrder.currency
+                    )}
                   </p>
                 </div>
                 <div>
@@ -338,12 +414,16 @@ export default function Orders() {
                   </p>
                 </div>
                 <div>
-                  <Label className="text-muted-foreground">Payment Method</Label>
+                  <Label className="text-muted-foreground">
+                    Payment Method
+                  </Label>
                   <p>{selectedOrder.paymentMethod}</p>
                 </div>
                 {selectedOrder.voucherCode && (
                   <div>
-                    <Label className="text-muted-foreground">Voucher Code</Label>
+                    <Label className="text-muted-foreground">
+                      Voucher Code
+                    </Label>
                     <p>{selectedOrder.voucherCode}</p>
                   </div>
                 )}
@@ -359,14 +439,18 @@ export default function Orders() {
                 )}
                 {selectedOrder.completedAt && (
                   <div>
-                    <Label className="text-muted-foreground">Completed At</Label>
+                    <Label className="text-muted-foreground">
+                      Completed At
+                    </Label>
                     <p>{format(new Date(selectedOrder.completedAt), "PPpp")}</p>
                   </div>
                 )}
                 {selectedOrder.paymentUrl && (
                   <div className="col-span-2">
                     <Label className="text-muted-foreground">Payment URL</Label>
-                    <p className="break-all text-sm">{selectedOrder.paymentUrl}</p>
+                    <p className="break-all text-sm">
+                      {selectedOrder.paymentUrl}
+                    </p>
                   </div>
                 )}
               </div>
@@ -377,4 +461,3 @@ export default function Orders() {
     </div>
   );
 }
-
