@@ -8,12 +8,14 @@ class EventSection extends StatelessWidget {
   final String title;
   final List<EventModel> events;
   final VoidCallback? onViewAll;
+  final Function(String eventId)? onFavoriteToggle;
 
   const EventSection({
     super.key,
     required this.title,
     required this.events,
     this.onViewAll,
+    required this.onFavoriteToggle,
   });
 
   @override
@@ -49,7 +51,9 @@ class EventSection extends StatelessWidget {
                   );
                 },
                 onFavoriteTap: () {
-                  // TODO: call POST /favorites/{eventId}
+                  if (onFavoriteToggle != null) {
+                    onFavoriteToggle!(event.id);
+                  }
                 },
               );
             },

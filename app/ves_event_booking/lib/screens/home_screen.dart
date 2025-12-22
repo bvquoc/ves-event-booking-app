@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:ves_event_booking/models/utils/pagination_request.dart';
@@ -31,6 +33,9 @@ class HomeScreenState extends State<HomeScreen> {
         pageable: PaginationRequest(page: 0, size: 50),
       );
       context.read<HomeProvider>().fetchCategoties();
+      context.read<HomeProvider>().fetchFavoriteEventIds(
+        pageable: PaginationRequest(page: 0, size: 50),
+      );
     });
   }
 
@@ -138,6 +143,9 @@ class HomeScreenState extends State<HomeScreen> {
                                 .where((e) => e.category?.slug == 'hoa-nhac')
                                 .toList(),
                             onViewAll: () => _onViewAllEvents('hoa-nhac'),
+                            onFavoriteToggle: (eventId) {
+                              provider.toggleFavorite(eventId);
+                            },
                           ),
                           const SizedBox(height: 20),
                           EventSection(
@@ -148,6 +156,9 @@ class HomeScreenState extends State<HomeScreen> {
                                 )
                                 .toList(),
                             onViewAll: () => _onViewAllEvents('san-khau-kich'),
+                            onFavoriteToggle: (eventId) {
+                              provider.toggleFavorite(eventId);
+                            },
                           ),
                           const SizedBox(height: 20),
                           EventSection(
@@ -156,6 +167,9 @@ class HomeScreenState extends State<HomeScreen> {
                                 .where((e) => e.category?.slug == 'the-thao')
                                 .toList(),
                             onViewAll: () => _onViewAllEvents('the-thao'),
+                            onFavoriteToggle: (eventId) {
+                              provider.toggleFavorite(eventId);
+                            },
                           ),
                           const SizedBox(height: 20),
                           EventSection(
@@ -164,6 +178,9 @@ class HomeScreenState extends State<HomeScreen> {
                                 .where((e) => e.category?.slug == 'trien-lam')
                                 .toList(),
                             onViewAll: () => _onViewAllEvents('trien-lam'),
+                            onFavoriteToggle: (eventId) {
+                              provider.toggleFavorite(eventId);
+                            },
                           ),
                           const SizedBox(height: 20),
                         ],

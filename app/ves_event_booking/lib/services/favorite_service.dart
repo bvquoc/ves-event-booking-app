@@ -17,7 +17,7 @@ class FavoriteService {
     }
   }
 
-  Future<PageResult<List<EventModel>>> getFavoriteEvents({
+  Future<PageResult<EventModel>> getFavoriteEvents({
     required PaginationRequest pageable,
   }) async {
     try {
@@ -28,11 +28,7 @@ class FavoriteService {
 
       final apiResponse = ApiResponse.fromJson(
         response.data,
-        (json) => PageResult.fromJson(
-          json,
-          (content) =>
-              (content as List).map((e) => EventModel.fromJson(e)).toList(),
-        ),
+        (json) => PageResult.fromJson(json, (e) => EventModel.fromJson(e)),
       );
 
       return apiResponse.result;
