@@ -5,11 +5,13 @@ Hướng dẫn tích hợp API với dữ liệu mặc định được seed t�
 ## 🚀 Quick Start
 
 ### Base URL
+
 ```
 http://localhost:8080/api
 ```
 
 ### Authentication
+
 API sử dụng JWT Bearer token. Lấy token bằng cách login:
 
 ```bash
@@ -21,6 +23,7 @@ POST /api/auth/login
 ```
 
 Response:
+
 ```json
 {
   "result": {
@@ -31,6 +34,7 @@ Response:
 ```
 
 Sử dụng token trong header:
+
 ```
 Authorization: Bearer {accessToken}
 ```
@@ -41,13 +45,13 @@ Authorization: Bearer {accessToken}
 
 Sau khi khởi động ứng dụng, các user sau được tạo tự động:
 
-| Username | Password | Role | Mô tả |
-|----------|----------|------|-------|
-| `admin` | `admin` | ADMIN | Quản trị viên - có quyền CRUD tất cả |
-| `user1` | `123456` | USER | Người dùng thường |
-| `newuser` | `123456` | USER | User mới - chưa có đơn hàng |
-| `regularuser` | `123456` | USER | User thường - có vài đơn hàng |
-| `vipuser` | `123456` | USER | User VIP - có nhiều đơn hàng |
+| Username      | Password | Role  | Mô tả                                |
+| ------------- | -------- | ----- | ------------------------------------ |
+| `admin`       | `admin`  | ADMIN | Quản trị viên - có quyền CRUD tất cả |
+| `user1`       | `123456` | USER  | Người dùng thường                    |
+| `newuser`     | `123456` | USER  | User mới - chưa có đơn hàng          |
+| `regularuser` | `123456` | USER  | User thường - có vài đơn hàng        |
+| `vipuser`     | `123456` | USER  | User VIP - có nhiều đơn hàng         |
 
 **⚠️ Lưu ý:** Đổi mật khẩu trong production!
 
@@ -57,12 +61,12 @@ Sau khi khởi động ứng dụng, các user sau được tạo tự động:
 
 4 danh mục sự kiện:
 
-| Name | Slug | Icon |
-|------|------|------|
-| Thể thao | `the-thao` | `sports_soccer` |
-| Hòa nhạc | `hoa-nhac` | `music_note` |
+| Name          | Slug            | Icon             |
+| ------------- | --------------- | ---------------- |
+| Thể thao      | `the-thao`      | `sports_soccer`  |
+| Hòa nhạc      | `hoa-nhac`      | `music_note`     |
 | Sân khấu kịch | `san-khau-kich` | `theater_comedy` |
-| Triển lãm | `trien-lam` | `palette` |
+| Triển lãm     | `trien-lam`     | `palette`        |
 
 **API:** `GET /api/categories`
 
@@ -72,11 +76,11 @@ Sau khi khởi động ứng dụng, các user sau được tạo tự động:
 
 3 thành phố:
 
-| Name | Slug |
-|------|------|
+| Name        | Slug          |
+| ----------- | ------------- |
 | Ho Chi Minh | `ho-chi-minh` |
-| Hanoi | `hanoi` |
-| Da Nang | `da-nang` |
+| Hanoi       | `hanoi`       |
+| Da Nang     | `da-nang`     |
 
 **API:** `GET /api/cities`
 
@@ -86,13 +90,14 @@ Sau khi khởi động ứng dụng, các user sau được tạo tự động:
 
 3 địa điểm:
 
-| Name | City | Capacity |
-|------|------|----------|
-| Nhà hát Thành phố Hồ Chí Minh | Ho Chi Minh | 2000 |
-| Sân vận động Quốc gia Mỹ Đình | Hanoi | 40000 |
-| Trung tâm Hội nghị Quốc gia | Hanoi | 3500 |
+| Name                          | City        | Capacity |
+| ----------------------------- | ----------- | -------- |
+| Nhà hát Thành phố Hồ Chí Minh | Ho Chi Minh | 2000     |
+| Sân vận động Quốc gia Mỹ Đình | Hanoi       | 40000    |
+| Trung tâm Hội nghị Quốc gia   | Hanoi       | 3500     |
 
-**API:** 
+**API:**
+
 - `GET /api/venues` - List all
 - `GET /api/venues/{venueId}` - Get by ID
 - `GET /api/venues/{venueId}/seats?eventId={eventId}` - Get seat map
@@ -104,6 +109,7 @@ Sau khi khởi động ứng dụng, các user sau được tạo tự động:
 ### Basic Events (3 events)
 
 1. **Trận đấu bóng đá: Việt Nam vs Thái Lan**
+
    - Slug: `tran-dau-bong-da-viet-nam-vs-thai-lan`
    - Category: Thể thao
    - City: Hanoi
@@ -112,6 +118,7 @@ Sau khi khởi động ứng dụng, các user sau được tạo tự động:
    - Status: Upcoming, Trending
 
 2. **Đêm nhạc Sơn Tùng M-TP**
+
    - Slug: `dem-nhac-son-tung-mtp`
    - Category: Hòa nhạc
    - City: Ho Chi Minh
@@ -130,28 +137,35 @@ Sau khi khởi động ứng dụng, các user sau được tạo tự động:
 ### Sample Events (8 events - nếu database trống)
 
 #### Past Events (đã kết thúc):
+
 - `[PAST] Liveshow Blackpink World Tour` - 2 tuần trước
 - `[PAST] AFF Cup 2024 Final` - 1 tuần trước
 
 #### Ongoing Events (đang diễn ra):
+
 - `[ONGOING] Festival Kịch Nói 2024` - đang diễn ra
 
 #### Soon Events (sắp diễn ra):
+
 - `[SOON] Triển Lãm Nghệ Thuật Đương Đại` - 3 ngày nữa
 - `[SOON] Monsoon Music Festival` - 5 ngày nữa
 
 #### Sold Out:
+
 - `[SOLD OUT] Taylor Swift Eras Tour Vietnam` - 60 ngày nữa, hết vé
 
 #### Future Events:
+
 - `[FUTURE] SEA Games 2025 Opening` - 28 ngày nữa
 
 **API:**
+
 - `GET /api/events` - List events (có pagination, filter, sort)
 - `GET /api/events/{eventId}` - Get event details
 - `GET /api/events/{eventId}/tickets` - Get ticket types
 
 **Query Parameters cho GET /api/events:**
+
 - `page` - Số trang (default: 0)
 - `size` - Số items/trang (default: 20)
 - `category` - Lọc theo category slug
@@ -168,14 +182,14 @@ Sau khi khởi động ứng dụng, các user sau được tạo tự động:
 
 Mỗi event có 2-3 loại vé:
 
-| Event | Ticket Type | Price | Available | Requires Seat |
-|-------|-------------|-------|-----------|---------------|
-| Football Match | VIP | 500,000đ | 100 | ✅ Yes |
-| Football Match | Thường | 200,000đ | 500 | ✅ Yes |
-| Concert | VIP | 3,000,000đ | 50 | ✅ Yes |
-| Concert | Thường | 800,000đ | 300 | ✅ Yes |
-| Theater | VIP | 600,000đ | 80 | ✅ Yes |
-| Theater | Thường | 300,000đ | 200 | ✅ Yes |
+| Event          | Ticket Type | Price      | Available | Requires Seat |
+| -------------- | ----------- | ---------- | --------- | ------------- |
+| Football Match | VIP         | 500,000đ   | 100       | ✅ Yes        |
+| Football Match | Thường      | 200,000đ   | 500       | ✅ Yes        |
+| Concert        | VIP         | 3,000,000đ | 50        | ✅ Yes        |
+| Concert        | Thường      | 800,000đ   | 300       | ✅ Yes        |
+| Theater        | VIP         | 600,000đ   | 80        | ✅ Yes        |
+| Theater        | Thường      | 300,000đ   | 200       | ✅ Yes        |
 
 **API:** `GET /api/events/{eventId}/tickets`
 
@@ -185,14 +199,14 @@ Mỗi event có 2-3 loại vé:
 
 6 vouchers mẫu:
 
-| Code | Title | Discount | Min Order | Status |
-|------|-------|----------|-----------|--------|
-| `GIAM20` | Giảm 20% toàn bộ | 20% | 200,000đ | ✅ Active |
-| `GIAM100K` | Giảm 100.000đ | 100,000đ | 500,000đ | ✅ Active |
-| `MONSOON50` | Monsoon Festival - Giảm 50% | 50% | 0đ | ✅ Active (event-specific) |
-| `MUSIC30` | Âm nhạc - Giảm 30% | 30% | 300,000đ | ✅ Active (category-specific) |
-| `EXPIRED2024` | Voucher hết hạn | 15% | 100,000đ | ❌ Expired |
-| `LIMITED10` | Voucher giới hạn - Còn 2 lượt | 200,000đ | 400,000đ | ⚠️ Limited (8/10 used) |
+| Code          | Title                         | Discount | Min Order | Status                        |
+| ------------- | ----------------------------- | -------- | --------- | ----------------------------- |
+| `GIAM20`      | Giảm 20% toàn bộ              | 20%      | 200,000đ  | ✅ Active                     |
+| `GIAM100K`    | Giảm 100.000đ                 | 100,000đ | 500,000đ  | ✅ Active                     |
+| `MONSOON50`   | Monsoon Festival - Giảm 50%   | 50%      | 0đ        | ✅ Active (event-specific)    |
+| `MUSIC30`     | Âm nhạc - Giảm 30%            | 30%      | 300,000đ  | ✅ Active (category-specific) |
+| `EXPIRED2024` | Voucher hết hạn               | 15%      | 100,000đ  | ❌ Expired                    |
+| `LIMITED10`   | Voucher giới hạn - Còn 2 lượt | 200,000đ | 400,000đ  | ⚠️ Limited (8/10 used)        |
 
 **API:** `GET /api/vouchers` (cần authentication)
 
@@ -201,19 +215,23 @@ Mỗi event có 2-3 loại vé:
 ## 📦 Sample Orders & Tickets
 
 ### Regular User Orders:
+
 - 2 vé VIP cho Blackpink concert (đã dùng)
 - 2 vé cho Triển lãm (đang active, dùng voucher GIAM20)
 
 ### VIP User Orders:
+
 - 4 vé cho AFF Cup (đã dùng, dùng voucher GIAM100K)
 - 4 vé VIP cho SEA Games (đang active)
 - 2 vé VIP cho Monsoon Festival (đang active)
 
 ### Pending Orders:
+
 - 2 vé Standard cho SEA Games (pending payment)
 - 1 vé cho Triển lãm (expired payment)
 
 **API:**
+
 - `GET /api/orders` - List user orders (cần authentication)
 - `GET /api/orders/{orderId}` - Get order details
 - `GET /api/tickets` - List user tickets (cần authentication)
@@ -223,12 +241,14 @@ Mỗi event có 2-3 loại vé:
 ## ⭐ Sample Favorites
 
 Các user đã favorite một số events:
+
 - `newuser`: Triển lãm, Monsoon Festival, Taylor Swift
 - `regularuser`: SEA Games, Monsoon Festival
 - `vipuser`: Taylor Swift, SEA Games
 - `user1`: Triển lãm, Taylor Swift
 
 **API:**
+
 - `GET /api/favorites` - List favorites (cần authentication)
 - `POST /api/favorites` - Add favorite
 - `DELETE /api/favorites/{eventId}` - Remove favorite
@@ -238,12 +258,14 @@ Các user đã favorite một số events:
 ## 🔔 Sample Notifications
 
 5 notifications mẫu cho các users:
+
 - Ticket purchased notifications
 - Event reminders
 - Promotions
 - Welcome messages
 
 **API:**
+
 - `GET /api/notifications` - List notifications (cần authentication)
 - `PUT /api/notifications/{id}/read` - Mark as read
 
@@ -252,6 +274,7 @@ Các user đã favorite một số events:
 ## 🧪 Testing Scenarios
 
 ### Scenario 1: Browse Events (Public)
+
 ```bash
 # Get all events
 GET /api/events
@@ -270,6 +293,7 @@ GET /api/events?city=ho-chi-minh
 ```
 
 ### Scenario 2: View Event Details (Public)
+
 ```bash
 # Get event details
 GET /api/events/{eventId}
@@ -282,6 +306,7 @@ GET /api/venues/{venueId}/seats?eventId={eventId}
 ```
 
 ### Scenario 3: User Login & Profile
+
 ```bash
 # Login
 POST /api/auth/login
@@ -296,6 +321,7 @@ Authorization: Bearer {token}
 ```
 
 ### Scenario 4: Create Order (Authenticated)
+
 ```bash
 # Create order
 POST /api/orders
@@ -309,6 +335,7 @@ Authorization: Bearer {token}
 ```
 
 ### Scenario 5: Admin Create Event (Admin Only)
+
 ```bash
 # Create event
 POST /api/events
@@ -348,9 +375,10 @@ Tất cả API responses đều có format:
 ```
 
 Error response:
+
 ```json
 {
-  "code": 1001,       // Error code
+  "code": 1001, // Error code
   "message": "Error message"
 }
 ```
@@ -359,13 +387,13 @@ Error response:
 
 ## 🔑 Common Error Codes
 
-| Code | Message | Mô tả |
-|------|---------|-------|
-| 1000 | Success | Thành công |
-| 1001 | General Error | Lỗi chung |
-| 1002 | Unauthorized | Chưa đăng nhập |
-| 1003 | Forbidden | Không có quyền |
-| 1004 | Not Found | Không tìm thấy |
+| Code | Message          | Mô tả                |
+| ---- | ---------------- | -------------------- |
+| 1000 | Success          | Thành công           |
+| 1001 | General Error    | Lỗi chung            |
+| 1002 | Unauthorized     | Chưa đăng nhập       |
+| 1003 | Forbidden        | Không có quyền       |
+| 1004 | Not Found        | Không tìm thấy       |
 | 1005 | Validation Error | Dữ liệu không hợp lệ |
 
 ---
@@ -373,12 +401,14 @@ Error response:
 ## 🎯 Recommended Testing Flow
 
 1. **Public Access:**
+
    - Browse categories: `GET /api/categories`
    - Browse cities: `GET /api/cities`
    - Browse events: `GET /api/events`
    - View event details: `GET /api/events/{eventId}`
 
 2. **User Flow:**
+
    - Login: `POST /api/auth/login` (user: `user1`, pass: `123456`)
    - View profile: `GET /api/users/me`
    - Browse events: `GET /api/events`
@@ -410,6 +440,7 @@ Error response:
 ## 🔗 Useful Endpoints
 
 ### Public Endpoints (không cần auth):
+
 - `GET /api/categories`
 - `GET /api/cities`
 - `GET /api/venues`
@@ -422,6 +453,7 @@ Error response:
 - `POST /api/auth/register`
 
 ### Authenticated Endpoints (cần USER role):
+
 - `GET /api/users/me`
 - `GET /api/orders`
 - `GET /api/tickets`
@@ -433,6 +465,7 @@ Error response:
 - `POST /api/orders` (create order)
 
 ### Admin Endpoints (cần ADMIN role):
+
 - `POST /api/events`
 - `PUT /api/events/{eventId}`
 - `DELETE /api/events/{eventId}`
@@ -454,7 +487,7 @@ http://localhost:8080/api/swagger-ui.html
 ```
 
 Hoặc OpenAPI JSON:
+
 ```
 http://localhost:8080/api/v3/api-docs
 ```
-
