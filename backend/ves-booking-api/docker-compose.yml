@@ -15,9 +15,9 @@ services:
       --character-set-server=utf8mb4
       --collation-server=utf8mb4_unicode_ci
       --performance-schema=OFF
-      --innodb-buffer-pool-size=128M
+      --innodb-buffer-pool-size=512M
       --innodb-log-buffer-size=8M
-      --max-connections=50
+      --max-connections=100
       --table-open-cache=100
       --key-buffer-size=16M
       --sort-buffer-size=256K
@@ -25,19 +25,54 @@ services:
     deploy:
       resources:
         limits:
+          cpus: "1.0" # 1 core for MySQL
+          memory: 1G # 1GB for MySQL
+        reservations:
           cpus: "0.5"
           memory: 512M
-        reservations:
-          cpus: "0.25"
-          memory: 256M
     healthcheck:
-      test: [ "CMD", "healthcheck.sh", "--connect", "--innodb_initialized" ]
-      interval: 30s
+      test:
+        ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot"]
+      interval: 10s
       timeout: 5s
-      retries: 3
-      start_period: 30s
+      retries: 5
+      start_period: 40s
     networks:
       - ves-booking-network
+    restart: unless-stopped
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ves-booking-api
+    ports:
+      - "8080:8080"
+    environment:
+      DBMS_CONNECTION: "jdbc:mysql://mysql:3306/ves_booking_api?useUnicode=true&useSSL=false&serverTimezone=Asia/Ho_Chi_Minh"
+      DBMS_USERNAME: root
+      DBMS_PASSWORD: root
+      SPRING_PROFILES_ACTIVE: prod
+    depends_on:
+      mysql:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0" # 2 cores for Spring Boot app
+          memory: 2G # 2GB for Spring Boot app
+        reservations:
+          cpus: "1.0"
+          memory: 1G
+    healthcheck:
+      test: ["CMD-SHELL", "ps aux | grep '[j]ava.*app.jar' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - ves-booking-network
+    restart: unless-stopped
 
 volumes:
   mysql_data:
