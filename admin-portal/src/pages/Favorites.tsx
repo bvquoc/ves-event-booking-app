@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { favoriteApi, EventResponse } from "@/lib/api";
+import { usePermissions } from "@/hooks/usePermissions";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,6 +15,7 @@ import { Heart, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 
 export default function Favorites() {
+  const { isAdmin } = usePermissions();
   const [favorites, setFavorites] = useState<EventResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(0);
@@ -59,9 +61,12 @@ export default function Favorites() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Favorites</h1>
+          <h1 className="text-3xl font-bold">
+            {isAdmin() ? "Favorites" : "My Favorites"}
+          </h1>
           <p className="text-muted-foreground">
-            Your favorite events ({totalElements} total)
+            {isAdmin() ? "All favorite events" : "Your favorite events"} (
+            {totalElements} total)
           </p>
         </div>
       </div>

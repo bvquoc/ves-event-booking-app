@@ -122,13 +122,23 @@ The app uses JWT tokens stored in localStorage. After login, the token is automa
 
 ## Deployment
 
-### Quick Deploy
+### First Time Setup
 
 ```bash
-./setup.sh
+./deploy.sh
 ```
 
 That's it! The script handles everything.
+
+### Deploy New Source
+
+After updating code:
+
+```bash
+./deploy-new.sh
+```
+
+Stops, rebuilds, and restarts automatically.
 
 ### Manual Deploy
 

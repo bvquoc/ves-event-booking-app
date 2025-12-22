@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { notificationApi, NotificationResponse } from "@/lib/api";
+import { usePermissions } from "@/hooks/usePermissions";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,6 +17,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 
 export default function Notifications() {
+  const { isAdmin } = usePermissions();
   const [notifications, setNotifications] = useState<NotificationResponse[]>(
     []
   );
@@ -91,9 +93,12 @@ export default function Notifications() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">My Notifications</h1>
+          <h1 className="text-3xl font-bold">
+            {isAdmin() ? "Notifications" : "My Notifications"}
+          </h1>
           <p className="text-muted-foreground">
-            View your notifications ({totalElements} total)
+            {isAdmin() ? "Manage all notifications" : "View your notifications"}{" "}
+            ({totalElements} total)
           </p>
         </div>
         <Button onClick={handleMarkAllAsRead} variant="outline">

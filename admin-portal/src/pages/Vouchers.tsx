@@ -24,8 +24,10 @@ import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { eventApi, TicketTypeResponse } from "@/lib/api";
 import { EventResponse } from "@/lib/api";
+import { usePermissions } from "@/hooks/usePermissions";
 
 export default function Vouchers() {
+  const { isAdmin } = usePermissions();
   const [publicVouchers, setPublicVouchers] = useState<VoucherResponse[]>([]);
   const [userVouchers, setUserVouchers] = useState<UserVoucherResponse[]>([]);
   const [loading, setLoading] = useState(true);
@@ -106,8 +108,12 @@ export default function Vouchers() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">My Vouchers</h1>
-          <p className="text-muted-foreground">View and validate vouchers</p>
+          <h1 className="text-3xl font-bold">
+            {isAdmin() ? "Vouchers" : "My Vouchers"}
+          </h1>
+          <p className="text-muted-foreground">
+            {isAdmin() ? "Manage all vouchers" : "View and validate vouchers"}
+          </p>
         </div>
         <Button onClick={() => setValidateDialogOpen(true)}>
           Validate Voucher
