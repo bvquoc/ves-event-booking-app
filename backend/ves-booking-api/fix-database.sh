@@ -13,11 +13,15 @@ if ! docker ps | grep -q ves-booking-mysql; then
     sleep 10
 fi
 
-# Check if database exists
+# Check if database exists by trying to use it
 echo "Checking if database exists..."
-DB_EXISTS=$(docker exec ves-booking-mysql mysql -uroot -proot -e "SHOW DATABASES LIKE 'ves_booking_api';" 2>/dev/null | grep -c ves_booking_api || echo "0")
+if docker exec ves-booking-mysql mysql -uroot -proot -e "USE ves_booking_api;" > /dev/null 2>&1; then
+    DB_EXISTS=1
+else
+    DB_EXISTS=0
+fi
 
-if [ "$DB_EXISTS" -eq "0" ]; then
+if [ "$DB_EXISTS" = "0" ]; then
     echo "❌ Database 'ves_booking_api' does not exist"
     echo "Creating database..."
     
@@ -41,9 +45,7 @@ fi
 # Verify database exists
 echo ""
 echo "Verifying database..."
-docker exec ves-booking-mysql mysql -uroot -proot -e "SHOW DATABASES;" | grep ves_booking_api
-
-if [ $? -eq 0 ]; then
+if docker exec ves-booking-mysql mysql -uroot -proot -e "USE ves_booking_api;" 2>/dev/null; then
     echo ""
     echo "✅ Database verification successful!"
     echo ""

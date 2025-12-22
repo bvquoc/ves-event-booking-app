@@ -33,10 +33,7 @@ services:
           memory: 512M
     healthcheck:
       test:
-        [
-          "CMD-SHELL",
-          "mysqladmin ping -h localhost -u root -proot && mysql -uroot -proot -e 'USE ves_booking_api;'",
-        ]
+        ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot"]
       interval: 10s
       timeout: 5s
       retries: 5
