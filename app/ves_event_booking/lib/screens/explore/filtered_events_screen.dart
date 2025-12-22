@@ -93,7 +93,12 @@ class FilteredEventsScreenState extends State<FilteredEventsScreen> {
                 itemCount: listEvents.length,
                 itemBuilder: (context, index) {
                   final event = listEvents[index];
-                  return EventItemCard(event: event);
+                  return EventItemCard(
+                    event: event,
+                    onFavoriteToggle: (eventId) {
+                      provider.toggleFavorite(eventId);
+                    },
+                  );
                 },
               ),
               Positioned(

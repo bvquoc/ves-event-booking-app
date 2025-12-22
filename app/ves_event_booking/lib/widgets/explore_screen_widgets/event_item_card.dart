@@ -1,11 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:ves_event_booking/models/event/event_model.dart';
+import 'package:ves_event_booking/screens/event_detail/event_detail_screen.dart';
 
 class EventItemCard extends StatelessWidget {
   final EventModel event;
+  final Function(String eventId)? onFavoriteToggle;
 
-  const EventItemCard({super.key, required this.event});
+  const EventItemCard({
+    super.key,
+    required this.event,
+    required this.onFavoriteToggle,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -16,12 +22,12 @@ class EventItemCard extends StatelessWidget {
 
     return GestureDetector(
       onTap: () {
-        // Navigator.push(
-        //   context,
-        //   MaterialPageRoute(
-        //     builder: (_) => EventDetailScreen(eventId: event.id),
-        //   ),
-        // );
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => EventDetailScreen(eventId: event.id),
+          ),
+        );
       },
       child: Container(
         decoration: BoxDecoration(
@@ -59,25 +65,32 @@ class EventItemCard extends StatelessWidget {
                 Positioned(
                   top: 10,
                   right: 10,
-                  child: Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 4,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Icon(
-                      event.isFavorite != null && event.isFavorite == true
-                          ? Icons.favorite
-                          : Icons.favorite_border,
-                      size: 18,
-                      color: Colors.red,
+                  child: GestureDetector(
+                    onTap: () {
+                      if (onFavoriteToggle != null) {
+                        onFavoriteToggle!(event.id);
+                      }
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Icon(
+                        event.isFavorite != null && event.isFavorite == true
+                            ? Icons.favorite
+                            : Icons.favorite_border,
+                        size: 18,
+                        color: Colors.red,
+                      ),
                     ),
                   ),
                 ),
