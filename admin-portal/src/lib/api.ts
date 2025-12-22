@@ -737,6 +737,24 @@ export const cityApi = {
   },
 };
 
+// Purchase types
+export interface PurchaseRequest {
+  eventId: string;
+  ticketTypeId: string;
+  quantity: number;
+  seatIds?: string[];
+  voucherCode?: string;
+  paymentMethod: "CREDIT_CARD" | "DEBIT_CARD" | "E_WALLET" | "BANK_TRANSFER";
+}
+
+export interface PurchaseResponse {
+  orderId: string;
+  status: "PENDING" | "COMPLETED" | "CANCELLED" | "EXPIRED" | "REFUNDED";
+  paymentUrl?: string;
+  total: number;
+  expiresAt?: string;
+}
+
 export const ticketApi = {
   getTickets: async (params?: {
     status?: "ACTIVE" | "USED" | "CANCELLED" | "REFUNDED";
@@ -757,6 +775,13 @@ export const ticketApi = {
   cancelTicket: async (ticketId: string, request: CancelTicketRequest) => {
     const response = await apiClient.put<ApiResponse<CancellationResponse>>(
       `/tickets/${ticketId}/cancel`,
+      request
+    );
+    return response.data;
+  },
+  purchaseTickets: async (request: PurchaseRequest) => {
+    const response = await apiClient.post<ApiResponse<PurchaseResponse>>(
+      "/tickets/purchase",
       request
     );
     return response.data;
