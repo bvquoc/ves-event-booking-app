@@ -21,11 +21,11 @@ public class GlobalExceptionHandler {
     private static final String MIN_ATTRIBUTE = "min";
     
     /**
-     * Extract a short, simple error message from exception
+     * Extract a short, simple error message from exception or throwable
      */
-    private String extractShortError(Exception exception) {
-        if (exception.getMessage() != null && !exception.getMessage().isEmpty()) {
-            String msg = exception.getMessage();
+    private String extractShortError(Throwable throwable) {
+        if (throwable.getMessage() != null && !throwable.getMessage().isEmpty()) {
+            String msg = throwable.getMessage();
             // Take first line if multi-line
             if (msg.contains("\n")) {
                 msg = msg.split("\n")[0];
@@ -36,7 +36,7 @@ public class GlobalExceptionHandler {
             }
             return msg;
         }
-        return exception.getClass().getSimpleName();
+        return throwable.getClass().getSimpleName();
     }
 
     @ExceptionHandler(value = Exception.class)
