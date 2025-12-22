@@ -385,7 +385,54 @@ Error response:
 
 ---
 
-## 🔑 Common Error Codes
+## 🔑 Error Codes
+
+### Get All Error Codes
+
+Frontend có thể lấy tất cả error codes và messages từ API:
+
+```bash
+GET /api/error-codes
+```
+
+**Response:**
+
+```json
+{
+  "result": [
+    {
+      "name": "EVENT_NOT_FOUND",
+      "code": 2001,
+      "message": "Event not found",
+      "httpStatus": 404,
+      "category": "Event errors"
+    },
+    {
+      "name": "TICKETS_UNAVAILABLE",
+      "code": 3002,
+      "message": "Requested tickets are not available",
+      "httpStatus": 400,
+      "category": "Ticket errors"
+    },
+    ...
+  ]
+}
+```
+
+**Categories:**
+
+- `System errors` (9999)
+- `User errors` (1000-1999)
+- `Event errors` (2000-2999)
+- `Ticket errors` (3000-3999)
+- `Seat errors` (4000-4999)
+- `Order errors` (5000-5999)
+- `Voucher errors` (6000-6999)
+- `Venue errors` (7000-7999)
+- `Category/City errors` (8000-8999)
+- `Notification errors` (9000-9999)
+
+### Common Error Codes
 
 | Code | Message          | Mô tả                |
 | ---- | ---------------- | -------------------- |
@@ -395,6 +442,8 @@ Error response:
 | 1003 | Forbidden        | Không có quyền       |
 | 1004 | Not Found        | Không tìm thấy       |
 | 1005 | Validation Error | Dữ liệu không hợp lệ |
+
+**💡 Tip:** Frontend có thể cache error codes từ `/api/error-codes` để map error codes thành user-friendly messages.
 
 ---
 
@@ -449,6 +498,7 @@ Error response:
 - `GET /api/events`
 - `GET /api/events/{eventId}`
 - `GET /api/events/{eventId}/tickets`
+- `GET /api/error-codes` - Get all error codes and messages
 - `POST /api/auth/login`
 - `POST /api/auth/register`
 
