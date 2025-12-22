@@ -36,8 +36,12 @@ import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { venueApi, VenueSeatingResponse } from "@/lib/api";
+import { usePermissions } from "@/hooks/usePermissions";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Events() {
+  const { canManageEvents, isAdmin } = usePermissions();
+  const { user } = useAuth();
   const [events, setEvents] = useState<EventResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(0);
@@ -137,9 +141,27 @@ export default function Events() {
       if (trendingFilter !== undefined) params.trending = trendingFilter;
 
       const response = await eventApi.getEvents(params);
-      setEvents(response.result.content);
+      let filteredEvents = response.result.content;
+      let filteredTotal = response.result.totalElements;
+
+      // For non-admin users, filter to show only their events
+      // Filter by organizerName matching user's name or username
+      if (!isAdmin() && user) {
+        filteredEvents = response.result.content.filter((event) => {
+          const userFullName = `${user.firstName} ${user.lastName}`.trim();
+          return (
+            event.organizerName === user.username ||
+            event.organizerName === userFullName ||
+            event.organizerName === user.firstName ||
+            event.organizerName === user.lastName
+          );
+        });
+        filteredTotal = filteredEvents.length;
+      }
+
+      setEvents(filteredEvents);
       setTotalPages(response.result.totalPages);
-      setTotalElements(response.result.totalElements);
+      setTotalElements(filteredTotal);
     } catch (error) {
       console.error("Failed to load events:", error);
     } finally {
@@ -239,7 +261,7 @@ export default function Events() {
       setViewingEvent(event);
       setSeating(null);
       setViewDialogOpen(true);
-      
+
       // Load seating chart if venue is available
       if (event.venueId) {
         loadSeatingChart(event.venueId, eventId);
@@ -363,7 +385,6 @@ export default function Events() {
     setTicketTypes(ticketTypes.filter((_, i) => i !== index));
   };
 
-
   if (loading && events.length === 0) {
     return <div>Loading...</div>;
   }
@@ -372,15 +393,20 @@ export default function Events() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Events</h1>
+          <h1 className="text-3xl font-bold">
+            {isAdmin() ? "Events" : "My Events"}
+          </h1>
           <p className="text-muted-foreground">
-            Manage events ({totalElements} total)
+            {isAdmin() ? "Manage events" : "View your events"} ({totalElements}{" "}
+            total)
           </p>
         </div>
-        <Button onClick={handleCreate}>
-          <Plus className="mr-2 h-4 w-4" />
-          Add Event
-        </Button>
+        {canManageEvents() && (
+          <Button onClick={handleCreate}>
+            <Plus className="mr-2 h-4 w-4" />
+            Add Event
+          </Button>
+        )}
       </div>
 
       {/* Filters */}
@@ -499,20 +525,24 @@ export default function Events() {
                       >
                         <Eye className="h-4 w-4" />
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleEdit(event.id)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleDelete(event.id)}
-                      >
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
+                      {canManageEvents() && (
+                        <>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleEdit(event.id)}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleDelete(event.id)}
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </>
+                      )}
                     </div>
                   </TableCell>
                 </TableRow>
@@ -1035,48 +1065,66 @@ export default function Events() {
               {viewingEvent.venueId && (
                 <div className="border-t pt-4">
                   <div className="flex justify-between items-center mb-4">
-                    <Label className="text-lg font-semibold">Seating Chart</Label>
+                    <Label className="text-lg font-semibold">
+                      Seating Chart
+                    </Label>
                     {loadingSeating && (
-                      <span className="text-sm text-muted-foreground">Loading...</span>
+                      <span className="text-sm text-muted-foreground">
+                        Loading...
+                      </span>
                     )}
                   </div>
-                  
-                  {seating && seating.sections && seating.sections.length > 0 ? (
+
+                  {seating &&
+                  seating.sections &&
+                  seating.sections.length > 0 ? (
                     <div className="space-y-6">
-                      {seating.sections.map((section: any, sectionIndex: number) => (
-                        <div key={sectionIndex} className="border rounded-lg p-4 bg-card">
-                          <h3 className="font-semibold mb-3 text-lg">{section.sectionName}</h3>
-                          {section.rows && section.rows.length > 0 ? (
-                            <div className="space-y-4">
-                              {section.rows.map((row: any, rowIndex: number) => (
-                                <div key={rowIndex} className="space-y-2">
-                                  <div className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                                    <span>Row {row.rowName}</span>
-                                  </div>
-                                  <div className="flex flex-wrap gap-1">
-                                    {row.seats && row.seats.map((seat: any) => (
-                                      <div
-                                        key={seat.id}
-                                        className={`
+                      {seating.sections.map(
+                        (section: any, sectionIndex: number) => (
+                          <div
+                            key={sectionIndex}
+                            className="border rounded-lg p-4 bg-card"
+                          >
+                            <h3 className="font-semibold mb-3 text-lg">
+                              {section.sectionName}
+                            </h3>
+                            {section.rows && section.rows.length > 0 ? (
+                              <div className="space-y-4">
+                                {section.rows.map(
+                                  (row: any, rowIndex: number) => (
+                                    <div key={rowIndex} className="space-y-2">
+                                      <div className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                                        <span>Row {row.rowName}</span>
+                                      </div>
+                                      <div className="flex flex-wrap gap-1">
+                                        {row.seats &&
+                                          row.seats.map((seat: any) => (
+                                            <div
+                                              key={seat.id}
+                                              className={`
                                           px-2 py-1 text-xs border rounded cursor-default
                                           ${getSeatStatusColor(seat.status)}
                                           hover:opacity-80 transition-opacity
                                         `}
-                                        title={`Seat ${seat.seatNumber} - ${seat.status}`}
-                                      >
-                                        {seat.seatNumber}
+                                              title={`Seat ${seat.seatNumber} - ${seat.status}`}
+                                            >
+                                              {seat.seatNumber}
+                                            </div>
+                                          ))}
                                       </div>
-                                    ))}
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          ) : (
-                            <p className="text-sm text-muted-foreground">No rows defined</p>
-                          )}
-                        </div>
-                      ))}
-                      
+                                    </div>
+                                  )
+                                )}
+                              </div>
+                            ) : (
+                              <p className="text-sm text-muted-foreground">
+                                No rows defined
+                              </p>
+                            )}
+                          </div>
+                        )
+                      )}
+
                       {/* Legend */}
                       <div className="flex gap-4 flex-wrap pt-2 border-t">
                         <div className="flex items-center gap-2">

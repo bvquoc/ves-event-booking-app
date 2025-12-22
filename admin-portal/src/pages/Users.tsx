@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
-import { userApi, roleApi, UserResponse, RoleResponse } from '@/lib/api';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { useEffect, useState } from "react";
+import { userApi, roleApi, UserResponse, RoleResponse } from "@/lib/api";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { usePermissions } from "@/hooks/usePermissions";
 import {
   Table,
   TableBody,
@@ -9,8 +10,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { Plus, Edit, Trash2 } from 'lucide-react';
+} from "@/components/ui/table";
+import { Plus, Edit, Trash2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -18,23 +19,24 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export default function Users() {
+  const { canManageUsers } = usePermissions();
   const [users, setUsers] = useState<UserResponse[]>([]);
   const [roles, setRoles] = useState<RoleResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<UserResponse | null>(null);
   const [formData, setFormData] = useState({
-    username: '',
-    password: '',
-    firstName: '',
-    lastName: '',
-    dob: '',
+    username: "",
+    password: "",
+    firstName: "",
+    lastName: "",
+    dob: "",
     selectedRoles: [] as string[],
   });
 
@@ -48,7 +50,7 @@ export default function Users() {
       const response = await userApi.getUsers();
       setUsers(response.result);
     } catch (error) {
-      console.error('Failed to load users:', error);
+      console.error("Failed to load users:", error);
     } finally {
       setLoading(false);
     }
@@ -59,18 +61,18 @@ export default function Users() {
       const response = await roleApi.getRoles();
       setRoles(response.result);
     } catch (error) {
-      console.error('Failed to load roles:', error);
+      console.error("Failed to load roles:", error);
     }
   };
 
   const handleCreate = () => {
     setEditingUser(null);
-    setFormData({ 
-      username: '', 
-      password: '', 
-      firstName: '', 
-      lastName: '', 
-      dob: '',
+    setFormData({
+      username: "",
+      password: "",
+      firstName: "",
+      lastName: "",
+      dob: "",
       selectedRoles: [],
     });
     setDialogOpen(true);
@@ -80,11 +82,11 @@ export default function Users() {
     setEditingUser(user);
     setFormData({
       username: user.username,
-      password: '',
-      firstName: user.firstName || '',
-      lastName: user.lastName || '',
-      dob: user.dob || '',
-      selectedRoles: user.roles.map(r => r.name),
+      password: "",
+      firstName: user.firstName || "",
+      lastName: user.lastName || "",
+      dob: user.dob || "",
+      selectedRoles: user.roles.map((r) => r.name),
     });
     setDialogOpen(true);
   };
@@ -112,19 +114,19 @@ export default function Users() {
       setDialogOpen(false);
       loadUsers();
     } catch (error) {
-      console.error('Failed to save user:', error);
-      alert('Failed to save user');
+      console.error("Failed to save user:", error);
+      alert("Failed to save user");
     }
   };
 
   const handleDelete = async (userId: string) => {
-    if (!confirm('Are you sure you want to delete this user?')) return;
+    if (!confirm("Are you sure you want to delete this user?")) return;
     try {
       await userApi.deleteUser(userId);
       loadUsers();
     } catch (error) {
-      console.error('Failed to delete user:', error);
-      alert('Failed to delete user');
+      console.error("Failed to delete user:", error);
+      alert("Failed to delete user");
     }
   };
 
@@ -139,10 +141,12 @@ export default function Users() {
           <h1 className="text-3xl font-bold">Users</h1>
           <p className="text-muted-foreground">Manage system users</p>
         </div>
-        <Button onClick={handleCreate}>
-          <Plus className="mr-2 h-4 w-4" />
-          Add User
-        </Button>
+        {canManageUsers() && (
+          <Button onClick={handleCreate}>
+            <Plus className="mr-2 h-4 w-4" />
+            Add User
+          </Button>
+        )}
       </div>
 
       <Card>
@@ -164,27 +168,29 @@ export default function Users() {
                   <TableCell className="font-medium">{user.username}</TableCell>
                   <TableCell>{user.firstName}</TableCell>
                   <TableCell>{user.lastName}</TableCell>
-                  <TableCell>{user.dob || '-'}</TableCell>
+                  <TableCell>{user.dob || "-"}</TableCell>
                   <TableCell>
-                    {user.roles.map((r) => r.name).join(', ') || '-'}
+                    {user.roles.map((r) => r.name).join(", ") || "-"}
                   </TableCell>
                   <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleEdit(user)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleDelete(user.id)}
-                      >
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
-                    </div>
+                    {canManageUsers() && (
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleEdit(user)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleDelete(user.id)}
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}
@@ -196,9 +202,13 @@ export default function Users() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{editingUser ? 'Edit User' : 'Create User'}</DialogTitle>
+            <DialogTitle>
+              {editingUser ? "Edit User" : "Create User"}
+            </DialogTitle>
             <DialogDescription>
-              {editingUser ? 'Update user information' : 'Add a new user to the system'}
+              {editingUser
+                ? "Update user information"
+                : "Add a new user to the system"}
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit}>
@@ -209,18 +219,26 @@ export default function Users() {
                   <Input
                     id="username"
                     value={formData.username}
-                    onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, username: e.target.value })
+                    }
                     required
                   />
                 </div>
               )}
               <div className="space-y-2">
-                <Label htmlFor="password">{editingUser ? 'New Password (leave empty to keep current)' : 'Password *'}</Label>
+                <Label htmlFor="password">
+                  {editingUser
+                    ? "New Password (leave empty to keep current)"
+                    : "Password *"}
+                </Label>
                 <Input
                   id="password"
                   type="password"
                   value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, password: e.target.value })
+                  }
                   required={!editingUser}
                 />
               </div>
@@ -229,7 +247,9 @@ export default function Users() {
                 <Input
                   id="firstName"
                   value={formData.firstName}
-                  onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, firstName: e.target.value })
+                  }
                 />
               </div>
               <div className="space-y-2">
@@ -237,7 +257,9 @@ export default function Users() {
                 <Input
                   id="lastName"
                   value={formData.lastName}
-                  onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, lastName: e.target.value })
+                  }
                 />
               </div>
               <div className="space-y-2">
@@ -246,7 +268,9 @@ export default function Users() {
                   id="dob"
                   type="date"
                   value={formData.dob}
-                  onChange={(e) => setFormData({ ...formData, dob: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, dob: e.target.value })
+                  }
                 />
               </div>
               {editingUser && (
@@ -254,20 +278,28 @@ export default function Users() {
                   <Label>Roles</Label>
                   <div className="space-y-2 border rounded-md p-3 max-h-40 overflow-y-auto">
                     {roles.map((role) => (
-                      <div key={role.name} className="flex items-center space-x-2">
+                      <div
+                        key={role.name}
+                        className="flex items-center space-x-2"
+                      >
                         <Checkbox
                           id={`role-${role.name}`}
                           checked={formData.selectedRoles.includes(role.name)}
                           onCheckedChange={(checked: boolean) => {
                             if (checked) {
-                              setFormData(prev => ({
+                              setFormData((prev) => ({
                                 ...prev,
-                                selectedRoles: [...prev.selectedRoles, role.name],
+                                selectedRoles: [
+                                  ...prev.selectedRoles,
+                                  role.name,
+                                ],
                               }));
                             } else {
-                              setFormData(prev => ({
+                              setFormData((prev) => ({
                                 ...prev,
-                                selectedRoles: prev.selectedRoles.filter(r => r !== role.name),
+                                selectedRoles: prev.selectedRoles.filter(
+                                  (r) => r !== role.name
+                                ),
                               }));
                             }
                           }}
@@ -285,7 +317,11 @@ export default function Users() {
               )}
             </div>
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setDialogOpen(false)}
+              >
                 Cancel
               </Button>
               <Button type="submit">Save</Button>
@@ -296,4 +332,3 @@ export default function Users() {
     </div>
   );
 }
-

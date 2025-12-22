@@ -7,6 +7,7 @@ import {
   eventApi,
   CityResponse,
 } from "@/lib/api";
+import { usePermissions } from "@/hooks/usePermissions";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -32,6 +33,7 @@ import { Input } from "@/components/ui/input";
 import { EventResponse } from "@/lib/api";
 
 export default function Venues() {
+  const { canManageVenues } = usePermissions();
   const [venues, setVenues] = useState<VenueResponse[]>([]);
   const [cities, setCities] = useState<CityResponse[]>([]);
   const [events, setEvents] = useState<EventResponse[]>([]);
@@ -192,10 +194,12 @@ export default function Venues() {
             Manage venues and seating charts
           </p>
         </div>
-        <Button onClick={handleCreate}>
-          <Plus className="mr-2 h-4 w-4" />
-          Add Venue
-        </Button>
+        {canManageVenues() && (
+          <Button onClick={handleCreate}>
+            <Plus className="mr-2 h-4 w-4" />
+            Add Venue
+          </Button>
+        )}
       </div>
 
       <Card>
@@ -226,20 +230,24 @@ export default function Venues() {
                       >
                         <Eye className="h-4 w-4" />
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleEdit(venue)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleDelete(venue.id)}
-                      >
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
+                      {canManageVenues() && (
+                        <>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleEdit(venue)}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleDelete(venue.id)}
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </>
+                      )}
                     </div>
                   </TableCell>
                 </TableRow>

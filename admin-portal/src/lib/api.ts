@@ -51,6 +51,7 @@ export interface ApiResponse<T> {
   code: number;
   message: string;
   result: T;
+  errorDetails?: string;
 }
 
 // Auth types
@@ -276,11 +277,181 @@ export interface PageResponse<T> {
 }
 
 // API functions
+// Ticket types
+export interface TicketResponse {
+  id: string;
+  eventId: string;
+  eventName: string;
+  eventThumbnail?: string;
+  eventStartDate: string;
+  venueName?: string;
+  ticketTypeName: string;
+  seatNumber?: string;
+  status: "ACTIVE" | "USED" | "CANCELLED" | "REFUNDED";
+  qrCode?: string;
+  purchaseDate: string;
+}
+
+export interface TicketDetailResponse {
+  id: string;
+  eventId: string;
+  eventName: string;
+  eventDescription?: string;
+  eventThumbnail?: string;
+  eventStartDate: string;
+  eventEndDate?: string;
+  venueName?: string;
+  venueAddress?: string;
+  ticketTypeId: string;
+  ticketTypeName: string;
+  ticketTypeDescription?: string;
+  ticketTypePrice: number;
+  seatNumber?: string;
+  qrCode?: string;
+  qrCodeImage?: string;
+  status: "ACTIVE" | "USED" | "CANCELLED" | "REFUNDED";
+  purchaseDate: string;
+  checkedInAt?: string;
+  cancellationReason?: string;
+  refundAmount?: number;
+  refundStatus?: "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED";
+  cancelledAt?: string;
+}
+
+export interface CancelTicketRequest {
+  reason?: string;
+}
+
+export interface CancellationResponse {
+  ticketId: string;
+  status: "ACTIVE" | "USED" | "CANCELLED" | "REFUNDED";
+  refundAmount?: number;
+  refundPercentage?: number;
+  refundStatus?: "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED";
+  cancelledAt?: string;
+  message?: string;
+}
+
+export interface PageTicketResponse {
+  totalElements: number;
+  totalPages: number;
+  size: number;
+  content: TicketResponse[];
+  number: number;
+  sort: SortObject;
+  pageable: PageableObject;
+  numberOfElements: number;
+  first: boolean;
+  last: boolean;
+  empty: boolean;
+}
+
+export interface SortObject {
+  empty: boolean;
+  sorted: boolean;
+  unsorted: boolean;
+}
+
+export interface PageableObject {
+  offset: number;
+  sort: SortObject;
+  pageNumber: number;
+  pageSize: number;
+  paged: boolean;
+  unpaged: boolean;
+}
+
+// Notification types
+export interface NotificationResponse {
+  id: string;
+  type:
+    | "TICKET_PURCHASED"
+    | "EVENT_REMINDER"
+    | "EVENT_CANCELLED"
+    | "PROMOTION"
+    | "SYSTEM";
+  title: string;
+  message: string;
+  isRead: boolean;
+  data?: Record<string, string>;
+  createdAt: string;
+}
+
+export interface PageResponseNotificationResponse {
+  content: NotificationResponse[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+  first: boolean;
+  last: boolean;
+}
+
+// Voucher types
+export interface VoucherResponse {
+  id: string;
+  code: string;
+  title: string;
+  description?: string;
+  discountType: "FIXED_AMOUNT" | "PERCENTAGE";
+  discountValue: number;
+  minOrderAmount?: number;
+  maxDiscount?: number;
+  startDate: string;
+  endDate: string;
+  usageLimit?: number;
+  usedCount?: number;
+  applicableEvents?: string[];
+  applicableCategories?: string[];
+  isPublic: boolean;
+}
+
+export interface UserVoucherResponse {
+  id: string;
+  voucher: VoucherResponse;
+  isUsed: boolean;
+  usedAt?: string;
+  orderId?: string;
+  addedAt: string;
+}
+
+export interface ValidateVoucherRequest {
+  voucherCode: string;
+  eventId: string;
+  ticketTypeId: string;
+  quantity: number;
+}
+
+export interface VoucherValidationResponse {
+  isValid: boolean;
+  message?: string;
+  orderAmount?: number;
+  discountAmount?: number;
+  finalAmount?: number;
+  voucher?: VoucherResponse;
+}
+
+// Error Code types
+export interface ErrorCodeResponse {
+  name: string;
+  code: number;
+  message: string;
+  httpStatus: number;
+  category?: string;
+}
+
 export const authApi = {
   login: async (credentials: AuthenticationRequest) => {
     const response = await apiClient.post<ApiResponse<AuthenticationResponse>>(
-      "/auth/token",
+      "/auth/login",
       credentials
+    );
+    return response.data;
+  },
+  register: async (user: UserCreationRequest) => {
+    const response = await apiClient.post<ApiResponse<AuthenticationResponse>>(
+      "/auth/register",
+      user
     );
     return response.data;
   },
@@ -519,6 +690,108 @@ export const cityApi = {
   deleteCity: async (cityId: string) => {
     const response = await apiClient.delete<ApiResponse<void>>(
       `/cities/${cityId}`
+    );
+    return response.data;
+  },
+};
+
+export const ticketApi = {
+  getTickets: async (params?: {
+    status?: "ACTIVE" | "USED" | "CANCELLED" | "REFUNDED";
+    pageable: Pageable;
+  }) => {
+    const response = await apiClient.get<ApiResponse<PageTicketResponse>>(
+      "/tickets",
+      { params }
+    );
+    return response.data;
+  },
+  getTicketDetails: async (ticketId: string) => {
+    const response = await apiClient.get<ApiResponse<TicketDetailResponse>>(
+      `/tickets/${ticketId}`
+    );
+    return response.data;
+  },
+  cancelTicket: async (ticketId: string, request: CancelTicketRequest) => {
+    const response = await apiClient.put<ApiResponse<CancellationResponse>>(
+      `/tickets/${ticketId}/cancel`,
+      request
+    );
+    return response.data;
+  },
+};
+
+export const notificationApi = {
+  getNotifications: async (params?: {
+    unreadOnly?: boolean;
+    pageable: Pageable;
+  }) => {
+    const response = await apiClient.get<
+      ApiResponse<PageResponseNotificationResponse>
+    >("/notifications", { params });
+    return response.data;
+  },
+  markAsRead: async (notificationId: string) => {
+    const response = await apiClient.put<ApiResponse<void>>(
+      `/notifications/${notificationId}/read`
+    );
+    return response.data;
+  },
+  markAllAsRead: async () => {
+    const response = await apiClient.put<ApiResponse<void>>(
+      "/notifications/read-all"
+    );
+    return response.data;
+  },
+};
+
+export const voucherApi = {
+  getPublicVouchers: async () => {
+    const response = await apiClient.get<ApiResponse<VoucherResponse[]>>(
+      "/vouchers"
+    );
+    return response.data;
+  },
+  getUserVouchers: async (status?: string) => {
+    const response = await apiClient.get<ApiResponse<UserVoucherResponse[]>>(
+      "/vouchers/my-vouchers",
+      { params: status ? { status } : undefined }
+    );
+    return response.data;
+  },
+  validateVoucher: async (request: ValidateVoucherRequest) => {
+    const response = await apiClient.post<
+      ApiResponse<VoucherValidationResponse>
+    >("/vouchers/validate", request);
+    return response.data;
+  },
+};
+
+export const favoriteApi = {
+  getFavorites: async (pageable: Pageable) => {
+    const response = await apiClient.get<
+      ApiResponse<PageResponse<EventResponse>>
+    >("/favorites", { params: pageable });
+    return response.data;
+  },
+  addFavorite: async (eventId: string) => {
+    const response = await apiClient.post<ApiResponse<void>>(
+      `/favorites/${eventId}`
+    );
+    return response.data;
+  },
+  removeFavorite: async (eventId: string) => {
+    const response = await apiClient.delete<ApiResponse<void>>(
+      `/favorites/${eventId}`
+    );
+    return response.data;
+  },
+};
+
+export const errorCodeApi = {
+  getAllErrorCodes: async () => {
+    const response = await apiClient.get<ApiResponse<ErrorCodeResponse[]>>(
+      "/error-codes"
     );
     return response.data;
   },

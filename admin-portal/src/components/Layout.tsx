@@ -1,5 +1,6 @@
 import { Link, useLocation, Outlet } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePermissions } from "@/hooks/usePermissions";
 import { Button } from "@/components/ui/button";
 import {
   Users,
@@ -10,21 +11,67 @@ import {
   Building2,
   LogOut,
   Menu,
+  Ticket,
+  Bell,
+  Tag,
+  Heart,
+  AlertCircle,
 } from "lucide-react";
 import { useState } from "react";
 
 const navigation = [
-  { name: "Users", href: "/users", icon: Users },
-  { name: "Events", href: "/events", icon: Calendar },
-  { name: "Roles", href: "/roles", icon: Shield },
-  { name: "Permissions", href: "/permissions", icon: Key },
-  { name: "Cities", href: "/cities", icon: Building2 },
-  { name: "Venues", href: "/venues", icon: MapPin },
+  { name: "Users", href: "/users", icon: Users, adminOnly: true },
+  {
+    name: "Events",
+    href: "/events",
+    icon: Calendar,
+    adminOnly: false,
+    getLabel: (_isAdmin: boolean) => (_isAdmin ? "Events" : "My Events"),
+  },
+  {
+    name: "Tickets",
+    href: "/tickets",
+    icon: Ticket,
+    adminOnly: false,
+    getLabel: (_isAdmin: boolean) => "My Tickets",
+  },
+  {
+    name: "Notifications",
+    href: "/notifications",
+    icon: Bell,
+    adminOnly: false,
+    getLabel: (_isAdmin: boolean) => "My Notifications",
+  },
+  {
+    name: "Vouchers",
+    href: "/vouchers",
+    icon: Tag,
+    adminOnly: false,
+    getLabel: (_isAdmin: boolean) => "My Vouchers",
+  },
+  {
+    name: "Favorites",
+    href: "/favorites",
+    icon: Heart,
+    adminOnly: false,
+    getLabel: (_isAdmin: boolean) => "My Favorites",
+  },
+  { name: "Roles", href: "/roles", icon: Shield, adminOnly: true },
+  { name: "Permissions", href: "/permissions", icon: Key, adminOnly: true },
+  { name: "Cities", href: "/cities", icon: Building2, adminOnly: true },
+  { name: "Venues", href: "/venues", icon: MapPin, adminOnly: true },
+  {
+    name: "Error Codes",
+    href: "/error-codes",
+    icon: AlertCircle,
+    adminOnly: true,
+  },
 ];
 
 export default function Layout() {
   const location = useLocation();
   const { user, logout } = useAuth();
+  const { isAdmin } = usePermissions();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
@@ -43,6 +90,7 @@ export default function Layout() {
           <SidebarContent
             location={location}
             onNavigate={() => setSidebarOpen(false)}
+            isAdminUser={isAdmin()}
           />
         </div>
       </div>
@@ -51,7 +99,7 @@ export default function Layout() {
         {/* Desktop sidebar */}
         <aside className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0">
           <div className="flex flex-col flex-grow bg-card border-r pt-5 pb-4 overflow-y-auto">
-            <SidebarContent location={location} />
+            <SidebarContent location={location} isAdminUser={isAdmin()} />
           </div>
         </aside>
 
@@ -93,18 +141,25 @@ export default function Layout() {
 function SidebarContent({
   location,
   onNavigate,
+  isAdminUser,
 }: {
   location: any;
   onNavigate?: () => void;
+  isAdminUser: boolean;
 }) {
+  const filteredNavigation = navigation.filter(
+    (item) => !item.adminOnly || isAdminUser
+  );
+
   return (
     <>
       <div className="flex items-center flex-shrink-0 px-4 mb-8">
         <h1 className="text-xl font-bold">VES Booking Admin</h1>
       </div>
       <nav className="flex-1 px-2 space-y-1">
-        {navigation.map((item) => {
+        {filteredNavigation.map((item) => {
           const isActive = location.pathname === item.href;
+          const label = item.getLabel ? item.getLabel(isAdminUser) : item.name;
           return (
             <Link
               key={item.name}
@@ -120,7 +175,7 @@ function SidebarContent({
               `}
             >
               <item.icon className="mr-3 h-5 w-5" />
-              {item.name}
+              {label}
             </Link>
           );
         })}
