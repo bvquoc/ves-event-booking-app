@@ -19,6 +19,9 @@ class _FavoriteEventsScreenState extends State<FavoriteEventsScreen> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
+      context.read<EventProvider>().fetchEvents(
+        pageable: PaginationRequest(page: 0, size: 50),
+      );
       context.read<EventProvider>().fetchFavoriteEventIds(
         pageable: PaginationRequest(page: 0, size: 50),
       );

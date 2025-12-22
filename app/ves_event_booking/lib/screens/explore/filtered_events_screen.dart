@@ -33,9 +33,12 @@ class FilteredEventsScreenState extends State<FilteredEventsScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       context.read<EventProvider>().fetchEvents(
-        pageable: PaginationRequest(page: 0, size: 20),
+        pageable: PaginationRequest(page: 0, size: 50),
         category: widget.categoryId,
         city: widget.cityId,
+      );
+      context.read<EventProvider>().fetchFavoriteEventIds(
+        pageable: PaginationRequest(page: 0, size: 50),
       );
     });
   }
