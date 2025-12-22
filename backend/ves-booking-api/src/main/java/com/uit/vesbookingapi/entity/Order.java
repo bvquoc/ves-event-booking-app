@@ -18,7 +18,9 @@ import java.util.List;
 @Entity
 @Table(name = "orders", indexes = {
         @Index(name = "idx_order_user", columnList = "user_id"),
-        @Index(name = "idx_order_status", columnList = "status")
+        @Index(name = "idx_order_status", columnList = "status"),
+        @Index(name = "idx_order_app_trans_id", columnList = "appTransId"),
+        @Index(name = "idx_order_status_expires", columnList = "status, expiresAt")
 })
 public class Order {
     @Id
@@ -64,6 +66,16 @@ public class Order {
     String paymentUrl; // Mock payment gateway URL
 
     LocalDateTime expiresAt; // Payment timeout
+
+    // ZaloPay-specific fields
+    @Column(unique = true)
+    String appTransId;  // Unique transaction ID: YYMMDD_orderId
+
+    String zpTransId;   // ZaloPay transaction ID (from callback)
+
+    LocalDateTime paymentConfirmedAt;  // When payment was confirmed
+
+    String paymentGateway;  // "ZALOPAY" | "MOCK" (for backward compatibility)
 
     @Column(nullable = false)
     LocalDateTime createdAt;
