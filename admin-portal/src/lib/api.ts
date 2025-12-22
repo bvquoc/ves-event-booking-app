@@ -440,6 +440,42 @@ export interface ErrorCodeResponse {
   category?: string;
 }
 
+// Order types
+export interface OrderResponse {
+  id: string;
+  userId: string;
+  eventId: string;
+  eventName: string;
+  ticketTypeId: string;
+  ticketTypeName: string;
+  quantity: number;
+  subtotal: number;
+  discount: number;
+  total: number;
+  currency: string;
+  voucherCode?: string;
+  status: "PENDING" | "COMPLETED" | "CANCELLED" | "EXPIRED" | "REFUNDED";
+  paymentMethod: "CREDIT_CARD" | "DEBIT_CARD" | "E_WALLET" | "BANK_TRANSFER";
+  paymentUrl?: string;
+  expiresAt?: string;
+  createdAt: string;
+  completedAt?: string;
+}
+
+export interface PageOrderResponse {
+  totalElements: number;
+  totalPages: number;
+  size: number;
+  content: OrderResponse[];
+  number: number;
+  sort: SortObject;
+  pageable: PageableObject;
+  numberOfElements: number;
+  first: boolean;
+  last: boolean;
+  empty: boolean;
+}
+
 export const authApi = {
   login: async (credentials: AuthenticationRequest) => {
     const response = await apiClient.post<ApiResponse<AuthenticationResponse>>(
@@ -807,6 +843,49 @@ export const referenceApi = {
   getCategories: async () => {
     const response = await apiClient.get<ApiResponse<CategoryResponse[]>>(
       "/categories"
+    );
+    return response.data;
+  },
+};
+
+// Admin APIs
+export const adminTicketApi = {
+  getAllTickets: async (params?: {
+    userId?: string;
+    eventId?: string;
+    status?: "ACTIVE" | "USED" | "CANCELLED" | "REFUNDED";
+    pageable: Pageable;
+  }) => {
+    const response = await apiClient.get<ApiResponse<PageTicketResponse>>(
+      "/admin/tickets",
+      { params }
+    );
+    return response.data;
+  },
+  getTicketDetails: async (ticketId: string) => {
+    const response = await apiClient.get<ApiResponse<TicketDetailResponse>>(
+      `/admin/tickets/${ticketId}`
+    );
+    return response.data;
+  },
+};
+
+export const adminOrderApi = {
+  getAllOrders: async (params?: {
+    userId?: string;
+    eventId?: string;
+    status?: "PENDING" | "COMPLETED" | "CANCELLED" | "EXPIRED" | "REFUNDED";
+    pageable: Pageable;
+  }) => {
+    const response = await apiClient.get<ApiResponse<PageOrderResponse>>(
+      "/admin/orders",
+      { params }
+    );
+    return response.data;
+  },
+  getOrderDetails: async (orderId: string) => {
+    const response = await apiClient.get<ApiResponse<OrderResponse>>(
+      `/admin/orders/${orderId}`
     );
     return response.data;
   },

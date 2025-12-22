@@ -16,6 +16,7 @@ import {
   Tag,
   Heart,
   AlertCircle,
+  ShoppingCart,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -35,6 +36,7 @@ const navigation = [
     adminOnly: false,
     getLabel: (isAdmin: boolean) => (isAdmin ? "Tickets" : "My Tickets"),
   },
+  { name: "Orders", href: "/orders", icon: ShoppingCart, adminOnly: true },
   {
     name: "Notifications",
     href: "/notifications",
@@ -144,7 +146,7 @@ function SidebarContent({
   onNavigate,
   isAdminUser,
 }: {
-  location: any;
+  location: { pathname: string };
   onNavigate?: () => void;
   isAdminUser: boolean;
 }) {

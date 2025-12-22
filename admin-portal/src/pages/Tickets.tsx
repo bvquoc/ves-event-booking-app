@@ -1,5 +1,10 @@
 import { useEffect, useState } from "react";
-import { ticketApi, TicketResponse, TicketDetailResponse } from "@/lib/api";
+import {
+  ticketApi,
+  adminTicketApi,
+  TicketResponse,
+  TicketDetailResponse,
+} from "@/lib/api";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,6 +27,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { usePermissions } from "@/hooks/usePermissions";
 
 export default function Tickets() {
@@ -34,6 +40,8 @@ export default function Tickets() {
   const [statusFilter, setStatusFilter] = useState<
     "ACTIVE" | "USED" | "CANCELLED" | "REFUNDED" | ""
   >("");
+  const [userIdFilter, setUserIdFilter] = useState("");
+  const [eventIdFilter, setEventIdFilter] = useState("");
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [selectedTicket, setSelectedTicket] =
@@ -42,21 +50,36 @@ export default function Tickets() {
     useState<TicketResponse | null>(null);
   const [cancelReason, setCancelReason] = useState("");
 
-  useEffect(() => {
-    loadTickets();
-  }, [page, statusFilter]);
-
   const loadTickets = async () => {
     try {
       setLoading(true);
-      const params: any = {
+      const params: {
+        pageable: { page: number; size: number };
+        status?: "ACTIVE" | "USED" | "CANCELLED" | "REFUNDED";
+        userId?: string;
+        eventId?: string;
+      } = {
         pageable: { page, size: 10 },
       };
       if (statusFilter) {
         params.status = statusFilter;
       }
 
-      const response = await ticketApi.getTickets(params);
+      let response;
+      if (isAdmin()) {
+        // Use admin endpoint with additional filters
+        if (userIdFilter) {
+          params.userId = userIdFilter;
+        }
+        if (eventIdFilter) {
+          params.eventId = eventIdFilter;
+        }
+        response = await adminTicketApi.getAllTickets(params);
+      } else {
+        // Use regular user endpoint
+        response = await ticketApi.getTickets(params);
+      }
+
       setTickets(response.result.content);
       setTotalPages(response.result.totalPages);
       setTotalElements(response.result.totalElements);
@@ -67,9 +90,16 @@ export default function Tickets() {
     }
   };
 
+  useEffect(() => {
+    loadTickets();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, statusFilter, userIdFilter, eventIdFilter]);
+
   const handleView = async (ticketId: string) => {
     try {
-      const response = await ticketApi.getTicketDetails(ticketId);
+      const response = isAdmin()
+        ? await adminTicketApi.getTicketDetails(ticketId)
+        : await ticketApi.getTicketDetails(ticketId);
       setSelectedTicket(response.result);
       setViewDialogOpen(true);
     } catch (error) {
@@ -96,9 +126,11 @@ export default function Tickets() {
       });
       setCancelDialogOpen(false);
       loadTickets();
-    } catch (error: any) {
+    } catch (error) {
       console.error("Failed to cancel ticket:", error);
-      alert(error.response?.data?.message || "Failed to cancel ticket");
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to cancel ticket";
+      alert(errorMessage);
     }
   };
 
@@ -138,7 +170,7 @@ export default function Tickets() {
       {/* Filters */}
       <Card>
         <CardContent className="p-4">
-          <div className="flex gap-4">
+          <div className="flex gap-4 flex-wrap">
             <Select
               value={statusFilter}
               onChange={(e) => {
@@ -159,6 +191,28 @@ export default function Tickets() {
               <option value="CANCELLED">Cancelled</option>
               <option value="REFUNDED">Refunded</option>
             </Select>
+            {isAdmin() && (
+              <>
+                <Input
+                  placeholder="Filter by User ID"
+                  value={userIdFilter}
+                  onChange={(e) => {
+                    setUserIdFilter(e.target.value);
+                    setPage(0);
+                  }}
+                  className="max-w-xs"
+                />
+                <Input
+                  placeholder="Filter by Event ID"
+                  value={eventIdFilter}
+                  onChange={(e) => {
+                    setEventIdFilter(e.target.value);
+                    setPage(0);
+                  }}
+                  className="max-w-xs"
+                />
+              </>
+            )}
           </div>
         </CardContent>
       </Card>

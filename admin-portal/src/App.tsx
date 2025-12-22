@@ -7,6 +7,7 @@ import Login from "./pages/Login";
 import Users from "./pages/Users";
 import Events from "./pages/Events";
 import Tickets from "./pages/Tickets";
+import Orders from "./pages/Orders";
 import Notifications from "./pages/Notifications";
 import Vouchers from "./pages/Vouchers";
 import Favorites from "./pages/Favorites";
@@ -41,6 +42,14 @@ function App() {
             />
             <Route path="events" element={<Events />} />
             <Route path="tickets" element={<Tickets />} />
+            <Route
+              path="orders"
+              element={
+                <AdminRoute>
+                  <Orders />
+                </AdminRoute>
+              }
+            />
             <Route path="notifications" element={<Notifications />} />
             <Route path="vouchers" element={<Vouchers />} />
             <Route path="favorites" element={<Favorites />} />
