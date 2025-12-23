@@ -27,6 +27,11 @@ class HomeProvider extends ChangeNotifier {
   List<VoucherStatusModel> get vouchers => _vouchers;
   List<CategoryModel> get categories => _categories;
 
+  void clearError() {
+    _errorMessage = null;
+    notifyListeners();
+  }
+
   Future<void> fetchEvents({
     required PaginationRequest pageable,
     String? category,
