@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:ves_event_booking/models/ticket/ticket_details_model.dart';
+import 'package:ves_event_booking/models/event/event_details_model.dart';
 import 'package:ves_event_booking/screens/booking/concert_booking_screen.dart';
 import 'package:ves_event_booking/screens/booking/exhibition_booking_screen.dart';
 

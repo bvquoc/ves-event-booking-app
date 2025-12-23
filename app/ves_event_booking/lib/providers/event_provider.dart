@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:ves_event_booking/models/category/category_model.dart';
 import 'package:ves_event_booking/models/city/city_model.dart';
 import 'package:ves_event_booking/models/event/event_model.dart';
-import 'package:ves_event_booking/models/ticket/ticket_details_model.dart';
+import 'package:ves_event_booking/models/event/event_details_model.dart';
 import 'package:ves_event_booking/models/utils/pagination_request.dart';
 import 'package:ves_event_booking/services/category_service.dart';
 import 'package:ves_event_booking/services/city_service.dart';

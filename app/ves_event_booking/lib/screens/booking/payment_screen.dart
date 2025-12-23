@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:ves_event_booking/models/booking_request.dart';
 import 'package:ves_event_booking/models/payment_model.dart';
 import 'package:ves_event_booking/models/purchase/purchase_model_request.dart';
-import 'package:ves_event_booking/models/ticket/ticket_details_model.dart';
+import 'package:ves_event_booking/models/event/event_details_model.dart';
 import 'package:ves_event_booking/models/ticket/ticket_type_model.dart';
 import 'package:ves_event_booking/models/user/user_model.dart';
 import 'package:ves_event_booking/providers/ticket_provider.dart';
