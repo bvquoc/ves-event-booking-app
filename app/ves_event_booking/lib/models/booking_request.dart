@@ -20,4 +20,8 @@ class BookingRequest {
        ticketSeatMap = ticketSeatMap ?? {};
 
   int get totalQuantity => items.values.fold(0, (sum, q) => sum + q);
+
+  List<String> getSeatIdsByTicketType(String ticketTypeId) {
+    return ticketSeatMap[ticketTypeId] ?? [];
+  }
 }

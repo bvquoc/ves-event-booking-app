@@ -160,7 +160,7 @@ class _SignupFormState extends State<SignupForm> {
                     ),
                   )
                 : const Text(
-                    "Đăng nhập",
+                    "Đăng ký",
                     style: TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
