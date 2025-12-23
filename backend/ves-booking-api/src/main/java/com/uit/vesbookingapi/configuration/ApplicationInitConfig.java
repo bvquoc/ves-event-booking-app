@@ -76,6 +76,16 @@ public class ApplicationInitConfig {
                         .description("Admin role")
                         .build());
 
+                Role staffRole = roleRepository.save(Role.builder()
+                        .name(PredefinedRole.STAFF_ROLE)
+                        .description("Staff role - can check in tickets")
+                        .build());
+
+                Role organizerRole = roleRepository.save(Role.builder()
+                        .name(PredefinedRole.ORGANIZER_ROLE)
+                        .description("Organizer role - can check in tickets")
+                        .build());
+
                 var adminRoles = new HashSet<Role>();
                 adminRoles.add(adminRole);
 
@@ -105,6 +115,40 @@ public class ApplicationInitConfig {
                 userRepository.save(normalUser);
                 log.warn("normal user '{}' has been created with default password: {}, please change it",
                         NORMAL_USER_NAME, NORMAL_PASSWORD);
+
+                // Create staff user
+                var staffRoles = new HashSet<Role>();
+                staffRoles.add(staffRole);
+
+                User staffUser = User.builder()
+                        .username("staff")
+                        .password(passwordEncoder.encode("123456"))
+                        .email("staff@vesbooking.com")
+                        .phone("0900000010")
+                        .firstName("Staff")
+                        .lastName("User")
+                        .roles(staffRoles)
+                        .build();
+
+                userRepository.save(staffUser);
+                log.warn("staff user has been created with default password: 123456, please change it");
+
+                // Create organizer user
+                var organizerRoles = new HashSet<Role>();
+                organizerRoles.add(organizerRole);
+
+                User organizerUser = User.builder()
+                        .username("organizer")
+                        .password(passwordEncoder.encode("123456"))
+                        .email("organizer@vesbooking.com")
+                        .phone("0900000011")
+                        .firstName("Organizer")
+                        .lastName("User")
+                        .roles(organizerRoles)
+                        .build();
+
+                userRepository.save(organizerUser);
+                log.warn("organizer user has been created with default password: 123456, please change it");
 
                 // ===== SAMPLE DATA: Additional Users =====
                 // New User - exploring, no bookings

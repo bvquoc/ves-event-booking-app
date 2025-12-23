@@ -757,6 +757,7 @@ export interface PurchaseResponse {
 
 export const ticketApi = {
   getTickets: async (params?: {
+    eventId?: string;
     status?: "ACTIVE" | "USED" | "CANCELLED" | "REFUNDED";
     pageable: Pageable;
   }) => {
@@ -1004,6 +1005,20 @@ export interface PageAdminOrderResponse {
   empty: boolean;
 }
 
+// Check-in types
+export interface CheckInRequest {
+  qrCode: string;
+}
+
+export interface CheckInResponse {
+  ticketId: string;
+  qrCode: string;
+  status: "ACTIVE" | "USED" | "CANCELLED" | "REFUNDED";
+  checkedInAt: string;
+  message: string;
+  ticketDetails: AdminTicketResponse;
+}
+
 // Admin APIs
 export const adminTicketApi = {
   getAllTickets: async (params?: {
@@ -1021,6 +1036,19 @@ export const adminTicketApi = {
   getTicketDetails: async (ticketId: string) => {
     const response = await apiClient.get<ApiResponse<AdminTicketResponse>>(
       `/admin/tickets/${ticketId}`
+    );
+    return response.data;
+  },
+  getTicketByQrCode: async (qrCode: string) => {
+    const response = await apiClient.get<ApiResponse<AdminTicketResponse>>(
+      `/admin/tickets/qr/${qrCode}`
+    );
+    return response.data;
+  },
+  checkInTicket: async (request: CheckInRequest) => {
+    const response = await apiClient.post<ApiResponse<CheckInResponse>>(
+      "/admin/tickets/check-in",
+      request
     );
     return response.data;
   },

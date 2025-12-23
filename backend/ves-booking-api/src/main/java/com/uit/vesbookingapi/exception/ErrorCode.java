@@ -29,6 +29,9 @@ public enum ErrorCode {
     TICKET_NOT_FOUND(3004, "Ticket not found", HttpStatus.NOT_FOUND),
     TICKET_NOT_CANCELLABLE(3005, "Ticket cannot be cancelled", HttpStatus.BAD_REQUEST),
     TICKET_TYPE_HAS_SOLD_TICKETS(3006, "Cannot delete ticket type with sold tickets", HttpStatus.BAD_REQUEST),
+    TICKET_ALREADY_USED(3007, "Ticket has already been checked in", HttpStatus.CONFLICT),
+    TICKET_NOT_ACTIVE(3008, "Ticket is not in ACTIVE status", HttpStatus.BAD_REQUEST),
+    QR_CODE_NOT_FOUND(3009, "QR code does not match any ticket", HttpStatus.NOT_FOUND),
 
     // Seat errors (4xxx)
     SEAT_NOT_FOUND(4001, "Seat not found", HttpStatus.NOT_FOUND),
@@ -39,6 +42,7 @@ public enum ErrorCode {
     ORDER_NOT_FOUND(5001, "Order not found", HttpStatus.NOT_FOUND),
     ORDER_EXPIRED(5002, "Order has expired", HttpStatus.BAD_REQUEST),
     ORDER_ALREADY_COMPLETED(5003, "Order already completed", HttpStatus.BAD_REQUEST),
+    ORDER_NOT_COMPLETED(5004, "Order is not completed, ticket is not valid", HttpStatus.BAD_REQUEST),
 
     // Voucher errors (6xxx)
     VOUCHER_NOT_FOUND(6001, "Voucher not found", HttpStatus.NOT_FOUND),
