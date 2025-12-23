@@ -4,6 +4,7 @@ import 'package:ves_event_booking/models/event/event_details_model.dart';
 import 'package:ves_event_booking/models/ticket/ticket_model.dart';
 import 'package:ves_event_booking/models/ticket/ticket_type_model.dart';
 import 'package:ves_event_booking/screens/booking/payment_screen.dart';
+import 'package:ves_event_booking/screens/booking/seat_selection_screen.dart';
 import 'package:ves_event_booking/widgets/tickets_screen_widgets/ticket_item/ticket_card.dart';
 import '../../models/booking_request.dart';
 import '../../widgets/event/event_info_card.dart';
@@ -172,6 +173,8 @@ class _ExhibitionBookingScreenState extends State<ExhibitionBookingScreen> {
   Widget _buildBottomBar() {
     final totalPrice = _calculateTotalPrice();
 
+    final toltalQuantity = booking.totalQuantity;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -208,16 +211,7 @@ class _ExhibitionBookingScreenState extends State<ExhibitionBookingScreen> {
             ElevatedButton(
               onPressed: totalPrice > 0
                   ? () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => PaymentScreen(
-                            event: widget.event,
-                            booking: booking,
-                            totalPrice: totalPrice,
-                          ),
-                        ),
-                      );
+                      _handleNextStep(totalPrice, toltalQuantity);
                     }
                   : null,
 
@@ -252,6 +246,48 @@ class _ExhibitionBookingScreenState extends State<ExhibitionBookingScreen> {
               child: const Text('Tiếp tục', style: TextStyle(fontSize: 16)),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  void _handleNextStep(double totalPrice, int totalQuantity) {
+    if (widget.event.venueId != null) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => SeatSelectionScreen(
+            eventId: widget.event.id,
+            venueId: widget.event.venueId!,
+
+            // Truyền map số lượng vé {id: quantity}
+            requiredQuantities: booking.items,
+
+            // Truyền danh sách loại vé để lấy tên hiển thị
+            ticketTypes: widget.event.ticketTypes,
+
+            onConfirm: (ticketSeatMapResult) {
+              // Lưu kết quả Map vào booking request
+              booking.ticketSeatMap = ticketSeatMapResult;
+
+              _goToPayment(totalPrice);
+            },
+          ),
+        ),
+      );
+    } else {
+      _goToPayment(totalPrice);
+    }
+  }
+
+  void _goToPayment(double totalPrice) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PaymentScreen(
+          event: widget.event,
+          booking: booking,
+          totalPrice: totalPrice,
         ),
       ),
     );

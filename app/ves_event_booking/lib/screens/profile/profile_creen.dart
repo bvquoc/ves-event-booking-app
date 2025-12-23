@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:ves_event_booking/providers/user_provider.dart';
 import 'package:ves_event_booking/screens/explore/explore_screen.dart';
+import 'package:ves_event_booking/screens/favourite_events_screen.dart';
 import 'package:ves_event_booking/screens/home_screen.dart';
 import 'package:ves_event_booking/screens/login_screen.dart';
 import 'package:ves_event_booking/screens/notifications/notifications_screen.dart';
@@ -198,12 +199,22 @@ class ProfileScreenState extends State<ProfileScreen> {
               MenuItem(
                 icon: Icons.shopping_bag_outlined,
                 title: 'Vé của tôi',
-                onTap: () {},
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const TicketsScreen()),
+                  );
+                },
               ),
               MenuItem(
                 icon: Icons.favorite_border,
                 title: 'Mục yêu thích',
-                onTap: () {},
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const FavoriteEventsScreen(),
+                    ),
+                  );
+                },
               ),
               MenuItem(
                 icon: Icons.confirmation_number_outlined,
