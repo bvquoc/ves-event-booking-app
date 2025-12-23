@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:ves_event_booking/models/auth/login_request.dart';
+import 'package:ves_event_booking/models/auth/register_request.dart';
 import '../models/user/user_model.dart';
 import '../services/auth_service.dart';
 
@@ -21,10 +23,12 @@ class AuthProvider extends ChangeNotifier {
   Future<bool> login(String email, String password) async {
     _setLoading(true);
     try {
-      final accessToken = await _authService.login(email, password);
+      final accessToken = await _authService.login(
+        LoginRequest(username: email, password: password),
+      );
 
       // Lưu token vào máy
-      await _saveToken(accessToken, null);
+      await _saveToken(accessToken);
 
       _errorMessage = null;
       notifyListeners();
@@ -39,23 +43,12 @@ class AuthProvider extends ChangeNotifier {
   }
 
   // Xử lý Đăng ký
-  Future<bool> register(
-    String email,
-    String password,
-    String name,
-    String phone,
-  ) async {
+  Future<bool> register(RegisterRequest request) async {
     _setLoading(true);
     try {
-      final authResponse = await _authService.register(
-        email: email,
-        password: password,
-        fullName: name,
-        phone: phone,
-      );
+      final authResponse = await _authService.register(request);
 
-      await _saveToken(authResponse.accessToken, authResponse.refreshToken);
-      _currentUser = authResponse.user;
+      await _saveToken(authResponse.token);
       _errorMessage = null;
       notifyListeners();
       return true;
@@ -69,12 +62,9 @@ class AuthProvider extends ChangeNotifier {
   }
 
   // Lưu token
-  Future<void> _saveToken(String access, String? refresh) async {
+  Future<void> _saveToken(String access) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('accessToken', access);
-    if (refresh != null) {
-      await prefs.setString('refreshToken', refresh);
-    }
   }
 
   // Logout

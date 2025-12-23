@@ -16,7 +16,8 @@ dependencies:
   timeline_tile: ^2.0.0
   intl: ^0.20.2
   shared_preferences: ^2.2.3
-
+  flutter_localizations:
+    sdk: flutter
   dotted_border: ^3.1.0
 
 dev_dependencies:

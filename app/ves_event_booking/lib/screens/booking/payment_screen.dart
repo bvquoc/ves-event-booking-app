@@ -232,9 +232,17 @@ class _PaymentScreenState extends State<PaymentScreen> {
             // Kiểm tra nếu user là null thì hiện "Đang tải..."
             user == null
                 ? 'Đang tải thông tin...'
-                : (user.firstName != null && user.lastName != null
-                      ? '${user.firstName} ${user.lastName}'
-                      : user.username),
+                : '${user.lastName}, ${user.firstName}',
+          ),
+          _row(
+            'Email',
+            // Kiểm tra nếu user là null thì hiện "Đang tải..."
+            user == null ? 'Đang tải thông tin...' : user.email,
+          ),
+          _row(
+            'Số điện thoại',
+            // Kiểm tra nếu user là null thì hiện "Đang tải..."
+            user == null ? 'Đang tải thông tin...' : user.phone,
           ),
         ],
       ),

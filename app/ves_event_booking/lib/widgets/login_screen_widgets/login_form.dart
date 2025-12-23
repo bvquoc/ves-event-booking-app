@@ -18,14 +18,14 @@ class LoginForm extends StatefulWidget {
 }
 
 class _LoginFormState extends State<LoginForm> {
-  String _email = "";
+  String _username = "";
   String _password = "";
   bool _rememberMe = false;
   bool _isButtonEnabled = false;
 
   void _validateInputs() {
     // Kiểm tra nhập liệu: không được để trống và không chỉ chứa khoảng trắng
-    final isValid = _email.trim().isNotEmpty && _password.trim().isNotEmpty;
+    final isValid = _username.trim().isNotEmpty && _password.trim().isNotEmpty;
 
     if (_isButtonEnabled != isValid) {
       setState(() {
@@ -54,13 +54,13 @@ class _LoginFormState extends State<LoginForm> {
         ),
         TextField(
           decoration: InputDecoration(
-            labelText: "Email",
+            labelText: "Username",
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
             labelStyle: const TextStyle(fontStyle: FontStyle.italic),
           ),
           onChanged: (value) {
             setState(() {
-              _email = value;
+              _username = value;
               _validateInputs();
             });
           },
@@ -117,7 +117,10 @@ class _LoginFormState extends State<LoginForm> {
             // },
             onPressed: (_isButtonEnabled && !authProvider.isLoading)
                 ? () async {
-                    bool success = await authProvider.login(_email, _password);
+                    bool success = await authProvider.login(
+                      _username,
+                      _password,
+                    );
 
                     if (success) {
                       Navigator.pushReplacement(

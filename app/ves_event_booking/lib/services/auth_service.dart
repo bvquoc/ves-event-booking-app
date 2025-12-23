@@ -1,63 +1,44 @@
 import 'package:dio/dio.dart';
 import 'package:ves_event_booking/config/dio_client.dart';
-import 'package:ves_event_booking/models/auth_model.dart';
+import 'package:ves_event_booking/models/auth/auth_response.dart';
+import 'package:ves_event_booking/models/auth/login_request.dart';
+import 'package:ves_event_booking/models/auth/register_request.dart';
 import 'package:ves_event_booking/models/logout_request.dart';
+import 'package:ves_event_booking/models/utils/api_response.dart';
 
 class AuthService {
   final Dio _dio = DioClient.dio;
 
   // 1. Đăng nhập
-  Future<String> login(String email, String password) async {
+  Future<String> login(LoginRequest request) async {
     try {
-      final response = await _dio.post(
-        '/auth/token',
-        data: {'username': email, 'password': password},
+      final response = await _dio.post('/auth/token', data: request.toJson());
+
+      final apiResponse = ApiResponse.fromJson(
+        response.data,
+        (json) => AuthResponse.fromJson(json),
       );
-
-      if (response.statusCode == 200) {
-        final data = response.data;
-        final result = data['result'];
-
-        if (result != null && result['token'] != null) {
-          return result['token'];
-        } else {
-          throw 'API không trả về Token';
-        }
-      } else {
-        throw 'Lỗi kết nối: ${response.statusCode}';
-      }
+      return apiResponse.result.token;
     } on DioException catch (e) {
-      if (e.response != null) {
-        final errorData = e.response?.data;
-        throw errorData?['message'] ?? 'Lỗi server (${e.response?.statusCode})';
-      } else {
-        print(e);
-        throw 'Lỗi kết nối: ${e.message}';
-      }
+      throw e.error.toString();
     } catch (e) {
       throw e.toString();
     }
   }
 
   // 2. Đăng ký
-  Future<AuthResponse> register({
-    required String email,
-    required String password,
-    required String fullName,
-    required String phone,
-  }) async {
+  Future<AuthResponse> register(RegisterRequest request) async {
     try {
       final response = await _dio.post(
         '/auth/register',
-        data: {
-          'email': email,
-          'password': password,
-          'fullName': fullName,
-          'phoneNumber': phone,
-        },
+        data: request.toJson(),
       );
 
-      return AuthResponse.fromJson(response.data['data']);
+      final apiResponse = ApiResponse.fromJson(
+        response.data,
+        (json) => AuthResponse.fromJson(json),
+      );
+      return apiResponse.result;
     } on DioException catch (e) {
       throw e.error.toString();
     } catch (e) {

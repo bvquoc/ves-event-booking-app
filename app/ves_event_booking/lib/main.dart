@@ -8,6 +8,7 @@ import 'screens/login_screen.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
 import 'providers/auth_provider.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 void main() {
   initializeDateFormatting('vi_VN', null);
@@ -32,6 +33,23 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(home: LoginScreen());
+    return MaterialApp(
+      title: 'Ves Event Booking',
+      debugShowCheckedModeBanner: false,
+
+      // 2. THÊM ĐOẠN NÀY ĐỂ SỬA LỖI
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('en', ''), // Tiếng Anh
+        Locale('vi', ''), // Tiếng Việt (cho lịch hiển thị tiếng Việt)
+      ],
+
+      // -----------------------------
+      home: const LoginScreen(), // (Màn hình chính của bạn)
+    );
   }
 }
