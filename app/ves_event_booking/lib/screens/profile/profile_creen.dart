@@ -79,7 +79,18 @@ class ProfileScreenState extends State<ProfileScreen> {
               children: [
                 IconButton(
                   icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
-                  onPressed: () => Navigator.pop(context),
+                  onPressed: () {
+                    if (Navigator.canPop(context)) {
+                      Navigator.pop(context);
+                    } else {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const HomeScreen(),
+                        ),
+                      );
+                    }
+                  },
                 ),
                 const Expanded(
                   child: Text(
