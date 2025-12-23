@@ -1,30 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:ves_event_booking/enums/ticket_status.dart';
-import 'package:ves_event_booking/models/purchase/purchase_model_request.dart';
+import 'package:ves_event_booking/models/ticket/ticket_model.dart';
 import 'package:ves_event_booking/models/user/user_model.dart';
 import 'package:ves_event_booking/models/utils/pagination_request.dart';
-import 'package:ves_event_booking/models/ticket/ticket_model.dart';
+import 'package:ves_event_booking/models/zalopay/zalopay_model_request.dart';
 import 'package:ves_event_booking/models/zalopay/zalopay_response.dart';
 import 'package:ves_event_booking/services/ticket_service.dart';
 import 'package:ves_event_booking/services/user_service.dart';
-import 'package:ves_event_booking/services/zalopay_service.dart';
 
 class TicketProvider extends ChangeNotifier {
   final TicketService _ticketService = TicketService();
   final UserService _userService = UserService();
-  final ZaloPayService _zalopayService = ZaloPayService();
 
   bool _isLoading = false;
   String? _errorMessage;
   List<TicketModel> _tickets = [];
   UserModel? _user;
-  ZaloPayResponse? _zalopayOrder;
+  ZalopayResponse? _zalopayOrder;
 
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
   List<TicketModel> get tickets => _tickets;
   UserModel? get user => _user;
-  ZaloPayResponse? get zalopayOrder => _zalopayOrder;
+  ZalopayResponse? get zalopayOrder => _zalopayOrder;
 
   Future<void> fetchTickets(TicketStatus ticketStatus) async {
     _isLoading = true;
@@ -60,29 +58,14 @@ class TicketProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> createTicket(PurchaseModelRequest request) async {
-    _isLoading = true;
-    _errorMessage = null;
-    notifyListeners();
-
-    try {
-      await _ticketService.purchaseTicket(request);
-    } catch (e) {
-      _errorMessage = e.toString();
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
-  }
-
-  Future<void> createZalopayOrder(String appUser, int amount) async {
+  Future<void> createZalopayOrder(ZalopayModelRequest request) async {
     _isLoading = true;
     _errorMessage = null;
     _zalopayOrder = null;
     notifyListeners();
 
     try {
-      _zalopayOrder = await _zalopayService.createOrder(appUser, amount);
+      _zalopayOrder = await _ticketService.purchaseTicket(request);
     } catch (e) {
       _errorMessage = e.toString();
     } finally {
