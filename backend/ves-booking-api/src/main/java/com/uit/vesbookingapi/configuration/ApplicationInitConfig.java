@@ -43,21 +43,6 @@ public class ApplicationInitConfig {
     @NonFinal
     static final String NORMAL_PASSWORD = "123456";
 
-    /**
-     * Generate a human-readable UUID by padding a number to create a readable ID
-     * Format: 00000000-0000-0000-0000-000000000001, 00000000-0000-0000-0000-000000000002, etc.
-     */
-    private String generateReadableId(int number) {
-        return String.format("00000000-0000-0000-0000-%012d", number);
-    }
-
-    /**
-     * Convert row number (1, 2, 3...) to letter (A, B, C...)
-     */
-    private String rowNumberToLetter(int rowNumber) {
-        return String.valueOf((char) ('A' + rowNumber - 1));
-    }
-
     @Bean
     @ConditionalOnProperty(
             prefix = "spring",
@@ -80,27 +65,21 @@ public class ApplicationInitConfig {
             UserVoucherRepository userVoucherRepository) {
         log.info("Initializing application.....");
         return args -> {
-            // Counter for generating sequential human-readable IDs
-            AtomicInteger idCounter = new AtomicInteger(1);
-            
             if (userRepository.findByUsername(ADMIN_USER_NAME).isEmpty()) {
-                Role userRole = Role.builder()
+                Role userRole = roleRepository.save(Role.builder()
                         .name(PredefinedRole.USER_ROLE)
                         .description("User role")
-                        .build();
-                roleRepository.save(userRole);
+                        .build());
 
-                Role adminRole = Role.builder()
+                Role adminRole = roleRepository.save(Role.builder()
                         .name(PredefinedRole.ADMIN_ROLE)
                         .description("Admin role")
-                        .build();
-                roleRepository.save(adminRole);
+                        .build());
 
                 var adminRoles = new HashSet<Role>();
                 adminRoles.add(adminRole);
 
                 User adminUser = User.builder()
-                        .id(generateReadableId(idCounter.getAndIncrement()))
                         .username(ADMIN_USER_NAME)
                         .password(passwordEncoder.encode(ADMIN_PASSWORD))
                         .email("admin@vesbooking.com")
@@ -116,7 +95,6 @@ public class ApplicationInitConfig {
                 normalUserRoles.add(userRole);
 
                 User normalUser = User.builder()
-                        .id(generateReadableId(idCounter.getAndIncrement()))
                         .username(NORMAL_USER_NAME)
                         .password(passwordEncoder.encode(NORMAL_PASSWORD))
                         .email("user1@vesbooking.com")
@@ -131,7 +109,6 @@ public class ApplicationInitConfig {
                 // ===== SAMPLE DATA: Additional Users =====
                 // New User - exploring, no bookings
                 User newUser = User.builder()
-                        .id(generateReadableId(idCounter.getAndIncrement()))
                         .username("newuser")
                         .password(passwordEncoder.encode("123456"))
                         .email("newuser@example.com")
@@ -146,7 +123,6 @@ public class ApplicationInitConfig {
 
                 // Regular User - moderate engagement
                 User regularUser = User.builder()
-                        .id(generateReadableId(idCounter.getAndIncrement()))
                         .username("regularuser")
                         .password(passwordEncoder.encode("123456"))
                         .email("regularuser@example.com")
@@ -161,7 +137,6 @@ public class ApplicationInitConfig {
 
                 // VIP User - high engagement
                 User vipUser = User.builder()
-                        .id(generateReadableId(idCounter.getAndIncrement()))
                         .username("vipuser")
                         .password(passwordEncoder.encode("123456"))
                         .email("vipuser@example.com")
@@ -201,28 +176,24 @@ public class ApplicationInitConfig {
                 // Frontend should render: <i class="material-icons">{icon}</i>
 
                 categoryRepository.save(Category.builder()
-                        .id(generateReadableId(idCounter.getAndIncrement()))
                         .name("Thể thao")
                         .slug("the-thao")
                         .icon("sports_soccer") // Material Icons: sports_soccer
                         .build());
 
                 categoryRepository.save(Category.builder()
-                        .id(generateReadableId(idCounter.getAndIncrement()))
                         .name("Hòa nhạc")
                         .slug("hoa-nhac")
                         .icon("music_note") // Material Icons: music_note
                         .build());
 
                 categoryRepository.save(Category.builder()
-                        .id(generateReadableId(idCounter.getAndIncrement()))
                         .name("Sân khấu kịch")
                         .slug("san-khau-kich")
                         .icon("theater_comedy") // Material Icons: theater_comedy
                         .build());
 
                 categoryRepository.save(Category.builder()
-                        .id(generateReadableId(idCounter.getAndIncrement()))
                         .name("Triển lãm")
                         .slug("trien-lam")
                         .icon("palette") // Material Icons: palette
@@ -234,19 +205,16 @@ public class ApplicationInitConfig {
             // Seed cities if empty
             if (cityRepository.count() == 0) {
                 cityRepository.save(City.builder()
-                        .id(generateReadableId(idCounter.getAndIncrement()))
                         .name("Ho Chi Minh")
                         .slug("ho-chi-minh")
                         .build());
 
                 cityRepository.save(City.builder()
-                        .id(generateReadableId(idCounter.getAndIncrement()))
                         .name("Hanoi")
                         .slug("hanoi")
                         .build());
 
                 cityRepository.save(City.builder()
-                        .id(generateReadableId(idCounter.getAndIncrement()))
                         .name("Da Nang")
                         .slug("da-nang")
                         .build());
@@ -262,7 +230,6 @@ public class ApplicationInitConfig {
                 City hanoiCity = cities.stream().filter(c -> c.getSlug().equals("hanoi")).findFirst().orElse(cities.get(0));
 
                 venues.add(venueRepository.save(Venue.builder()
-                        .id(generateReadableId(idCounter.getAndIncrement()))
                         .name("Nhà hát Thành phố Hồ Chí Minh")
                         .address("7 Công Trường Lam Sơn, Bến Nghé, Quận 1, Hồ Chí Minh")
                         .capacity(2000)
@@ -270,7 +237,6 @@ public class ApplicationInitConfig {
                         .build()));
 
                 venues.add(venueRepository.save(Venue.builder()
-                        .id(generateReadableId(idCounter.getAndIncrement()))
                         .name("Sân vận động Quốc gia Mỹ Đình")
                         .address("Mỹ Đình, Nam Từ Liêm, Hà Nội")
                         .capacity(40000)
@@ -278,7 +244,6 @@ public class ApplicationInitConfig {
                         .build()));
 
                 venues.add(venueRepository.save(Venue.builder()
-                        .id(generateReadableId(idCounter.getAndIncrement()))
                         .name("Trung tâm Hội nghị Quốc gia")
                         .address("57 Phạm Hùng, Mỹ Đình, Nam Từ Liêm, Hà Nội")
                         .capacity(3500)
@@ -309,7 +274,6 @@ public class ApplicationInitConfig {
 
                 // Event 1: Football Match
                 Event event1 = Event.builder()
-                        .id(generateReadableId(idCounter.getAndIncrement()))
                         .name("Trận đấu bóng đá: Việt Nam vs Thái Lan")
                         .slug("tran-dau-bong-da-viet-nam-vs-thai-lan")
                         .description("Trận đấu giao hữu quốc tế giữa đội tuyển Việt Nam và Thái Lan")
@@ -335,8 +299,6 @@ public class ApplicationInitConfig {
 
                 // Ticket types for event1
                 ticketTypeRepository.save(TicketType.builder()
-                        .id(generateReadableId(idCounter.getAndIncrement()))
-                        .version(0L)
                         .event(event1)
                         .name("Vé VIP")
                         .description("Vé VIP với chỗ ngồi tốt nhất, bao gồm đồ uống miễn phí")
@@ -349,8 +311,6 @@ public class ApplicationInitConfig {
                         .build());
 
                 ticketTypeRepository.save(TicketType.builder()
-                        .id(generateReadableId(idCounter.getAndIncrement()))
-                        .version(0L)
                         .event(event1)
                         .name("Vé Thường")
                         .description("Vé thường với giá hợp lý")
@@ -364,7 +324,6 @@ public class ApplicationInitConfig {
 
                 // Event 2: Concert
                 Event event2 = Event.builder()
-                        .id(generateReadableId(idCounter.getAndIncrement()))
                         .name("Đêm nhạc Sơn Tùng M-TP")
                         .slug("dem-nhac-son-tung-mtp")
                         .description("Đêm nhạc đặc biệt với ca sĩ Sơn Tùng M-TP")
@@ -389,8 +348,6 @@ public class ApplicationInitConfig {
                 event2 = eventRepository.save(event2);
 
                 ticketTypeRepository.save(TicketType.builder()
-                        .id(generateReadableId(idCounter.getAndIncrement()))
-                        .version(0L)
                         .event(event2)
                         .name("Vé VIP")
                         .description("Vé VIP với chỗ ngồi gần sân khấu nhất")
@@ -403,8 +360,6 @@ public class ApplicationInitConfig {
                         .build());
 
                 ticketTypeRepository.save(TicketType.builder()
-                        .id(generateReadableId(idCounter.getAndIncrement()))
-                        .version(0L)
                         .event(event2)
                         .name("Vé Thường")
                         .description("Vé thường")
@@ -418,7 +373,6 @@ public class ApplicationInitConfig {
 
                 // Event 3: Theater
                 Event event3 = Event.builder()
-                        .id(generateReadableId(idCounter.getAndIncrement()))
                         .name("Vở kịch: Chuyện tình Romeo và Juliet")
                         .slug("vo-kich-chuyen-tinh-romeo-va-juliet")
                         .description("Vở kịch kinh điển được dàn dựng lại với phong cách hiện đại")
@@ -443,8 +397,6 @@ public class ApplicationInitConfig {
                 event3 = eventRepository.save(event3);
 
                 ticketTypeRepository.save(TicketType.builder()
-                        .id(generateReadableId(idCounter.getAndIncrement()))
-                        .version(0L)
                         .event(event3)
                         .name("Vé VIP")
                         .description("Vé VIP với chỗ ngồi tốt nhất")
@@ -457,8 +409,6 @@ public class ApplicationInitConfig {
                         .build());
 
                 ticketTypeRepository.save(TicketType.builder()
-                        .id(generateReadableId(idCounter.getAndIncrement()))
-                        .version(0L)
                         .event(event3)
                         .name("Vé Thường")
                         .description("Vé thường")
@@ -480,17 +430,17 @@ public class ApplicationInitConfig {
                 for (Venue venue : allVenues) {
                     List<Seat> seats = new ArrayList<>();
 
-                    // Simple: 2 sections, 4 rows each (A, B, C, D), 5 seats per row = 40 seats per venue
+                    // Simple: 2 sections, 2 rows each, 5 seats per row = 20 seats per venue
                     String[] sections = {"VIP Section", "Standard Section"};
                     for (String section : sections) {
-                        for (int row = 1; row <= 4; row++) {
-                            String rowLetter = rowNumberToLetter(row); // Converts 1->A, 2->B, 3->C, 4->D, etc.
+                        for (int row = 1; row <= 2; row++) {
+                            // Convert row number to letter: 1 -> A, 2 -> B, 3 -> C, etc.
+                            String rowName = String.valueOf((char)('A' + row - 1));
                             for (int seat = 1; seat <= 5; seat++) {
                                 seats.add(Seat.builder()
-                                        .id(generateReadableId(idCounter.getAndIncrement()))
                                         .venue(venue)
                                         .sectionName(section)
-                                        .rowName(rowLetter)
+                                        .rowName(rowName)
                                         .seatNumber(String.valueOf(seat))
                                         .build());
                             }
@@ -507,21 +457,21 @@ public class ApplicationInitConfig {
             // ===== COMPREHENSIVE SAMPLE DATA =====
             if (eventRepository.count() <= 3) { // Only seed if minimal data exists
                 seedSampleEvents(eventRepository, ticketTypeRepository,
-                        categoryRepository, cityRepository, venueRepository, idCounter);
+                        categoryRepository, cityRepository, venueRepository);
 
-                seedSampleVouchers(voucherRepository, categoryRepository, eventRepository, idCounter);
+                seedSampleVouchers(voucherRepository, categoryRepository, eventRepository);
 
                 seedSampleOrdersAndTickets(orderRepository, ticketRepository,
                         userRepository, eventRepository, ticketTypeRepository,
-                        voucherRepository, seatRepository, idCounter);
+                        voucherRepository, seatRepository);
 
-                seedSampleFavorites(favoriteRepository, userRepository, eventRepository, idCounter);
+                seedSampleFavorites(favoriteRepository, userRepository, eventRepository);
 
                 seedSampleNotifications(notificationRepository, userRepository,
-                        eventRepository, orderRepository, idCounter);
+                        eventRepository, orderRepository);
 
                 seedSampleUserVouchers(userVoucherRepository, userRepository,
-                        voucherRepository, orderRepository, idCounter);
+                        voucherRepository, orderRepository);
 
                 log.info("Comprehensive sample data initialization completed");
             }
@@ -537,8 +487,7 @@ public class ApplicationInitConfig {
             TicketTypeRepository ticketTypeRepository,
             CategoryRepository categoryRepository,
             CityRepository cityRepository,
-            VenueRepository venueRepository,
-            AtomicInteger idCounter) {
+            VenueRepository venueRepository) {
 
         // Get references
         List<Category> categories = categoryRepository.findAll();
@@ -564,372 +513,305 @@ public class ApplicationInitConfig {
         // ===== PAST EVENTS (completed) =====
 
         // Past Event 1: Music Concert (2 weeks ago)
-        Event pastConcert = eventRepository.findBySlug("past-blackpink-world-tour").orElse(null);
-        if (pastConcert == null) {
-            pastConcert = Event.builder()
-                    .id(generateReadableId(idCounter.getAndIncrement()))
-                    .name("[PAST] Liveshow Blackpink World Tour")
-                    .slug("past-blackpink-world-tour")
-                    .description("Liveshow quốc tế đã kết thúc")
-                    .longDescription("Concert quốc tế của Blackpink đã diễn ra thành công tại Việt Nam.")
-                    .category(musicCat)
-                    .thumbnail("https://example.com/images/blackpink.jpg")
-                    .images(List.of("https://example.com/images/blackpink-1.jpg"))
-                    .startDate(now.minusDays(14))
-                    .endDate(now.minusDays(14).plusHours(3))
-                    .city(hcm)
-                    .venue(hcmTheater)
-                    .venueName(hcmTheater.getName())
-                    .venueAddress(hcmTheater.getAddress())
-                    .currency("VND")
-                    .isTrending(false)
-                    .organizerName("YG Entertainment Vietnam")
-                    .tags(List.of("kpop", "blackpink", "concert"))
-                    .build();
-            pastConcert = eventRepository.save(pastConcert);
-        }
+        Event pastConcert = Event.builder()
+                .name("[PAST] Liveshow Blackpink World Tour")
+                .slug("past-blackpink-world-tour")
+                .description("Liveshow quốc tế đã kết thúc")
+                .longDescription("Concert quốc tế của Blackpink đã diễn ra thành công tại Việt Nam.")
+                .category(musicCat)
+                .thumbnail("https://example.com/images/blackpink.jpg")
+                .images(List.of("https://example.com/images/blackpink-1.jpg"))
+                .startDate(now.minusDays(14))
+                .endDate(now.minusDays(14).plusHours(3))
+                .city(hcm)
+                .venue(hcmTheater)
+                .venueName(hcmTheater.getName())
+                .venueAddress(hcmTheater.getAddress())
+                .currency("VND")
+                .isTrending(false)
+                .organizerName("YG Entertainment Vietnam")
+                .tags(List.of("kpop", "blackpink", "concert"))
+                .build();
+        pastConcert = eventRepository.save(pastConcert);
 
-        // Only create ticket types if they don't already exist
-        if (ticketTypeRepository.findByEventId(pastConcert.getId()).isEmpty()) {
-            ticketTypeRepository.save(TicketType.builder()
-                    .id(generateReadableId(idCounter.getAndIncrement()))
-                    .version(0L)
-                    .event(pastConcert)
-                    .name("VIP Standing")
-                    .description("Standing area near stage")
-                    .price(5000000)
-                    .currency("VND")
-                    .available(0)
-                    .maxPerOrder(2)
-                    .benefits(List.of("Near stage", "Exclusive merchandise"))
-                    .requiresSeatSelection(false)
-                    .build());
+        ticketTypeRepository.save(TicketType.builder()
+                .event(pastConcert)
+                .name("VIP Standing")
+                .description("Standing area near stage")
+                .price(5000000)
+                .currency("VND")
+                .available(0)
+                .maxPerOrder(2)
+                .benefits(List.of("Near stage", "Exclusive merchandise"))
+                .requiresSeatSelection(false)
+                .build());
 
-            ticketTypeRepository.save(TicketType.builder()
-                    .id(generateReadableId(idCounter.getAndIncrement()))
-                    .version(0L)
-                    .event(pastConcert)
-                    .name("General Admission")
-                    .description("General standing area")
-                    .price(1500000)
-                    .currency("VND")
-                    .available(0)
-                    .maxPerOrder(4)
-                    .benefits(List.of("Concert access"))
-                    .requiresSeatSelection(false)
-                    .build());
-        }
+        ticketTypeRepository.save(TicketType.builder()
+                .event(pastConcert)
+                .name("General Admission")
+                .description("General standing area")
+                .price(1500000)
+                .currency("VND")
+                .available(0)
+                .maxPerOrder(4)
+                .benefits(List.of("Concert access"))
+                .requiresSeatSelection(false)
+                .build());
 
         // Past Event 2: Sports Match (1 week ago)
-        Event pastMatch = eventRepository.findBySlug("past-aff-cup-final").orElse(null);
-        if (pastMatch == null) {
-            pastMatch = Event.builder()
-                    .id(generateReadableId(idCounter.getAndIncrement()))
-                    .name("[PAST] AFF Cup 2024 Final")
-                    .slug("past-aff-cup-final")
-                    .description("Trận chung kết AFF Cup 2024 đã kết thúc")
-                    .longDescription("Trận chung kết AFF Cup 2024 giữa Việt Nam và Indonesia.")
-                    .category(sportsCat)
-                    .thumbnail("https://example.com/images/aff-final.jpg")
-                    .images(List.of("https://example.com/images/aff-1.jpg"))
-                    .startDate(now.minusDays(7))
-                    .endDate(now.minusDays(7).plusHours(2))
-                    .city(hanoi)
-                    .venue(myDinhStadium)
-                    .venueName(myDinhStadium.getName())
-                    .venueAddress(myDinhStadium.getAddress())
-                    .currency("VND")
-                    .isTrending(false)
-                    .organizerName("VFF")
-                    .tags(List.of("bóng đá", "aff cup", "chung kết"))
-                    .build();
-            pastMatch = eventRepository.save(pastMatch);
-        }
+        Event pastMatch = Event.builder()
+                .name("[PAST] AFF Cup 2024 Final")
+                .slug("past-aff-cup-final")
+                .description("Trận chung kết AFF Cup 2024 đã kết thúc")
+                .longDescription("Trận chung kết AFF Cup 2024 giữa Việt Nam và Indonesia.")
+                .category(sportsCat)
+                .thumbnail("https://example.com/images/aff-final.jpg")
+                .images(List.of("https://example.com/images/aff-1.jpg"))
+                .startDate(now.minusDays(7))
+                .endDate(now.minusDays(7).plusHours(2))
+                .city(hanoi)
+                .venue(myDinhStadium)
+                .venueName(myDinhStadium.getName())
+                .venueAddress(myDinhStadium.getAddress())
+                .currency("VND")
+                .isTrending(false)
+                .organizerName("VFF")
+                .tags(List.of("bóng đá", "aff cup", "chung kết"))
+                .build();
+        pastMatch = eventRepository.save(pastMatch);
 
-        if (ticketTypeRepository.findByEventId(pastMatch.getId()).isEmpty()) {
-            ticketTypeRepository.save(TicketType.builder()
-                    .id(generateReadableId(idCounter.getAndIncrement()))
-                    .version(0L)
-                    .event(pastMatch)
-                    .name("Tribune A")
-                    .description("Best viewing angle")
-                    .price(800000)
-                    .currency("VND")
-                    .available(0)
-                    .maxPerOrder(4)
-                    .benefits(List.of("Best view", "Covered seating"))
-                    .requiresSeatSelection(true)
-                    .build());
-        }
+        ticketTypeRepository.save(TicketType.builder()
+                .event(pastMatch)
+                .name("Tribune A")
+                .description("Best viewing angle")
+                .price(800000)
+                .currency("VND")
+                .available(0)
+                .maxPerOrder(4)
+                .benefits(List.of("Best view", "Covered seating"))
+                .requiresSeatSelection(true)
+                .build());
 
         // ===== ONGOING EVENTS (today/tomorrow) =====
 
-        Event ongoingTheater = eventRepository.findBySlug("ongoing-festival-kich-noi").orElse(null);
-        if (ongoingTheater == null) {
-            ongoingTheater = Event.builder()
-                    .id(generateReadableId(idCounter.getAndIncrement()))
-                    .name("[ONGOING] Festival Kịch Nói 2024")
-                    .slug("ongoing-festival-kich-noi")
-                    .description("Festival kịch nói đang diễn ra")
-                    .longDescription("Festival kịch nói lớn nhất trong năm với nhiều vở diễn đặc sắc.")
-                    .category(theaterCat)
-                    .thumbnail("https://example.com/images/theater-fest.jpg")
-                    .images(List.of("https://example.com/images/theater-fest-1.jpg"))
-                    .startDate(now.minusHours(2))
-                    .endDate(now.plusHours(4))
-                    .city(hanoi)
-                    .venue(nationalCenter)
-                    .venueName(nationalCenter.getName())
-                    .venueAddress(nationalCenter.getAddress())
-                    .currency("VND")
-                    .isTrending(true)
-                    .organizerName("Nhà hát Kịch Việt Nam")
-                    .tags(List.of("kịch", "festival", "nghệ thuật"))
-                    .build();
-            ongoingTheater = eventRepository.save(ongoingTheater);
-        }
+        Event ongoingTheater = Event.builder()
+                .name("[ONGOING] Festival Kịch Nói 2024")
+                .slug("ongoing-festival-kich-noi")
+                .description("Festival kịch nói đang diễn ra")
+                .longDescription("Festival kịch nói lớn nhất trong năm với nhiều vở diễn đặc sắc.")
+                .category(theaterCat)
+                .thumbnail("https://example.com/images/theater-fest.jpg")
+                .images(List.of("https://example.com/images/theater-fest-1.jpg"))
+                .startDate(now.minusHours(2))
+                .endDate(now.plusHours(4))
+                .city(hanoi)
+                .venue(nationalCenter)
+                .venueName(nationalCenter.getName())
+                .venueAddress(nationalCenter.getAddress())
+                .currency("VND")
+                .isTrending(true)
+                .organizerName("Nhà hát Kịch Việt Nam")
+                .tags(List.of("kịch", "festival", "nghệ thuật"))
+                .build();
+        ongoingTheater = eventRepository.save(ongoingTheater);
 
-        if (ticketTypeRepository.findByEventId(ongoingTheater.getId()).isEmpty()) {
-            ticketTypeRepository.save(TicketType.builder()
-                    .id(generateReadableId(idCounter.getAndIncrement()))
-                    .version(0L)
-                    .event(ongoingTheater)
-                    .name("VIP Seat")
-                    .description("Front row seats")
-                    .price(400000)
-                    .currency("VND")
-                    .available(5)
-                    .maxPerOrder(2)
-                    .benefits(List.of("Front row", "Program booklet"))
-                    .requiresSeatSelection(true)
-                    .build());
+        ticketTypeRepository.save(TicketType.builder()
+                .event(ongoingTheater)
+                .name("VIP Seat")
+                .description("Front row seats")
+                .price(400000)
+                .currency("VND")
+                .available(5)
+                .maxPerOrder(2)
+                .benefits(List.of("Front row", "Program booklet"))
+                .requiresSeatSelection(true)
+                .build());
 
-            ticketTypeRepository.save(TicketType.builder()
-                    .id(generateReadableId(idCounter.getAndIncrement()))
-                    .version(0L)
-                    .event(ongoingTheater)
-                    .name("Standard Seat")
-                    .description("Regular seating")
-                    .price(200000)
-                    .currency("VND")
-                    .available(20)
-                    .maxPerOrder(4)
-                    .benefits(List.of("Reserved seating"))
-                    .requiresSeatSelection(true)
-                    .build());
-        }
+        ticketTypeRepository.save(TicketType.builder()
+                .event(ongoingTheater)
+                .name("Standard Seat")
+                .description("Regular seating")
+                .price(200000)
+                .currency("VND")
+                .available(20)
+                .maxPerOrder(4)
+                .benefits(List.of("Reserved seating"))
+                .requiresSeatSelection(true)
+                .build());
 
         // ===== UPCOMING EVENTS - THIS WEEK (limited tickets) =====
 
-        Event soonExhibit = eventRepository.findBySlug("soon-trien-lam-duong-dai").orElse(null);
-        if (soonExhibit == null) {
-            soonExhibit = Event.builder()
-                    .id(generateReadableId(idCounter.getAndIncrement()))
-                    .name("[SOON] Triển Lãm Nghệ Thuật Đương Đại")
-                    .slug("soon-trien-lam-duong-dai")
-                    .description("Triển lãm nghệ thuật đương đại - chỉ còn 3 ngày")
-                    .longDescription("Triển lãm quy tụ các tác phẩm nghệ thuật đương đại tiêu biểu.")
-                    .category(exhibitCat)
-                    .thumbnail("https://example.com/images/art-exhibit.jpg")
-                    .images(List.of("https://example.com/images/art-1.jpg"))
-                    .startDate(now.plusDays(3))
-                    .endDate(now.plusDays(3).plusHours(8))
-                    .city(hcm)
-                    .venue(hcmTheater)
-                    .venueName(hcmTheater.getName())
-                    .venueAddress(hcmTheater.getAddress())
-                    .currency("VND")
-                    .isTrending(true)
-                    .organizerName("HCMC Art Museum")
-                    .tags(List.of("nghệ thuật", "triển lãm", "đương đại"))
-                    .build();
-            soonExhibit = eventRepository.save(soonExhibit);
-        }
+        Event soonExhibit = Event.builder()
+                .name("[SOON] Triển Lãm Nghệ Thuật Đương Đại")
+                .slug("soon-trien-lam-duong-dai")
+                .description("Triển lãm nghệ thuật đương đại - chỉ còn 3 ngày")
+                .longDescription("Triển lãm quy tụ các tác phẩm nghệ thuật đương đại tiêu biểu.")
+                .category(exhibitCat)
+                .thumbnail("https://example.com/images/art-exhibit.jpg")
+                .images(List.of("https://example.com/images/art-1.jpg"))
+                .startDate(now.plusDays(3))
+                .endDate(now.plusDays(3).plusHours(8))
+                .city(hcm)
+                .venue(hcmTheater)
+                .venueName(hcmTheater.getName())
+                .venueAddress(hcmTheater.getAddress())
+                .currency("VND")
+                .isTrending(true)
+                .organizerName("HCMC Art Museum")
+                .tags(List.of("nghệ thuật", "triển lãm", "đương đại"))
+                .build();
+        soonExhibit = eventRepository.save(soonExhibit);
 
-        if (ticketTypeRepository.findByEventId(soonExhibit.getId()).isEmpty()) {
-            ticketTypeRepository.save(TicketType.builder()
-                    .id(generateReadableId(idCounter.getAndIncrement()))
-                    .version(0L)
-                    .event(soonExhibit)
-                    .name("Entrance Ticket")
-                    .description("General admission")
-                    .price(150000)
-                    .currency("VND")
-                    .available(15)
-                    .maxPerOrder(4)
-                    .benefits(List.of("Exhibition access", "Audio guide"))
-                    .requiresSeatSelection(false)
-                    .build());
-        }
+        ticketTypeRepository.save(TicketType.builder()
+                .event(soonExhibit)
+                .name("Entrance Ticket")
+                .description("General admission")
+                .price(150000)
+                .currency("VND")
+                .available(15)
+                .maxPerOrder(4)
+                .benefits(List.of("Exhibition access", "Audio guide"))
+                .requiresSeatSelection(false)
+                .build());
 
-        Event soonConcert = eventRepository.findBySlug("soon-monsoon-festival").orElse(null);
-        if (soonConcert == null) {
-            soonConcert = Event.builder()
-                    .id(generateReadableId(idCounter.getAndIncrement()))
-                    .name("[SOON] Monsoon Music Festival")
-                    .slug("soon-monsoon-festival")
-                    .description("Monsoon Music Festival - chỉ còn 5 ngày")
-                    .longDescription("Festival âm nhạc quốc tế lớn nhất mùa thu.")
-                    .category(musicCat)
-                    .thumbnail("https://example.com/images/monsoon.jpg")
-                    .images(List.of("https://example.com/images/monsoon-1.jpg"))
-                    .startDate(now.plusDays(5))
-                    .endDate(now.plusDays(5).plusHours(6))
-                    .city(hanoi)
-                    .venue(myDinhStadium)
-                    .venueName(myDinhStadium.getName())
-                    .venueAddress(myDinhStadium.getAddress())
-                    .currency("VND")
-                    .isTrending(true)
-                    .organizerName("Monsoon Entertainment")
-                    .tags(List.of("festival", "âm nhạc", "quốc tế"))
-                    .build();
-            soonConcert = eventRepository.save(soonConcert);
-        }
+        Event soonConcert = Event.builder()
+                .name("[SOON] Monsoon Music Festival")
+                .slug("soon-monsoon-festival")
+                .description("Monsoon Music Festival - chỉ còn 5 ngày")
+                .longDescription("Festival âm nhạc quốc tế lớn nhất mùa thu.")
+                .category(musicCat)
+                .thumbnail("https://example.com/images/monsoon.jpg")
+                .images(List.of("https://example.com/images/monsoon-1.jpg"))
+                .startDate(now.plusDays(5))
+                .endDate(now.plusDays(5).plusHours(6))
+                .city(hanoi)
+                .venue(myDinhStadium)
+                .venueName(myDinhStadium.getName())
+                .venueAddress(myDinhStadium.getAddress())
+                .currency("VND")
+                .isTrending(true)
+                .organizerName("Monsoon Entertainment")
+                .tags(List.of("festival", "âm nhạc", "quốc tế"))
+                .build();
+        soonConcert = eventRepository.save(soonConcert);
 
-        if (ticketTypeRepository.findByEventId(soonConcert.getId()).isEmpty()) {
-            ticketTypeRepository.save(TicketType.builder()
-                    .id(generateReadableId(idCounter.getAndIncrement()))
-                    .version(0L)
-                    .event(soonConcert)
-                    .name("VIP Pass")
-                    .description("2-day VIP access")
-                    .price(2500000)
-                    .currency("VND")
-                    .available(8)
-                    .maxPerOrder(2)
-                    .benefits(List.of("VIP area", "Lounge access", "Free drinks"))
-                    .requiresSeatSelection(false)
-                    .build());
+        ticketTypeRepository.save(TicketType.builder()
+                .event(soonConcert)
+                .name("VIP Pass")
+                .description("2-day VIP access")
+                .price(2500000)
+                .currency("VND")
+                .available(8)
+                .maxPerOrder(2)
+                .benefits(List.of("VIP area", "Lounge access", "Free drinks"))
+                .requiresSeatSelection(false)
+                .build());
 
-            ticketTypeRepository.save(TicketType.builder()
-                    .id(generateReadableId(idCounter.getAndIncrement()))
-                    .version(0L)
-                    .event(soonConcert)
-                    .name("General Pass")
-                    .description("General admission")
-                    .price(800000)
-                    .currency("VND")
-                    .available(50)
-                    .maxPerOrder(4)
-                    .benefits(List.of("Festival access"))
-                    .requiresSeatSelection(false)
-                    .build());
-        }
+        ticketTypeRepository.save(TicketType.builder()
+                .event(soonConcert)
+                .name("General Pass")
+                .description("General admission")
+                .price(800000)
+                .currency("VND")
+                .available(50)
+                .maxPerOrder(4)
+                .benefits(List.of("Festival access"))
+                .requiresSeatSelection(false)
+                .build());
 
         // ===== SOLD OUT EVENT =====
 
-        Event soldOutEvent = eventRepository.findBySlug("soldout-taylor-swift-eras").orElse(null);
-        if (soldOutEvent == null) {
-            soldOutEvent = Event.builder()
-                    .id(generateReadableId(idCounter.getAndIncrement()))
-                    .name("[SOLD OUT] Taylor Swift Eras Tour Vietnam")
-                    .slug("soldout-taylor-swift-eras")
-                    .description("SOLD OUT - Taylor Swift Eras Tour")
-                    .longDescription("Concert quốc tế Taylor Swift đã bán hết vé.")
-                    .category(musicCat)
-                    .thumbnail("https://example.com/images/taylor.jpg")
-                    .images(List.of("https://example.com/images/taylor-1.jpg"))
-                    .startDate(now.plusDays(60))
-                    .endDate(now.plusDays(60).plusHours(3))
-                    .city(hcm)
-                    .venue(hcmTheater)
-                    .venueName(hcmTheater.getName())
-                    .venueAddress(hcmTheater.getAddress())
-                    .currency("VND")
-                    .isTrending(true)
-                    .organizerName("UMG Vietnam")
-                    .tags(List.of("taylor swift", "pop", "international"))
-                    .build();
-            soldOutEvent = eventRepository.save(soldOutEvent);
-        }
+        Event soldOutEvent = Event.builder()
+                .name("[SOLD OUT] Taylor Swift Eras Tour Vietnam")
+                .slug("soldout-taylor-swift-eras")
+                .description("SOLD OUT - Taylor Swift Eras Tour")
+                .longDescription("Concert quốc tế Taylor Swift đã bán hết vé.")
+                .category(musicCat)
+                .thumbnail("https://example.com/images/taylor.jpg")
+                .images(List.of("https://example.com/images/taylor-1.jpg"))
+                .startDate(now.plusDays(60))
+                .endDate(now.plusDays(60).plusHours(3))
+                .city(hcm)
+                .venue(hcmTheater)
+                .venueName(hcmTheater.getName())
+                .venueAddress(hcmTheater.getAddress())
+                .currency("VND")
+                .isTrending(true)
+                .organizerName("UMG Vietnam")
+                .tags(List.of("taylor swift", "pop", "international"))
+                .build();
+        soldOutEvent = eventRepository.save(soldOutEvent);
 
-        if (ticketTypeRepository.findByEventId(soldOutEvent.getId()).isEmpty()) {
-            ticketTypeRepository.save(TicketType.builder()
-                    .id(generateReadableId(idCounter.getAndIncrement()))
-                    .version(0L)
-                    .event(soldOutEvent)
-                    .name("All Ticket Types")
-                    .description("SOLD OUT")
-                    .price(10000000)
-                    .currency("VND")
-                    .available(0)
-                    .maxPerOrder(2)
-                    .benefits(List.of("Concert access"))
-                    .requiresSeatSelection(true)
-                    .build());
-        }
+        ticketTypeRepository.save(TicketType.builder()
+                .event(soldOutEvent)
+                .name("All Ticket Types")
+                .description("SOLD OUT")
+                .price(10000000)
+                .currency("VND")
+                .available(0)
+                .maxPerOrder(2)
+                .benefits(List.of("Concert access"))
+                .requiresSeatSelection(true)
+                .build());
 
         // ===== FUTURE EVENTS (3-4 weeks out, full inventory) =====
 
-        Event futureEvent = eventRepository.findBySlug("future-sea-games-opening").orElse(null);
-        if (futureEvent == null) {
-            futureEvent = Event.builder()
-                    .id(generateReadableId(idCounter.getAndIncrement()))
-                    .name("[FUTURE] SEA Games 2025 Opening")
-                    .slug("future-sea-games-opening")
-                    .description("Lễ khai mạc SEA Games 2025")
-                    .longDescription("Lễ khai mạc hoành tráng của SEA Games 2025 tại Việt Nam.")
-                    .category(sportsCat)
-                    .thumbnail("https://example.com/images/seagames.jpg")
-                    .images(List.of("https://example.com/images/seagames-1.jpg"))
-                    .startDate(now.plusDays(28))
-                    .endDate(now.plusDays(28).plusHours(4))
-                    .city(hanoi)
-                    .venue(myDinhStadium)
-                    .venueName(myDinhStadium.getName())
-                    .venueAddress(myDinhStadium.getAddress())
-                    .currency("VND")
-                    .isTrending(false)
-                    .organizerName("Vietnam Sports Authority")
-                    .tags(List.of("sea games", "thể thao", "khai mạc"))
-                    .build();
-            futureEvent = eventRepository.save(futureEvent);
-        }
+        Event futureEvent = Event.builder()
+                .name("[FUTURE] SEA Games 2025 Opening")
+                .slug("future-sea-games-opening")
+                .description("Lễ khai mạc SEA Games 2025")
+                .longDescription("Lễ khai mạc hoành tráng của SEA Games 2025 tại Việt Nam.")
+                .category(sportsCat)
+                .thumbnail("https://example.com/images/seagames.jpg")
+                .images(List.of("https://example.com/images/seagames-1.jpg"))
+                .startDate(now.plusDays(28))
+                .endDate(now.plusDays(28).plusHours(4))
+                .city(hanoi)
+                .venue(myDinhStadium)
+                .venueName(myDinhStadium.getName())
+                .venueAddress(myDinhStadium.getAddress())
+                .currency("VND")
+                .isTrending(false)
+                .organizerName("Vietnam Sports Authority")
+                .tags(List.of("sea games", "thể thao", "khai mạc"))
+                .build();
+        futureEvent = eventRepository.save(futureEvent);
 
-        if (ticketTypeRepository.findByEventId(futureEvent.getId()).isEmpty()) {
-            ticketTypeRepository.save(TicketType.builder()
-                    .id(generateReadableId(idCounter.getAndIncrement()))
-                    .version(0L)
-                    .event(futureEvent)
-                    .name("VIP Tribune")
-                    .description("VIP seating with catering")
-                    .price(1500000)
-                    .currency("VND")
-                    .available(500)
-                    .maxPerOrder(6)
-                    .benefits(List.of("VIP tribune", "Catering", "Parking"))
-                    .requiresSeatSelection(true)
-                    .build());
+        ticketTypeRepository.save(TicketType.builder()
+                .event(futureEvent)
+                .name("VIP Tribune")
+                .description("VIP seating with catering")
+                .price(1500000)
+                .currency("VND")
+                .available(500)
+                .maxPerOrder(6)
+                .benefits(List.of("VIP tribune", "Catering", "Parking"))
+                .requiresSeatSelection(true)
+                .build());
 
-            ticketTypeRepository.save(TicketType.builder()
-                    .id(generateReadableId(idCounter.getAndIncrement()))
-                    .version(0L)
-                    .event(futureEvent)
-                    .name("Standard Tribune")
-                    .description("Standard seating")
-                    .price(500000)
-                    .currency("VND")
-                    .available(2000)
-                    .maxPerOrder(8)
-                    .benefits(List.of("Reserved seating"))
-                    .requiresSeatSelection(true)
-                    .build());
+        ticketTypeRepository.save(TicketType.builder()
+                .event(futureEvent)
+                .name("Standard Tribune")
+                .description("Standard seating")
+                .price(500000)
+                .currency("VND")
+                .available(2000)
+                .maxPerOrder(8)
+                .benefits(List.of("Reserved seating"))
+                .requiresSeatSelection(true)
+                .build());
 
-            ticketTypeRepository.save(TicketType.builder()
-                    .id(generateReadableId(idCounter.getAndIncrement()))
-                    .version(0L)
-                    .event(futureEvent)
-                    .name("Standing Zone")
-                    .description("General standing area")
-                    .price(200000)
-                    .currency("VND")
-                    .available(5000)
-                    .maxPerOrder(10)
-                    .benefits(List.of("Event access"))
-                    .requiresSeatSelection(false)
-                    .build());
-        }
+        ticketTypeRepository.save(TicketType.builder()
+                .event(futureEvent)
+                .name("Standing Zone")
+                .description("General standing area")
+                .price(200000)
+                .currency("VND")
+                .available(5000)
+                .maxPerOrder(10)
+                .benefits(List.of("Event access"))
+                .requiresSeatSelection(false)
+                .build());
 
         log.info("Seeded 8 sample events covering all lifecycle stages");
     }
@@ -937,15 +819,13 @@ public class ApplicationInitConfig {
     private void seedSampleVouchers(
             VoucherRepository voucherRepository,
             CategoryRepository categoryRepository,
-            EventRepository eventRepository,
-            AtomicInteger idCounter) {
+            EventRepository eventRepository) {
 
         if (voucherRepository.count() > 0) return;
 
         LocalDateTime now = LocalDateTime.now();
 
         voucherRepository.save(Voucher.builder()
-                .id(generateReadableId(idCounter.getAndIncrement()))
                 .code("GIAM20")
                 .title("Giảm 20% toàn bộ")
                 .description("Voucher giảm 20% áp dụng cho tất cả sự kiện")
@@ -963,7 +843,6 @@ public class ApplicationInitConfig {
                 .build());
 
         voucherRepository.save(Voucher.builder()
-                .id(generateReadableId(idCounter.getAndIncrement()))
                 .code("GIAM100K")
                 .title("Giảm 100.000đ")
                 .description("Voucher giảm 100.000đ cho đơn hàng từ 500.000đ")
@@ -982,7 +861,6 @@ public class ApplicationInitConfig {
 
         Event targetEvent = eventRepository.findBySlug("soon-monsoon-festival").orElse(null);
         voucherRepository.save(Voucher.builder()
-                .id(generateReadableId(idCounter.getAndIncrement()))
                 .code("MONSOON50")
                 .title("Monsoon Festival - Giảm 50%")
                 .description("Voucher đặc biệt cho Monsoon Festival")
@@ -1000,7 +878,6 @@ public class ApplicationInitConfig {
                 .build());
 
         voucherRepository.save(Voucher.builder()
-                .id(generateReadableId(idCounter.getAndIncrement()))
                 .code("MUSIC30")
                 .title("Âm nhạc - Giảm 30%")
                 .description("Giảm 30% cho tất cả sự kiện âm nhạc")
@@ -1018,7 +895,6 @@ public class ApplicationInitConfig {
                 .build());
 
         voucherRepository.save(Voucher.builder()
-                .id(generateReadableId(idCounter.getAndIncrement()))
                 .code("EXPIRED2024")
                 .title("Voucher hết hạn")
                 .description("Voucher đã hết hạn sử dụng")
@@ -1036,7 +912,6 @@ public class ApplicationInitConfig {
                 .build());
 
         voucherRepository.save(Voucher.builder()
-                .id(generateReadableId(idCounter.getAndIncrement()))
                 .code("LIMITED10")
                 .title("Voucher giới hạn - Còn 2 lượt")
                 .description("Voucher chỉ còn 2 lượt sử dụng")
@@ -1063,8 +938,7 @@ public class ApplicationInitConfig {
             EventRepository eventRepository,
             TicketTypeRepository ticketTypeRepository,
             VoucherRepository voucherRepository,
-            SeatRepository seatRepository,
-            AtomicInteger idCounter) {
+            SeatRepository seatRepository) {
 
         if (orderRepository.count() > 0) return;
 
@@ -1099,7 +973,6 @@ public class ApplicationInitConfig {
                 .findFirst().orElseThrow();
 
         Order regularOrder1 = orderRepository.save(Order.builder()
-                .id(generateReadableId(idCounter.getAndIncrement()))
                 .user(regularUser)
                 .event(pastConcert)
                 .ticketType(pastConcertVIP)
@@ -1127,7 +1000,6 @@ public class ApplicationInitConfig {
                     : null;
             
             ticketRepository.save(Ticket.builder()
-                    .id(generateReadableId(idCounter.getAndIncrement()))
                     .order(regularOrder1)
                     .user(regularUser)
                     .event(pastConcert)
@@ -1146,7 +1018,6 @@ public class ApplicationInitConfig {
                 .findFirst().orElseThrow();
 
         Order regularOrder2 = orderRepository.save(Order.builder()
-                .id(generateReadableId(idCounter.getAndIncrement()))
                 .user(regularUser)
                 .event(soonExhibit)
                 .ticketType(soonExhibitTicket)
@@ -1174,7 +1045,6 @@ public class ApplicationInitConfig {
                     : null;
             
             ticketRepository.save(Ticket.builder()
-                    .id(generateReadableId(idCounter.getAndIncrement()))
                     .order(regularOrder2)
                     .user(regularUser)
                     .event(soonExhibit)
@@ -1194,7 +1064,6 @@ public class ApplicationInitConfig {
                 .findFirst().orElseThrow();
 
         Order vipOrder1 = orderRepository.save(Order.builder()
-                .id(generateReadableId(idCounter.getAndIncrement()))
                 .user(vipUser)
                 .event(pastMatch)
                 .ticketType(pastMatchTribune)
@@ -1221,7 +1090,6 @@ public class ApplicationInitConfig {
                     : null;
             
             ticketRepository.save(Ticket.builder()
-                    .id(generateReadableId(idCounter.getAndIncrement()))
                     .order(vipOrder1)
                     .user(vipUser)
                     .event(pastMatch)
@@ -1239,7 +1107,6 @@ public class ApplicationInitConfig {
                 .findFirst().orElseThrow();
 
         Order vipOrder2 = orderRepository.save(Order.builder()
-                .id(generateReadableId(idCounter.getAndIncrement()))
                 .user(vipUser)
                 .event(futureEvent)
                 .ticketType(futureVIP)
@@ -1265,7 +1132,6 @@ public class ApplicationInitConfig {
                     : null;
             
             ticketRepository.save(Ticket.builder()
-                    .id(generateReadableId(idCounter.getAndIncrement()))
                     .order(vipOrder2)
                     .user(vipUser)
                     .event(futureEvent)
@@ -1282,7 +1148,6 @@ public class ApplicationInitConfig {
                 .findFirst().orElseThrow();
 
         Order vipOrder3 = orderRepository.save(Order.builder()
-                .id(generateReadableId(idCounter.getAndIncrement()))
                 .user(vipUser)
                 .event(soonConcert)
                 .ticketType(monsoonVIP)
@@ -1308,7 +1173,6 @@ public class ApplicationInitConfig {
                     : null;
             
             ticketRepository.save(Ticket.builder()
-                    .id(generateReadableId(idCounter.getAndIncrement()))
                     .order(vipOrder3)
                     .user(vipUser)
                     .event(soonConcert)
@@ -1327,7 +1191,6 @@ public class ApplicationInitConfig {
                 .findFirst().orElseThrow();
 
         orderRepository.save(Order.builder()
-                .id(generateReadableId(idCounter.getAndIncrement()))
                 .user(user1)
                 .event(futureEvent)
                 .ticketType(futureStandard)
@@ -1343,7 +1206,6 @@ public class ApplicationInitConfig {
                 .build());
 
         orderRepository.save(Order.builder()
-                .id(generateReadableId(idCounter.getAndIncrement()))
                 .user(user1)
                 .event(soonExhibit)
                 .ticketType(soonExhibitTicket)
@@ -1361,7 +1223,6 @@ public class ApplicationInitConfig {
         // ===== CANCELLED ORDER WITH REFUND =====
 
         Order cancelledOrder = orderRepository.save(Order.builder()
-                .id(generateReadableId(idCounter.getAndIncrement()))
                 .user(regularUser)
                 .event(pastConcert)
                 .ticketType(pastConcertVIP)
@@ -1382,7 +1243,6 @@ public class ApplicationInitConfig {
                 : null;
         
         ticketRepository.save(Ticket.builder()
-                .id(generateReadableId(idCounter.getAndIncrement()))
                 .order(cancelledOrder)
                 .user(regularUser)
                 .event(pastConcert)
@@ -1403,8 +1263,7 @@ public class ApplicationInitConfig {
     private void seedSampleFavorites(
             FavoriteRepository favoriteRepository,
             UserRepository userRepository,
-            EventRepository eventRepository,
-            AtomicInteger idCounter) {
+            EventRepository eventRepository) {
 
         if (favoriteRepository.count() > 0) return;
 
@@ -1419,34 +1278,34 @@ public class ApplicationInitConfig {
         Event soldOut = eventRepository.findBySlug("soldout-taylor-swift-eras").orElse(null);
 
         if (soonExhibit != null) {
-            favoriteRepository.save(Favorite.builder().id(generateReadableId(idCounter.getAndIncrement())).user(newUser).event(soonExhibit).build());
+            favoriteRepository.save(Favorite.builder().user(newUser).event(soonExhibit).build());
         }
         if (soonConcert != null) {
-            favoriteRepository.save(Favorite.builder().id(generateReadableId(idCounter.getAndIncrement())).user(newUser).event(soonConcert).build());
+            favoriteRepository.save(Favorite.builder().user(newUser).event(soonConcert).build());
         }
         if (soldOut != null) {
-            favoriteRepository.save(Favorite.builder().id(generateReadableId(idCounter.getAndIncrement())).user(newUser).event(soldOut).build());
+            favoriteRepository.save(Favorite.builder().user(newUser).event(soldOut).build());
         }
 
         if (futureEvent != null) {
-            favoriteRepository.save(Favorite.builder().id(generateReadableId(idCounter.getAndIncrement())).user(regularUser).event(futureEvent).build());
+            favoriteRepository.save(Favorite.builder().user(regularUser).event(futureEvent).build());
         }
         if (soonConcert != null) {
-            favoriteRepository.save(Favorite.builder().id(generateReadableId(idCounter.getAndIncrement())).user(regularUser).event(soonConcert).build());
+            favoriteRepository.save(Favorite.builder().user(regularUser).event(soonConcert).build());
         }
 
         if (soldOut != null) {
-            favoriteRepository.save(Favorite.builder().id(generateReadableId(idCounter.getAndIncrement())).user(vipUser).event(soldOut).build());
+            favoriteRepository.save(Favorite.builder().user(vipUser).event(soldOut).build());
         }
         if (futureEvent != null) {
-            favoriteRepository.save(Favorite.builder().id(generateReadableId(idCounter.getAndIncrement())).user(vipUser).event(futureEvent).build());
+            favoriteRepository.save(Favorite.builder().user(vipUser).event(futureEvent).build());
         }
 
         if (soonExhibit != null) {
-            favoriteRepository.save(Favorite.builder().id(generateReadableId(idCounter.getAndIncrement())).user(user1).event(soonExhibit).build());
+            favoriteRepository.save(Favorite.builder().user(user1).event(soonExhibit).build());
         }
         if (soldOut != null) {
-            favoriteRepository.save(Favorite.builder().id(generateReadableId(idCounter.getAndIncrement())).user(user1).event(soldOut).build());
+            favoriteRepository.save(Favorite.builder().user(user1).event(soldOut).build());
         }
 
         log.info("Seeded sample favorites for trending data");
@@ -1456,8 +1315,7 @@ public class ApplicationInitConfig {
             NotificationRepository notificationRepository,
             UserRepository userRepository,
             EventRepository eventRepository,
-            OrderRepository orderRepository,
-            AtomicInteger idCounter) {
+            OrderRepository orderRepository) {
 
         if (notificationRepository.count() > 0) return;
 
@@ -1469,7 +1327,6 @@ public class ApplicationInitConfig {
         Event soonConcert = eventRepository.findBySlug("soon-monsoon-festival").orElse(null);
 
         notificationRepository.save(Notification.builder()
-                .id(generateReadableId(idCounter.getAndIncrement()))
                 .user(regularUser)
                 .type(NotificationType.TICKET_PURCHASED)
                 .title("Mua vé thành công")
@@ -1482,7 +1339,6 @@ public class ApplicationInitConfig {
                 .build());
 
         notificationRepository.save(Notification.builder()
-                .id(generateReadableId(idCounter.getAndIncrement()))
                 .user(regularUser)
                 .type(NotificationType.EVENT_REMINDER)
                 .title("Sự kiện sắp diễn ra!")
@@ -1495,7 +1351,6 @@ public class ApplicationInitConfig {
                 .build());
 
         notificationRepository.save(Notification.builder()
-                .id(generateReadableId(idCounter.getAndIncrement()))
                 .user(vipUser)
                 .type(NotificationType.TICKET_PURCHASED)
                 .title("Mua vé thành công")
@@ -1508,7 +1363,6 @@ public class ApplicationInitConfig {
                 .build());
 
         notificationRepository.save(Notification.builder()
-                .id(generateReadableId(idCounter.getAndIncrement()))
                 .user(vipUser)
                 .type(NotificationType.PROMOTION)
                 .title("Ưu đãi dành riêng cho VIP")
@@ -1521,7 +1375,6 @@ public class ApplicationInitConfig {
                 .build());
 
         notificationRepository.save(Notification.builder()
-                .id(generateReadableId(idCounter.getAndIncrement()))
                 .user(newUser)
                 .type(NotificationType.SYSTEM)
                 .title("Chào mừng bạn đến với VES Booking!")
@@ -1540,8 +1393,7 @@ public class ApplicationInitConfig {
             UserVoucherRepository userVoucherRepository,
             UserRepository userRepository,
             VoucherRepository voucherRepository,
-            OrderRepository orderRepository,
-            AtomicInteger idCounter) {
+            OrderRepository orderRepository) {
 
         if (userVoucherRepository.count() > 0) return;
 
@@ -1562,7 +1414,6 @@ public class ApplicationInitConfig {
                     .findFirst().orElse(null);
 
             userVoucherRepository.save(UserVoucher.builder()
-                    .id(generateReadableId(idCounter.getAndIncrement()))
                     .user(regularUser)
                     .voucher(percentVoucher)
                     .isUsed(true)
@@ -1574,7 +1425,6 @@ public class ApplicationInitConfig {
 
         if (musicVoucher != null) {
             userVoucherRepository.save(UserVoucher.builder()
-                    .id(generateReadableId(idCounter.getAndIncrement()))
                     .user(regularUser)
                     .voucher(musicVoucher)
                     .isUsed(false)
@@ -1590,7 +1440,6 @@ public class ApplicationInitConfig {
                     .findFirst().orElse(null);
 
             userVoucherRepository.save(UserVoucher.builder()
-                    .id(generateReadableId(idCounter.getAndIncrement()))
                     .user(vipUser)
                     .voucher(fixedVoucher)
                     .isUsed(true)
@@ -1602,7 +1451,6 @@ public class ApplicationInitConfig {
 
         if (limitedVoucher != null) {
             userVoucherRepository.save(UserVoucher.builder()
-                    .id(generateReadableId(idCounter.getAndIncrement()))
                     .user(vipUser)
                     .voucher(limitedVoucher)
                     .isUsed(false)
@@ -1612,7 +1460,6 @@ public class ApplicationInitConfig {
 
         if (percentVoucher != null) {
             userVoucherRepository.save(UserVoucher.builder()
-                    .id(generateReadableId(idCounter.getAndIncrement()))
                     .user(newUser)
                     .voucher(percentVoucher)
                     .isUsed(false)
