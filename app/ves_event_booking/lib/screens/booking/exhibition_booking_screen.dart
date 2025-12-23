@@ -211,7 +211,7 @@ class _ExhibitionBookingScreenState extends State<ExhibitionBookingScreen> {
             ElevatedButton(
               onPressed: totalPrice > 0
                   ? () {
-                      _handleNextStep(context, totalPrice, toltalQuantity);
+                      _handleNextStep(totalPrice, toltalQuantity);
                     }
                   : null,
 
@@ -251,40 +251,36 @@ class _ExhibitionBookingScreenState extends State<ExhibitionBookingScreen> {
     );
   }
 
-  void _handleNextStep(
-    BuildContext context,
-    double totalPrice,
-    int totalQuantity,
-  ) {
+  void _handleNextStep(double totalPrice, int totalQuantity) async {
     if (widget.event.venueId != null) {
-      Navigator.push(
+      final result = await Navigator.push(
         context,
         MaterialPageRoute(
           builder: (_) => SeatSelectionScreen(
             eventId: widget.event.id,
             venueId: widget.event.venueId!,
-
-            // Truyền map số lượng vé {id: quantity}
             requiredQuantities: booking.items,
-
-            // Truyền danh sách loại vé để lấy tên hiển thị
             ticketTypes: widget.event.ticketTypes,
-
-            onConfirm: (ticketSeatMapResult) {
-              // Lưu kết quả Map vào booking request
-              booking.ticketSeatMap = ticketSeatMapResult;
-
-              _goToPayment(context, totalPrice);
-            },
           ),
         ),
       );
+
+      if (result != null && result is Map<String, List<String>>) {
+        // Lưu danh sách ghế đã chọn vào booking
+        booking.ticketSeatMap = result;
+
+        // Kiểm tra widget còn mounted không trước khi dùng context
+        if (!mounted) return;
+
+        // Chuyển sang màn hình thanh toán
+        _goToPayment(totalPrice);
+      }
     } else {
-      _goToPayment(context, totalPrice);
+      _goToPayment(totalPrice);
     }
   }
 
-  void _goToPayment(BuildContext context, double totalPrice) {
+  void _goToPayment(double totalPrice) {
     Navigator.push(
       context,
       MaterialPageRoute(

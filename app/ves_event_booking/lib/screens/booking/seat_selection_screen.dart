@@ -16,16 +16,12 @@ class SeatSelectionScreen extends StatefulWidget {
   // Nhận danh sách thông tin loại vé để hiển thị tên (VIP, Thường...)
   final List<TicketTypeModel> ticketTypes;
 
-  // Callback trả về Map kết quả: { 'ticketTypeId': [seatId1, seatId2] }
-  final Function(Map<String, List<String>> ticketSeatMap) onConfirm;
-
   const SeatSelectionScreen({
     super.key,
     required this.eventId,
     required this.venueId,
     required this.requiredQuantities,
     required this.ticketTypes,
-    required this.onConfirm,
   });
 
   @override
@@ -340,8 +336,7 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
         child: ElevatedButton(
           onPressed: isDone
               ? () {
-                  widget.onConfirm(_selectedSeatsByTicket);
-                  Navigator.pop(context);
+                  Navigator.pop(context, _selectedSeatsByTicket);
                 }
               : null,
           style: ElevatedButton.styleFrom(
