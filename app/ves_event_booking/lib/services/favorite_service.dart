@@ -1,11 +1,12 @@
 import 'package:dio/dio.dart';
+import 'package:ves_event_booking/config/dio_client.dart';
 import 'package:ves_event_booking/models/event/event_model.dart';
 import 'package:ves_event_booking/models/utils/api_response.dart';
 import 'package:ves_event_booking/models/utils/pagination_request.dart';
 import 'package:ves_event_booking/models/utils/pagination_response.dart';
 
 class FavoriteService {
-  final Dio _dio = Dio();
+  final Dio _dio = DioClient.dio;
 
   Future<void> addToFavorites(String eventId) async {
     try {

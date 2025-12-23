@@ -67,6 +67,21 @@ class HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Consumer<HomeProvider>(
       builder: (context, provider, _) {
+        // ⏳ Loading
+        if (provider.isLoading) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        // ❌ Error
+        if (provider.errorMessage != null) {
+          return Center(
+            child: Text(
+              provider.errorMessage!,
+              style: const TextStyle(color: Colors.red),
+            ),
+          );
+        }
+
         final listVoucherStatus = provider.vouchers;
 
         return Scaffold(

@@ -261,7 +261,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
 
   String _formatLocation(EventDetailsModel event) {
     String location = event.venueName ?? '';
-    location += ' ${event.city}';
+    location += ' ${event.city?.name}';
 
     if (event.venueAddress != null) {
       location += ', ${event.venueAddress}';
