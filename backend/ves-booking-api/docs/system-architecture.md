@@ -1,837 +1,731 @@
 # VES Booking API - System Architecture
 
-**Last Updated:** December 23, 2025
-**Version:** 1.0.0
-**Status:** Production Ready
+**Phase 2: Reference Data APIs - Complete**
 
-## Table of Contents
+---
 
-1. [Architecture Overview](#architecture-overview)
-2. [Component Architecture](#component-architecture)
-3. [Data Flow](#data-flow)
-4. [Payment Processing Architecture](#payment-processing-architecture)
-5. [Database Schema](#database-schema)
-6. [Security Architecture](#security-architecture)
-7. [API Gateway & Routing](#api-gateway--routing)
-8. [Concurrency & Transactions](#concurrency--transactions)
-9. [Deployment Architecture](#deployment-architecture)
-10. [Monitoring & Observability](#monitoring--observability)
-
-## Architecture Overview
-
-### Architectural Style
-
-**Pattern:** Layered Architecture + Microservices-Ready Design
-
-The application follows a strict separation of concerns with:
-
-- **Presentation Layer:** REST Controllers (HTTP endpoints)
-- **Service Layer:** Business logic and orchestration
-- **Repository Layer:** Data access abstraction
-- **Entity Layer:** Domain models and JPA entities
-- **Infrastructure Layer:** Configuration and utilities
-
-### High-Level System Diagram
+## High-Level Architecture
 
 ```
-┌────────────────────────────────────────────────────────┐
-│                  Client Applications                     │
-│              (Web Browser, Mobile App, API Client)       │
-└────────────┬─────────────────────────────────────────┘
-             │
-             └─────────────────────────────┐
-                                           │
-┌──────────────────────────────────────────▼──────────────────┐
-│                    Spring Security Layer                     │
-│              (JWT Tokens, OAuth2 Resource Server)            │
-└──────────────────────────────────────────┬──────────────────┘
-                                           │
-┌──────────────────────────────────────────▼──────────────────┐
-│                  REST API Controllers                        │
-│  (Auth, User, Event, Booking, Order, Payment Callbacks)    │
-└──────────────────────────────────────────┬──────────────────┘
-                                           │
-┌──────────────────────────────────────────▼──────────────────┐
-│                    Service Layer                            │
-│  (Authentication, Event, Booking, Payment, ZaloPay)        │
-└──────────────────────────────────────────┬──────────────────┘
-                                           │
-        ┌──────────────────────────────────┼──────────────────────────────┐
-        │                                  │                              │
-┌───────▼──────────┐         ┌─────────────▼────────────┐    ┌──────────▼────────┐
-│  Scheduler Layer │         │  Repository Layer        │    │ External Services │
-│                  │         │  (JPA Repositories)      │    │  (ZaloPay API)    │
-│ - Reconciliation │         └─────────────┬────────────┘    └──────────┬────────┘
-│ - Refund Retry   │                       │                           │
-│ - Expiration     │                       │                           │
-└────────┬─────────┘         ┌─────────────▼────────────┐              │
-         │                   │   MySQL Database         │              │
-         │                   │                          │              │
-         │                   │ - Users, Roles, Perms    │              │
-         │                   │ - Events, Bookings       │              │
-         │                   │ - Payments, Audits       │              │
-         │                   │ - Transactions, Refunds  │              │
-         │                   └──────────────────────────┘              │
-         │                                                              │
-         └──────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│                     CLIENT LAYER                             │
+│  (Web, Mobile, Admin Portal)                                 │
+└────────────────────┬────────────────────────────────────────┘
+                     │ HTTP/REST
+┌────────────────────▼────────────────────────────────────────┐
+│                  API LAYER                                   │
+│  Spring Boot 3.2.2 Application                              │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │ Controllers                                          │   │
+│  │ ├── AuthenticationController ✅ (Auth endpoints)     │   │
+│  │ ├── UserController ✅ (User management)              │   │
+│  │ ├── RoleController ✅ (Role RBAC)                    │   │
+│  │ ├── PermissionController ✅                          │   │
+│  │ ├── CategoryController ✅ (Reference data)           │   │
+│  │ ├── CityController ✅ (Reference data)               │   │
+│  │ ├── TicketController ✅ (Phase 6: GET/PUT cancel)     │   │
+│  │ ├── EventController 🚧 (Event CRUD - Phase 3)        │   │
+│  │ ├── VoucherController ✅ (Phase 7: Vouchers)         │   │
+│  │ ├── FavoriteController ✅ (Phase 8: Favorites)       │   │
+│  │ ├── NotificationController ✅ (Phase 8: Notifs)      │   │
+│  │ └── OrderController 🚧 (Order mgmt - Phase 9+)       │   │
+│  └──────────────────────────────────────────────────────┘   │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │ Security Layer                                       │   │
+│  │ ├── JWT Authentication (OAuth2 Resource Server)     │   │
+│  │ ├── Role-Based Access Control (RBAC)                │   │
+│  │ ├── Request Validation & Sanitization               │   │
+│  │ └── Token Introspection & Refresh                    │   │
+│  └──────────────────────────────────────────────────────┘   │
+└────────────────────┬────────────────────────────────────────┘
+                     │
+┌────────────────────▼────────────────────────────────────────┐
+│                  SERVICE LAYER                               │
+│  Business Logic & Domain Services                           │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │ Authentication & Security                           │   │
+│  │ ├── AuthenticationService ✅                         │   │
+│  │ ├── JwtTokenProvider                                │   │
+│  │ └── PasswordEncoder (BCrypt)                         │   │
+│  └──────────────────────────────────────────────────────┘   │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │ User & Access Management                            │   │
+│  │ ├── UserService ✅                                   │   │
+│  │ ├── RoleService ✅                                   │   │
+│  │ └── PermissionService ✅                             │   │
+│  └──────────────────────────────────────────────────────┘   │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │ Event Management 🚧                                  │   │
+│  │ ├── EventService                                    │   │
+│  │ ├── CategoryService                                 │   │
+│  │ ├── CityService                                     │   │
+│  │ └── VenueService                                    │   │
+│  └──────────────────────────────────────────────────────┘   │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │ Booking & Ticket Management 🚧                       │   │
+│  │ ├── OrderService                                    │   │
+│  │ ├── TicketService                                   │   │
+│  │ ├── TicketTypeService                               │   │
+│  │ ├── SeatAvailabilityService                          │   │
+│  │ └── QRCodeGeneratorService                           │   │
+│  └──────────────────────────────────────────────────────┘   │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │ Promotions & Discounts ✅ (Phase 7)                  │   │
+│  │ └── VoucherService                                  │   │
+│  └──────────────────────────────────────────────────────┘   │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │ User Experience ✅ (Phase 8)                         │   │
+│  │ ├── NotificationService ✅                            │   │
+│  │ ├── FavoriteService ✅                                │   │
+│  │ └── UserVoucherService                               │   │
+│  └──────────────────────────────────────────────────────┘   │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │ Cross-cutting Concerns                              │   │
+│  │ ├── ValidationService                               │   │
+│  │ ├── NotificationPublisher                            │   │
+│  │ └── ErrorHandler                                    │   │
+│  └──────────────────────────────────────────────────────┘   │
+└────────────────────┬────────────────────────────────────────┘
+                     │
+┌────────────────────▼────────────────────────────────────────┐
+│              REPOSITORY LAYER (Data Access)                  │
+│  JPA/Hibernate Spring Data Repositories                     │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │ Identity Repositories                               │   │
+│  │ ├── UserRepository ✅                                │   │
+│  │ ├── RoleRepository ✅                                │   │
+│  │ ├── PermissionRepository ✅                          │   │
+│  │ └── InvalidatedTokenRepository ✅                    │   │
+│  └──────────────────────────────────────────────────────┘   │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │ Event Repositories 🚧                                │   │
+│  │ ├── EventRepository                                 │   │
+│  │ ├── CategoryRepository                              │   │
+│  │ ├── CityRepository                                  │   │
+│  │ └── VenueRepository                                 │   │
+│  └──────────────────────────────────────────────────────┘   │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │ Booking Repositories ✅ (Phase 5)                    │   │
+│  │ ├── OrderRepository ✅                               │   │
+│  │ ├── TicketRepository ✅                              │   │
+│  │ ├── TicketTypeRepository ✅                          │   │
+│  │ └── SeatRepository ✅                                │   │
+│  └──────────────────────────────────────────────────────┘   │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │ Promotion Repositories ✅ (Phase 7)                  │   │
+│  │ ├── VoucherRepository ✅                             │   │
+│  │ └── UserVoucherRepository ✅                         │   │
+│  └──────────────────────────────────────────────────────┘   │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │ User Preference Repositories ✅ (Phase 8)            │   │
+│  │ ├── FavoriteRepository ✅                            │   │
+│  │ └── NotificationRepository ✅                        │   │
+│  └──────────────────────────────────────────────────────┘   │
+└────────────────────┬────────────────────────────────────────┘
+                     │
+┌────────────────────▼────────────────────────────────────────┐
+│                 DATABASE LAYER                               │
+│  MySQL 8.0                                                  │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │ 24 Tables with Strategic Indexes                     │   │
+│  │ ├── Identity Management (6 tables + mappings)        │   │
+│  │ ├── Event Management (4 tables + collections)        │   │
+│  │ ├── Booking & Tickets (4 tables)                     │   │
+│  │ ├── Promotions (2 tables)                            │   │
+│  │ ├── User Preferences (2 tables)                      │   │
+│  │ └── System (1 table)                                 │   │
+│  └──────────────────────────────────────────────────────┘   │
+└────────────────────────────────────────────────────────────┘
 ```
 
-## Component Architecture
+---
 
-### Core Components
+## Component Details
 
-#### 1. Authentication & Authorization Module
+### 1. API Layer
 
-```
-SecurityConfig
-├── JwtAuthenticationFilter
-│   ├── Token extraction from headers
-│   └── Token validation
-├── JwtAuthenticationEntryPoint
-│   └── Unauthorized error handling
-├── JwtTokenProvider
-│   ├── Token generation (access + refresh)
-│   └── Token validation
-└── PasswordEncoder
-    └── BCrypt hashing (strength: 10)
-```
+#### Controllers (Spring MVC)
+Request handling, input validation, response formatting.
 
-**Responsibilities:**
+**Implemented:**
+- AuthenticationController - Login, refresh, introspect, logout
+- UserController - CRUD user operations
+- RoleController - Role management
+- PermissionController - Permission management
+- CategoryController - Get all categories with event counts (public)
+- CityController - Get all cities with event counts (public)
 
-- JWT token generation and validation
-- User authentication and identity verification
-- Role-based access control (RBAC) enforcement
-- Token blacklisting for logout
-- Password security management
+**To Implement:**
+- EventController - Event discovery, search, details
+- OrderController - Order creation, status tracking
+- TicketController - Ticket details, QR codes, check-in
+- VoucherController - Voucher discovery, validation
+- NotificationController - Notification retrieval, marking read
 
-#### 2. Event Management Module
+#### Security & Validation
+- JWT token extraction from Authorization header
+- RBAC enforcement via @PreAuthorize annotations
+- Input validation using Jakarta Validation
+- Custom validators for business logic
+- Exception handling & standardized error responses
 
-```
-EventService
-├── Event CRUD operations
-├── Event search and filtering
-├── Event capacity management
-└── Category/City management
+### 2. Service Layer
 
-EventController
-├── GET /events - List events
-├── POST /events - Create event
-├── PUT /events/{id} - Update event
-└── DELETE /events/{id} - Delete event
-```
+#### AuthenticationService ✅
+- User login with username/password
+- Token generation (Access + Refresh tokens)
+- Token validation & introspection
+- Token refresh mechanism
+- Logout & token invalidation
+- Password verification using BCrypt
 
-**Responsibilities:**
+#### UserService ✅
+- CRUD operations
+- Profile management
+- Batch operations
+- Role assignment
+- Active/inactive status
 
-- Event lifecycle management
-- Ticket type configuration
+#### RoleService ✅
+- Role creation & deletion
+- Permission assignment
+- Predefined roles initialization (ADMIN, USER)
+
+#### PermissionService ✅
+- Permission CRUD
+- Permission codes & descriptions
+
+#### CategoryService ✅
+- Get all categories
+- Retrieve event count per category
+- Performance optimized with single JOIN query
+- Prevents N+1 query problems
+
+#### CityService ✅
+- Get all cities
+- Retrieve event count per city
+- Optimized query execution
+- Returns all cities regardless of event count
+
+#### EventService 🚧 (Planned)
+- Event CRUD operations
+- Event publishing workflow
+- Search & filtering (category, city, date range, trending)
+- Event capacity validation
+- Slug generation & uniqueness
+
+#### TicketTypeService 🚧 (Planned)
+- Ticket type management
 - Availability tracking
-- Category and venue management
+- Price management
+- Seat requirement validation
 
-#### 3. Booking & Order Module
+#### BookingService ✅ (Phase 5)
 
+- Purchase ticket processing
+- SERIALIZABLE transaction isolation
+- Event & ticket type validation
+- Seat availability checking & reservation
+- Voucher validation & discount calculation
+- Order creation (status: PENDING, 15min expiry)
+- Ticket generation (status: ACTIVE)
+- QR code generation (mock)
+- Payment URL generation (mock)
+- Optimistic locking prevents overselling
+
+#### TicketService ✅ (Phase 6)
+
+- List user tickets with status filter & pagination
+- Get ticket details (with ownership validation)
+- Cancel ticket with refund processing
+- Refund status tracking (PENDING → PROCESSING → COMPLETED/FAILED)
+- Status transitions (ACTIVE → CANCELLED → REFUNDED)
+- Seat release on cancellation
+
+#### CancellationService ✅ (Phase 6)
+
+- Time-based refund calculation:
+  - Greater than 48 hours before event: 80% refund
+  - 24-48 hours before event: 50% refund
+  - Less than 24 hours before event: NOT cancellable
+- Refund amount calculation based on ticket price
+- Refund percentage tracking
+
+#### OrderService 🚧 (Planned - Phase 7+)
+
+- Order completion workflow
+- Payment status tracking
+- Order expiration handling (15min timeout)
+- Order cancellation & refund initiation
+- Ticket generation completion
+
+#### SeatAvailabilityService 🚧 (Planned - Phase 7+)
+- Real-time seat status calculation
+- Seat reservation (15 min temp hold)
+- Seat release on order expiration
+- Seat occupancy tracking per event
+
+#### VoucherService ✅ (Phase 7)
+
+- Get public vouchers (isPublic=true, not expired)
+- Get user vouchers (status filter: active/used/expired/all)
+- 10-step voucher validation process:
+  1. Find voucher by code
+  2. Check expiry (startDate, endDate)
+  3. Check usage limit (usedCount vs usageLimit)
+  4. Load event & ticket type validation
+  5. Validate quantity against maxPerOrder
+  6. Calculate order amount (price * quantity)
+  7. Check minimum order amount requirement
+  8. Verify event/category applicability (OR logic)
+  9. Calculate discount (fixed or percentage with overflow protection)
+  10. Return validation result with final amount
+- Discount types: FIXED_AMOUNT or PERCENTAGE
+- Percentage calculations use long to prevent integer overflow
+- Cap percentage discount at maxDiscount if specified
+- Applicability: Empty lists = all events/categories, non-empty = specific restrictions
+- Returns VoucherValidationResponse with discount breakdown
+
+#### NotificationService 🚧 (Planned)
+- Notification creation
+- Notification retrieval & filtering
+- Mark as read
+- Notification type handling (TICKET_PURCHASED, EVENT_REMINDER, etc.)
+- Scheduled reminders (24h before event)
+
+### 3. Repository Layer
+
+**Data Access Objects using Spring Data JPA**
+
+All repositories extend JpaRepository for standard CRUD + pagination support.
+
+**Custom Query Methods:**
+- findByUsername, findByEmail (User)
+- findBySlug (Event, Category, City)
+- findByCode (Voucher)
+- findByUserAndStatus (Order filtering)
+- findByEventAndStartDateBetween (Event search)
+- etc.
+
+### 4. Database Layer
+
+24 tables organized by domain:
+
+**Identity (6 tables):**
+- user, role, permission
+- user_role, role_permission (M:M mappings)
+- invalidated_token
+
+**Events (4 + collections):**
+- event (+ event_images, event_tags)
+- category, city, venue, seat
+
+**Bookings (4 tables):**
+- order, ticket, ticket_type, (+ ticket_type_benefits)
+
+**Promotions (2 tables):**
+- voucher (+ applicable_events, applicable_categories)
+- user_voucher
+
+**Preferences (2 tables):**
+- favorite, notification (+ notification_data)
+
+---
+
+## Key Architectural Patterns
+
+### 1. Layered Architecture
+Clean separation: Controller → Service → Repository → Database
+- Controllers handle HTTP
+- Services contain business logic
+- Repositories abstract data access
+- Entities define data models
+
+### 2. Dependency Injection (Spring)
+Constructor injection for testability & immutability.
+
+### 3. Data Transfer Objects (DTOs)
+Request & response DTOs separate external API contracts from internal models.
+MapStruct for automatic mapping between entities & DTOs.
+
+### 4. Repository Pattern
+Abstraction layer for data access. Supports testing with in-memory implementations.
+
+### 5. Service-Oriented Architecture
+Services encapsulate domain logic. Easy to test, reuse, and maintain.
+
+### 6. JWT-based Stateless Authentication
+No session storage. Scalable across multiple instances.
+Token structure: Header.Payload.Signature
+- Payload contains user ID, roles, permissions
+- Signature verified using secret key
+- Refresh tokens enable long sessions
+
+### 7. Role-Based Access Control (RBAC)
+- Users assigned to Roles
+- Roles have Permissions
+- @PreAuthorize("hasRole('ADMIN')") for endpoint security
+
+### 8. Error Handling Strategy
+- Centralized exception handling via @ControllerAdvice
+- Standardized error response format
+- Error codes mapped to HTTP status codes
+- Messages support parameterization
+
+---
+
+## Data Flow Examples
+
+### Authentication Flow
 ```
-BookingService
-├── Order creation
-├── Ticket allocation
-├── Reservation tracking
-└── Booking status management
-
-OrderService
-├── Order lifecycle
-├── Payment coordination
-└── Inventory management
-
-TicketService
-├── Ticket generation
-├── Status tracking
-└── Refund handling
-```
-
-**Responsibilities:**
-
-- Booking and order processing
-- Ticket generation and management
-- Inventory tracking and allocation
-- Order status workflow
-
-#### 4. Payment Processing Module (NEW)
-
-```
-ZaloPayService
-├── Order creation (→ payment URL)
-├── Order status queries
-├── Refund requests
-└── Signature generation (HMAC-SHA256)
-
-PaymentCallbackService
-├── Callback verification
-├── Order/ticket status updates
-├── Transaction logging
-└── Audit trail
-
-PaymentCallbackController
-├── POST /payments/zalopay/callback
-└── POST /payments/zalopay/refund-callback
-
-Schedulers
-├── PaymentReconciliationScheduler (5-min)
-└── RefundRetryScheduler (30-min)
-```
-
-**Responsibilities:**
-
-- Payment gateway integration
-- Webhook callback processing
-- Automated reconciliation
-- Refund management
-- Transaction audit logging
-
-### Service Layer Architecture
-
-```
-┌────────────────────────────────────────┐
-│      Service Layer (Business Logic)     │
-├────────────────────────────────────────┤
-│                                        │
-│  Authentication Service                │
-│  ├─ User login/logout                  │
-│  ├─ Token management                   │
-│  └─ Authorization checks               │
-│                                        │
-│  User Service                          │
-│  ├─ User CRUD                          │
-│  ├─ Profile management                 │
-│  └─ Permission assignment              │
-│                                        │
-│  Event Service                         │
-│  ├─ Event management                   │
-│  ├─ Category/city management           │
-│  └─ Search & filtering                 │
-│                                        │
-│  Booking Service                       │
-│  ├─ Booking creation                   │
-│  ├─ Order processing                   │
-│  └─ Ticket management                  │
-│                                        │
-│  Payment Service (ZaloPay)             │
-│  ├─ Order creation                     │
-│  ├─ Payment verification               │
-│  ├─ Refund processing                  │
-│  └─ Transaction logging                │
-│                                        │
-└────────────────────────────────────────┘
-        ↓
-┌────────────────────────────────────────┐
-│   Repository Layer (Data Access)       │
-├────────────────────────────────────────┤
-│  UserRepository                        │
-│  RoleRepository                        │
-│  PermissionRepository                  │
-│  EventRepository                       │
-│  TicketRepository                      │
-│  OrderRepository                       │
-│  PaymentTransactionRepository          │
-│  RefundRepository                      │
-│  PaymentAuditLogRepository             │
-└────────────────────────────────────────┘
-        ↓
-┌────────────────────────────────────────┐
-│    MySQL Database (InnoDB)             │
-│    (UTF-8, Asia/Ho_Chi_Minh TZ)       │
-└────────────────────────────────────────┘
-```
-
-## Data Flow
-
-### User Registration & Login Flow
-
-```
-1. POST /auth/login
-   ├─ AuthenticationController receives request
-   ├─ AuthenticationService validates credentials
-   ├─ PasswordEncoder compares with stored hash
-   ├─ JwtTokenProvider generates access + refresh tokens
-   └─ Return tokens to client
-
-2. Subsequent Requests
-   ├─ Client includes Bearer token in header
-   ├─ JwtAuthenticationFilter extracts token
-   ├─ JwtTokenProvider validates signature & expiry
-   ├─ SecurityContext loaded with user details
-   └─ Request proceeds to controller
-```
-
-### Event Booking Flow
-
-```
-1. POST /orders
-   ├─ BookingController receives request
-   ├─ OrderService validates request
-   │  ├─ Check event exists and has capacity
-   │  ├─ Check user has no duplicate booking
-   │  └─ Calculate total amount
-   ├─ Create Order entity (status: PENDING_PAYMENT)
-   ├─ Allocate Ticket entities
-   └─ Invoke ZaloPayService → createOrder()
-
-2. ZaloPayService → createOrder()
-   ├─ Generate appTransId (YYMMDD_orderId)
-   ├─ Build request payload
-   ├─ Generate HMAC-SHA256 signature (key1)
-   ├─ POST to ZaloPay /create endpoint
-   ├─ Receive payment URL
-   ├─ Save PaymentTransaction (CREATE type)
-   └─ Return payment URL to client
-
-3. Client → ZaloPay Payment
-   ├─ Redirect to payment URL
-   ├─ Customer completes payment
-   └─ ZaloPay initiates callback
-
-4. ZaloPay → Callback Webhook
-   ├─ POST /payments/zalopay/callback
-   ├─ PaymentCallbackController receives
-   ├─ Verify IP whitelist (log warning)
-   ├─ Extract data & mac from payload
-   ├─ Verify MAC using key2
-   ├─ PaymentCallbackService processes
-   │  ├─ Find Order by appTransId
-   │  ├─ Idempotency check (skip if COMPLETED)
-   │  ├─ Verify amount matches
-   │  ├─ Update Order status to COMPLETED
-   │  ├─ Update Ticket statuses to ACTIVE
-   │  └─ Save PaymentTransaction (CALLBACK type)
-   └─ Return success (return_code: 1)
-
-5. Reconciliation (every 5 minutes)
-   ├─ PaymentReconciliationScheduler runs
-   ├─ Find pending orders older than 5 minutes
-   ├─ For each: call ZaloPayService.queryOrder()
-   ├─ Query ZaloPay /query endpoint
-   ├─ Update Order based on return code
-   │  ├─ return_code=1 → COMPLETED
-   │  ├─ return_code=2 → Still pending
-   │  └─ return_code=3 → FAILED/EXPIRED
-   └─ Expire stale orders (after 15 minutes)
+Client Login (username, password)
+    ↓
+AuthenticationController.login()
+    ↓
+AuthenticationService.authenticate()
+    ↓
+UserRepository.findByUsername()
+    ↓
+Password validation (BCrypt)
+    ↓
+JWT token generation
+    ↓
+Return {accessToken, refreshToken, expiresIn}
 ```
 
-### Payment Refund Flow
-
+### Event Booking Flow (Phase 5 - Implemented)
 ```
-1. POST /tickets/{ticketId}/refund
-   ├─ TicketController receives request
-   ├─ TicketService validates request
-   ├─ Find associated Order and get zpTransId
-   ├─ Create Refund entity (status: PENDING)
-   ├─ Generate mRefundId (YYMMDD_ticketId_count)
-   └─ Invoke ZaloPayService.refund()
-
-2. ZaloPayService.refund()
-   ├─ Build request with HMAC-SHA256 signature (key1)
-   ├─ POST to ZaloPay /refund endpoint
-   ├─ Refund status changes to PROCESSING
-   └─ Return refund status
-
-3. Scheduled Retry (every 30 minutes)
-   ├─ RefundRetryScheduler runs
-   ├─ Find failed/processing refunds
-   ├─ Retry failed refunds
-   ├─ Update status based on response
-   └─ Track attempt count
-
-4. ZaloPay Refund Callback
-   ├─ POST /payments/zalopay/refund-callback
-   ├─ PaymentCallbackController receives
-   ├─ PaymentCallbackService processes
-   ├─ Update Refund status (COMPLETED/FAILED)
-   └─ Update Ticket refund status
-```
-
-## Payment Processing Architecture
-
-### Payment State Machine
-
-```
-                    CREATE REQUEST
-                          │
-                          ▼
-    ┌─────────────────────────────────────┐
-    │  Payment Initiated (PENDING)        │
-    │  ├─ Order created                   │
-    │  ├─ Tickets allocated               │
-    │  └─ appTransId generated            │
-    └────────────┬────────────────────────┘
-                 │
-    ┌────────────▼────────────────────────┐
-    │  Awaiting Customer Payment          │
-    │  ├─ Customer redirected to ZaloPay  │
-    │  ├─ 5-min timeout for reconciliation│
-    │  └─ 15-min timeout for expiration   │
-    └────────────┬────────────────────────┘
-                 │
-         ┌───────┴───────┬──────────┐
-         │               │          │
-    Callback      Query Result    Timeout
-   Received      from Scheduler   Expires
-         │               │          │
-         ▼               ▼          ▼
-    ┌─────────┐  ┌──────────┐  ┌─────────┐
-    │COMPLETED│  │COMPLETED │  │ EXPIRED │
-    │ (Paid)  │  │  (Paid)  │  │(Timeout)│
-    └─────────┘  └──────────┘  └─────────┘
-         │               │          │
-         │               │          │
-         ├─→ Tickets Activated
-         ├─→ Transaction Logged
-         └─→ Order Confirmed
+User selects event & ticket type
+    ↓
+TicketController.purchaseTickets(PurchaseRequest)
+    ↓
+BookingService.purchaseTickets() [SERIALIZABLE isolation]
+    ├─ Get current authenticated user
+    ├─ Validate event exists
+    ├─ Validate & lock ticket type (@Version)
+    ├─ Check ticket availability (quantity)
+    ├─ Validate max per order limit
+    ├─ Handle seat selection if required
+    │  ├─ Validate seat count matches quantity
+    │  ├─ Check seats not already occupied
+    │  └─ Load seat entities
+    ├─ Validate voucher if provided
+    │  ├─ Check validity period
+    │  ├─ Check usage limit
+    │  ├─ Check min order amount
+    │  └─ Check event/category applicability
+    ├─ Calculate pricing with discount
+    ├─ Create Order (status: PENDING, 15min expiry)
+    ├─ Create Ticket entities (status: ACTIVE)
+    ├─ Reserve seats (if applicable)
+    ├─ Decrement available count (optimistic lock prevents overselling)
+    └─ Generate mock payment URL & QR codes
+    ↓
+Return OrderResponse with payment details
+    ↓
+User completes payment (external gateway)
+    ↓
+Payment webhook callback [Future Phase]
+    ↓
+OrderService.completeOrder() [Future]
+    ├─ Confirm seat reservations → SOLD
+    ├─ Generate QR code images [Future]
+    ├─ Send confirmation notification
+    └─ Update Order status: COMPLETED
+    ↓
+User receives tickets with QR codes
 ```
 
-### Reconciliation Architecture
+**Transaction Safety:**
 
+- SERIALIZABLE isolation prevents dirty reads & phantom reads
+- Optimistic locking (@Version) prevents concurrent overselling
+- If concurrent purchase: OptimisticLockingFailureException thrown
+- Client retries with exponential backoff
+- Seats marked RESERVED during PENDING phase
+- Auto-released if order expires (not completed within 15min)
+
+### Event Discovery Flow (Future)
 ```
-┌─────────────────────────────────────────────────────┐
-│   Payment Reconciliation Scheduler (every 5 min)    │
-├─────────────────────────────────────────────────────┤
-│                                                     │
-│  1. Find pending orders older than 5 minutes        │
-│                                                     │
-│  2. For each pending order:                         │
-│     ├─ Query ZaloPay using appTransId              │
-│     ├─ Get current payment status                  │
-│     └─ Update Order based on ZaloPay response      │
-│                                                     │
-│  3. Return codes handling:                          │
-│     ├─ 1 = Paid → Update to COMPLETED             │
-│     ├─ 2 = Processing → Wait for next cycle        │
-│     └─ 3 = Failed → Mark as FAILED                 │
-│                                                     │
-│  4. Expiration Scheduler (every 15 min):           │
-│     ├─ Find orders expired by timeout              │
-│     ├─ Update to EXPIRED status                    │
-│     └─ Release tickets back to inventory            │
-│                                                     │
-└─────────────────────────────────────────────────────┘
-```
-
-## Database Schema
-
-### Entity Relationship Diagram
-
-```
-┌──────────┐           ┌──────────┐
-│   User   │◄──────────┤   Role   │
-└────┬─────┘           └──────────┘
-     │
-     │
-┌────▼──────────────────────────────────────────┐
-│                                               │
-│  ┌─────────────┐  ┌──────────────┐           │
-│  │   Event     │  │ EventCategory│           │
-│  └──────┬──────┘  └──────────────┘           │
-│         │                                    │
-│    ┌────▼────────────────────────────────┐  │
-│    │                                      │  │
-│    ├──→ TicketType ──→ Ticket            │  │
-│    │                      │               │  │
-│    │                      ├──→ Order ◄───┘  │
-│    │                      │      │          │
-│    │                      │      ├──→ PaymentTransaction
-│    │                      │      │          │
-│    │                      └──┬───┘          │
-│    │                         │              │
-│    └─────────────────────────┘              │
-│                                               │
-└───────────────────────────────────────────────┘
-
-PaymentTransaction (1) ──────┐
-                              │
-PaymentAuditLog ◄──────────┐  │
-                            │  │
-Refund ◄──────────────────┴──┘
-       │
-       └──→ Ticket
-       └──→ Order
+User searches events (category, city, date, keyword)
+    ↓
+EventController.search()
+    ↓
+EventService.search()
+    ├─ Filter by category_id
+    ├─ Filter by city_id
+    ├─ Filter by startDate range
+    ├─ Full-text search on name/description
+    └─ Sort by trending, startDate
+    ↓
+EventRepository.findByCriteria()
+    ↓
+Return paginated results with availability
 ```
 
-### Core Tables
+---
 
-**Users**
+## Technical Constraints & Decisions
 
-- id, username, email, password_hash, created_at, updated_at
+### 1. UUID for Primary Keys
+- **Reason:** Distributed system readiness, no sequential ID leakage
+- **Trade-off:** Larger indexes, slightly slower queries
+- **Mitigation:** Strategic indexes on frequently queried columns
 
-**Orders**
+### 2. MySQL over NoSQL
+- **Reason:** Relational data, ACID compliance needed, complex queries
+- **Use Cases:** User-Role relationships, Order-Ticket-Seat relationships
 
-- id, user_id, event_id, quantity, total_amount, status, appTransId, zpTransId, expiresAt, paymentConfirmedAt
+### 3. JPA/Hibernate
+- **Reason:** Standard Java ORM, reduces boilerplate SQL
+- **Trade-off:** Less control over exact SQL, potential N+1 queries
+- **Mitigation:** Proper fetch strategies, query optimization
 
-**PaymentTransactions**
+### 4. JWT Stateless Auth
+- **Reason:** Scalability, no session replication needed
+- **Trade-off:** Cannot immediately invalidate token (use blacklist)
+- **Solution:** InvalidatedToken table for logout support
 
-- id, order_id, app_trans_id, zp_trans_id, type, status, amount, return_code, request_payload, response_payload
+### 5. Enum-based Error Codes
+- **Reason:** Type safety, prevents invalid codes
+- **Structure:** Range-based categorization (1xxx, 2xxx, etc.)
 
-**PaymentAuditLogs**
+### 6. Element Collections over Separate Tables
+- **Reason:** Simplify schema for small variable collections (tags, benefits)
+- **Trade-off:** Cannot query element values directly
+- **Mitigation:** Prefer separate tables if complex querying needed
 
-- id, order_id, app_trans_id, action, ip_address, payload, created_at
-
-**Refunds**
-
-- id, ticket_id, m_refund_id, zp_trans_id, amount, status, attempt_count, completed_at
+---
 
 ## Security Architecture
 
-### Authentication Flow
+### Authentication
+1. Credentials validated against user table (BCrypt password)
+2. JWT token generated (user ID, roles, permissions in payload)
+3. Token signed with private key
+4. Token returned to client
 
-```
-1. Client Login
-   └─→ POST /auth/login with credentials
+### Authorization
+1. Token sent in Authorization: Bearer <token> header
+2. TokenProvider validates signature
+3. Payload extracted (user ID, roles, permissions)
+4. @PreAuthorize checks role/permission
 
-2. Authentication Service
-   ├─ Find User by username
-   ├─ Compare password with BCrypt hash
-   └─ Generate JWT tokens
+### Password Security
+- BCrypt with strength 10 (rounds)
+- Salted hashing
+- Never stored in plaintext
 
-3. Token Structure
-   Access Token:
-   {
-     "sub": "user_id",
-     "roles": ["USER", "ADMIN"],
-     "exp": 1703354400,  // 1 hour
-     "iat": 1703350800
-   }
+### Token Security
+- HTTPS/TLS in production
+- Access tokens: 1 hour expiry
+- Refresh tokens: 10 hours expiry
+- Blacklist for logout support
 
-4. Subsequent Requests
-   └─→ Authorization: Bearer {access_token}
+### Input Validation
+- Jakarta Validation annotations (@NotNull, @Email, etc.)
+- Custom validators for business rules
+- Sanitization of string inputs
 
-5. Token Validation
-   ├─ Extract from header
-   ├─ Verify signature (HS256)
-   ├─ Check expiry
-   ├─ Load user details
-   └─ Set SecurityContext
-```
+---
 
-### Payment Security
+## Performance Considerations
 
-```
-Request Signing (Key1):
-1. Build data string: "app_id|app_trans_id|app_user|amount|app_time|embed_data|item"
-2. Generate HMAC-SHA256 hash using key1
-3. Include mac in request
+### Database Indexes
+- Event: slug (unique), startDate, category_id
+- Order: user_id, status
+- Notification: user_id, isRead
+- Voucher: code (unique)
 
-Callback Verification (Key2):
-1. Receive callback with data (base64) and mac
-2. Generate HMAC-SHA256 hash of data using key2
-3. Compare computed mac with received mac
-4. Only process if verified
+### Query Optimization
+- Lazy loading for relationships (avoid N+1)
+- Select specific columns when possible
+- Pagination for large result sets
 
-IP Whitelist (Optional in sandbox):
-├─ 113.20.108.14-15 (Production)
-├─ 118.69.77.70 (Sandbox)
-└─ 127.0.0.1 (Local testing)
+### Caching (Future)
+- User roles/permissions caching
+- Event metadata caching
+- Voucher validity caching
 
-Idempotency:
-├─ appTransId: YYMMDD_orderId (unique per order)
-├─ mRefundId: YYMMDD_ticketId_count (unique per refund)
-└─ Check before processing to prevent duplicates
-```
+### Connection Pooling
+- HikariCP (default in Spring Boot)
+- Configurable pool size based on load
 
-## API Gateway & Routing
-
-### REST API Structure
-
-```
-/api
-├─ /auth
-│  ├─ POST /login
-│  ├─ POST /logout
-│  ├─ POST /introspect
-│  └─ POST /refresh
-│
-├─ /users
-│  ├─ POST / (create)
-│  ├─ GET / (list)
-│  ├─ GET /{id}
-│  ├─ PUT /{id}
-│  └─ DELETE /{id}
-│
-├─ /events
-│  ├─ POST / (create)
-│  ├─ GET / (list + search)
-│  ├─ GET /{id}
-│  ├─ PUT /{id}
-│  └─ DELETE /{id}
-│
-├─ /orders
-│  ├─ POST / (create with payment)
-│  ├─ GET / (list user's orders)
-│  ├─ GET /{id}
-│  └─ GET /{id}/status
-│
-├─ /tickets
-│  ├─ GET /{id}
-│  ├─ POST /{id}/refund
-│  └─ GET /{id}/refund-status
-│
-└─ /payments
-   └─ /zalopay
-      ├─ POST /callback (webhook)
-      ├─ POST /refund-callback (refund webhook)
-      └─ GET /status/{appTransId} (query)
-```
-
-### Request/Response Cycle
-
-```
-Client Request
-    │
-    ├─→ Spring DispatcherServlet
-    ├─→ Handler Mapping → Controller
-    ├─→ Security Filter → JWT validation
-    ├─→ Authorization Filter → RBAC check
-    ├─→ Controller → Service → Repository
-    ├─→ Database Query
-    ├─→ Response Builder
-    ├─→ Exception Handler (if needed)
-    └─→ HTTP Response
-        └─→ Client
-```
-
-## Concurrency & Transactions
-
-### Transaction Management
-
-```
-@Transactional
-Service Method
-    │
-    ├─ BEGIN TRANSACTION
-    │
-    ├─ Read Operation
-    │  └─ SELECT with READ_COMMITTED isolation
-    │
-    ├─ Write Operation
-    │  ├─ INSERT/UPDATE/DELETE
-    │  └─ Triggers foreign key constraints
-    │
-    ├─ Concurrency Check
-    │  └─ Version/timestamp for optimistic locking
-    │
-    └─ COMMIT or ROLLBACK
-```
-
-### Isolation Levels
-
-- **Default:** READ_COMMITTED (MySQL InnoDB)
-- **Critical transactions:** SERIALIZABLE (e.g., payment processing)
-- **Lock timeout:** 5 seconds (configurable)
-
-### Idempotency Implementation
-
-```
-Payment Processing:
-1. appTransId = YYMMDD_orderId (globally unique)
-2. Before processing callback:
-   - Check if order already COMPLETED
-   - If yes: return success (idempotent)
-   - If no: process and update
-
-Refund Processing:
-1. mRefundId = YYMMDD_ticketId_refundCount
-2. Before creating refund:
-   - Check if mRefundId already exists
-   - If yes: return existing refund status
-   - If no: create and process
-```
+---
 
 ## Deployment Architecture
 
-### Container Deployment
+### Local Development
+- MySQL in Docker (docker-compose)
+- Spring Boot with hot reload
+- H2 in-memory for unit tests
 
-```
-┌─────────────────────────────────────────┐
-│          Docker Container               │
-├─────────────────────────────────────────┤
-│                                         │
-│  JVM (Java 21)                          │
-│  └─ Spring Boot Application             │
-│     ├─ Server (port 8080)               │
-│     ├─ Context Path (/api)              │
-│     └─ Services & Schedulers            │
-│                                         │
-└─────────────────────────────────────────┘
-         │
-    ┌────┴────┐
-    │          │
-Linked to   External
-    │
-    └─→ MySQL Container
-        ├─ Port: 3306
-        ├─ Database: ves_booking_api
-        └─ Username: root
-```
+### Production
+- MySQL in managed service (AWS RDS, Azure, GCP)
+- Spring Boot JAR deployment
+- Docker containerization
+- Load balancing for horizontal scaling
+- Environment-based configuration
 
-### Environment Configuration
+---
 
-```
-Development:
-- Spring profiles: dev, test
-- Database: local MySQL
-- ZaloPay: sandbox endpoints
-- Logging level: DEBUG
+## API Response Format
 
-Production:
-- Spring profiles: prod
-- Database: managed MySQL (RDS/Cloud SQL)
-- ZaloPay: production endpoints
-- Logging level: INFO
-- HTTPS: enforced
-- Security headers: enabled
+### Success Response
+```json
+{
+  "statusCode": 200,
+  "message": "Operation successful",
+  "data": {}
+}
 ```
 
-## Monitoring & Observability
-
-### Logging Architecture
-
-```
-Application Logs
-    │
-    ├─ SLF4J (facade)
-    ├─ Logback (implementation)
-    ├─ Rolling file appender
-    └─ Console appender
-
-Log Levels:
-- DEBUG: Detailed flow (dev only)
-- INFO: Business logic milestones
-- WARN: Potential issues
-- ERROR: Failures & exceptions
-
-Payment-Specific Logs:
-- "Creating ZaloPay order: appTransId=..."
-- "Payment confirmed: orderId=..."
-- "Reconciliation: found N pending orders"
-- "Callback processing error: ..."
+### Error Response
+```json
+{
+  "statusCode": 400,
+  "message": "Field validation failed",
+  "errorCode": "INVALID_KEY",
+  "errors": [
+    {
+      "field": "email",
+      "message": "Invalid email format"
+    }
+  ]
+}
 ```
 
-### Metrics
+---
 
-```
-Application Metrics:
-- Request count by endpoint
-- Response times (p50, p95, p99)
-- Error rates
-- Database query times
+---
 
-Payment Metrics:
-- Orders created per minute
-- Payment success rate
-- Callback processing time
-- Reconciliation duration
-- Refund success rate
-```
+## Implementation Timeline
 
-### Health Checks
+### Phase 1 (Complete)
+- ✅ All 12 entities implemented (User, Role, Permission, Event, Category, City, Venue, Seat, TicketType, Order, Ticket, Voucher, etc.)
+- ✅ All 7 enums defined (OrderStatus, TicketStatus, PaymentMethod, etc.)
+- ✅ 24 tables with relationships
+- ✅ Strategic indexing complete
+- ✅ Audit timestamps configured
+- ✅ Identity & Access Management (IAM)
 
-```
-/actuator/health
-├─ Database connectivity
-├─ Disk space
-└─ Memory usage
+### Phase 2 (Complete)
+- ✅ CategoryService with event counts
+- ✅ CityService with event counts
+- ✅ CategoryController (public GET endpoint)
+- ✅ CityController (public GET endpoint)
+- ✅ CategoryRepository with custom JOIN query
+- ✅ CityRepository with custom JOIN query
+- ✅ Performance optimized (single query prevents N+1)
+- ✅ Public endpoints configured in SecurityConfig
+- ✅ User entity @Table annotation
+- ✅ Category & City seeding in ApplicationInitConfig
 
-Custom health indicators:
-├─ ZaloPay API connectivity
-└─ MySQL connection pool status
-```
+### Phase 3 (Planned)
+- Event Management APIs (CRUD, search, filtering)
+- Event discovery endpoints
+- Trending events functionality
+- Event filtering by category, city, date range
 
-### Error Handling
+### Phase 4 (Planned)
 
-```
-Exception Handling Chain:
-│
-├─ Controller → @ExceptionHandler
-├─ GlobalExceptionHandler
-├─ Custom exceptions
-│  ├─ PaymentException
-│  ├─ OrderNotFoundException
-│  └─ UnauthorizedException
-│
-└─ Return standardized error response:
-   {
-     "code": "ERR_001",
-     "message": "User not found",
-     "timestamp": "2025-12-23T15:20:00Z",
-     "path": "/api/users/123"
-   }
-```
+- Order status tracking APIs
+- Ticket retrieval & QR code endpoints
+- Refund workflows
 
-## Performance Optimization
+### Phase 5 (Complete)
 
-### Caching Strategy
+- ✅ BookingService with transactional guarantees
+- ✅ TicketController with POST /tickets/purchase
+- ✅ OrderRepository with order queries
+- ✅ TicketRepository with seat occupation queries
+- ✅ VoucherRepository for code-based lookups
+- ✅ OrderMapper for Entity ↔ DTO conversion
+- ✅ TicketType optimistic locking (@Version)
+- ✅ SERIALIZABLE transaction isolation
+- ✅ Seat reservation logic (PENDING → SOLD)
+- ✅ Voucher validation & discount calculation
+- ✅ Mock payment URL generation
+- ✅ QR code generation (mock)
+- ✅ Order expiry (15 minutes)
 
-```
-Query caching (planned):
-- Cache event list (30 min TTL)
-- Cache category/city data (1 hour TTL)
-- Cache user permissions (10 min TTL)
+### Phase 6 (Current - Complete)
 
-Connection pooling:
-- HikariCP: 5-20 connections
-- Idle timeout: 10 minutes
-- Max lifetime: 30 minutes
-- Validation: SELECT 1 every 5 min
-```
+**Ticket Management & Cancellation:**
 
-### Database Optimization
+- ✅ GET /tickets - List user tickets (status filter, pagination)
+- ✅ GET /tickets/{ticketId} - Get ticket details
+- ✅ PUT /tickets/{ticketId}/cancel - Cancel ticket with refund
+- ✅ CancellationService - Time-based refund policy
+- ✅ TicketService - Ticket retrieval & cancellation
+- ✅ Ownership validation - Users can only view/cancel their own tickets
+- ✅ Seat release - Cancelled tickets increment TicketType.available
+- ✅ Refund tracking - cancellationReason, cancelledAt, refundAmount, refundStatus fields
+- ✅ Ticket entity updates for cancellation workflow
+- ✅ TicketRepository extended with filter methods
 
-```
-Indexes:
-- payment_transactions(order_id, app_trans_id, created_at)
-- orders(user_id, status, created_at)
-- tickets(order_id, status)
+### Phase 7 (Complete)
 
-Batch operations:
-- Ticket creation: batch 20 records
-- Order updates: batch 20 records
+**Vouchers & Discounts:**
 
-Query optimization:
-- Lazy loading for associations
-- Join fetch for critical relationships
-- Pagination for large result sets
-```
+- ✅ GET /vouchers - List public vouchers (no auth, not expired)
+- ✅ GET /vouchers/my-vouchers?status={status} - List user vouchers (authenticated)
+- ✅ POST /vouchers/validate - Validate voucher & calculate discount
+- ✅ VoucherService - 10-step validation process
+- ✅ VoucherRepository with custom JPA queries (findByCode, findPublicActiveVouchers)
+- ✅ UserVoucherRepository with status-based filters (findActiveByUserId, findUsedByUserId, findExpiredByUserId)
+- ✅ Voucher entity with applicableEvents & applicableCategories element collections
+- ✅ UserVoucher entity for user-specific voucher assignments & tracking
+- ✅ VoucherDiscountType enum (FIXED_AMOUNT, PERCENTAGE)
+- ✅ Validation: expiry check, usage limit, quantity check, min order amount, applicability
+- ✅ Discount calculation with overflow protection (long for percentage)
+- ✅ Error codes: VOUCHER_NOT_FOUND, VOUCHER_INVALID_OR_EXPIRED, VOUCHER_NOT_APPLICABLE, VOUCHER_USAGE_LIMIT_REACHED,
+  MIN_ORDER_AMOUNT_NOT_MET
+- ✅ Input validation: Voucher code regex ^[A-Z0-9_-]{3,30}$
 
-## Scalability Considerations
+### Phase 8 (Complete)
 
-### Horizontal Scaling
+- ✅ GET /favorites - User's favorite events (paginated)
+- ✅ POST /favorites/{eventId} - Add to favorites (idempotent)
+- ✅ DELETE /favorites/{eventId} - Remove from favorites
+- ✅ GET /notifications - User notifications (paginated, with unreadOnly filter)
+- ✅ PUT /notifications/{notificationId}/read - Mark single notification as read
+- ✅ PUT /notifications/read-all - Mark all as read
+- ✅ FavoriteService with idempotent add operation
+- ✅ NotificationService with notification creation & status tracking
+- ✅ FavoriteController (3 endpoints)
+- ✅ NotificationController (3 endpoints)
+- ✅ FavoriteRepository with @EntityGraph for N+1 prevention
+- ✅ NotificationRepository with status-based queries
+- ✅ Input validation: @Pattern regex for UUID validation on path variables
+- ✅ Security: @PreAuthorize("isAuthenticated()") on all endpoints
+- ✅ Notification types: TICKET_PURCHASED, EVENT_REMINDER, EVENT_CANCELLED, PROMOTION, SYSTEM
+- ✅ Idempotent operations: Favorite add silently ignores duplicates
 
-```
-Load Balancer
-    │
-    ├─→ App Instance 1 (port 8080)
-    ├─→ App Instance 2 (port 8080)
-    └─→ App Instance N (port 8080)
-         │
-         └─→ Shared MySQL Database (replication possible)
-         └─→ ZaloPay API (external)
-```
+### Phase 9+ (Planned)
 
-### Database Scaling
+- Payment gateway integration (Stripe/Paypal)
+- Order status webhooks
+- Ticket QR code image generation
+- Organizer entity & management
+- Advanced audit logging
+- Soft delete support
+- Event series/recurring events
+- Waiting list management
+- Real-time seat availability WebSocket
+- Notification system
 
-```
-Current: Single MySQL instance
-Future:
-- Read replicas for analytics
-- Sharding by user_id or region
-- Archive old transactions
-```
+---
 
-## Summary
+## Future Enhancements
 
-The VES Booking API follows a clean layered architecture with clear separation of concerns. The payment processing
-system integrates seamlessly with ZaloPay through:
-
-- Secure request signing (HMAC-SHA256)
-- Webhook callback processing
-- Automated reconciliation
-- Comprehensive audit logging
-- Transaction-safe operations
-
-This design enables reliable, scalable, and maintainable payment processing while preserving system performance and
-security.
+1. **Event Recommendations** - ML-based personalization
+2. **Real-time Notifications** - WebSocket integration
+3. **Payment Gateway Integration** - Stripe, PayPal
+4. **Advanced Analytics** - Event performance, user behavior
+5. **Social Features** - Reviews, ratings, sharing
+6. **Organizer Platform** - Event management dashboard
+7. **Refund Workflows** - Automated refund processing
+8. **Queue Management** - High-traffic event bookings
+9. **Caching Layer** - Redis for performance
+10. **Message Queue** - RabbitMQ/Kafka for async processing

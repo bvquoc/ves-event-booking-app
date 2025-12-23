@@ -40,11 +40,6 @@ public enum ErrorCode {
     ORDER_EXPIRED(5002, "Order has expired", HttpStatus.BAD_REQUEST),
     ORDER_ALREADY_COMPLETED(5003, "Order already completed", HttpStatus.BAD_REQUEST),
 
-    // Payment errors (5xxx continued)
-    PAYMENT_GATEWAY_ERROR(5004, "Payment gateway error", HttpStatus.SERVICE_UNAVAILABLE),
-    PAYMENT_CALLBACK_INVALID(5005, "Invalid payment callback", HttpStatus.BAD_REQUEST),
-    REFUND_FAILED(5006, "Refund request failed", HttpStatus.SERVICE_UNAVAILABLE),
-
     // Voucher errors (6xxx)
     VOUCHER_NOT_FOUND(6001, "Voucher not found", HttpStatus.NOT_FOUND),
     VOUCHER_INVALID(6002, "Voucher is invalid or expired", HttpStatus.BAD_REQUEST),

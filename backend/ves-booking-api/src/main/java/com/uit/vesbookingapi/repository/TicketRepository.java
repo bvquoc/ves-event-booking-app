@@ -25,7 +25,6 @@ public interface TicketRepository extends JpaRepository<Ticket, String>, JpaSpec
 
     Page<Ticket> findByUserIdAndStatusOrderByPurchaseDateDesc(String userId, TicketStatus status, Pageable pageable);
 
-    // Find tickets by order ID
     List<Ticket> findByOrderId(String orderId);
 
     // Check if seats are occupied (sold or reserved) for a specific event

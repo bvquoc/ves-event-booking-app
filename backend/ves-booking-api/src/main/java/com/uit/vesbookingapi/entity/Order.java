@@ -18,9 +18,7 @@ import java.util.List;
 @Entity
 @Table(name = "orders", indexes = {
         @Index(name = "idx_order_user", columnList = "user_id"),
-        @Index(name = "idx_order_status", columnList = "status"),
-        @Index(name = "idx_order_app_trans_id", columnList = "app_trans_id"),
-        @Index(name = "idx_order_status_expires", columnList = "status, expires_at")
+        @Index(name = "idx_order_status", columnList = "status")
 })
 public class Order {
     @Id
@@ -50,7 +48,6 @@ public class Order {
     @Column(nullable = false)
     Integer total;
 
-    @Column(name = "currency")
     String currency;
 
     @ManyToOne
@@ -62,32 +59,15 @@ public class Order {
     OrderStatus status;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "payment_method")
     PaymentMethod paymentMethod;
 
-    @Column(name = "payment_url")
-    String paymentUrl;
+    String paymentUrl; // Mock payment gateway URL
 
-    @Column(name = "expires_at")
     LocalDateTime expiresAt; // Payment timeout
 
-    // ZaloPay-specific fields
-    @Column(name = "app_trans_id", unique = true)
-    String appTransId;  // Unique transaction ID: YYMMDD_orderId
-
-    @Column(name = "zp_trans_id")
-    String zpTransId;   // ZaloPay transaction ID (from callback)
-
-    @Column(name = "payment_confirmed_at")
-    LocalDateTime paymentConfirmedAt;  // When payment was confirmed
-
-    @Column(name = "payment_gateway")
-    String paymentGateway;  // "ZALOPAY" | "MOCK" (for backward compatibility)
-
-    @Column(name = "created_at", nullable = false)
+    @Column(nullable = false)
     LocalDateTime createdAt;
 
-    @Column(name = "completed_at")
     LocalDateTime completedAt;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)

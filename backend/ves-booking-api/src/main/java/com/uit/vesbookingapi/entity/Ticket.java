@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
 @Table(indexes = {
         @Index(name = "idx_ticket_user", columnList = "user_id"),
         @Index(name = "idx_ticket_status", columnList = "status"),
-        @Index(name = "idx_ticket_purchase_date", columnList = "purchase_date")
+        @Index(name = "idx_ticket_purchase_date", columnList = "purchaseDate")
 })
 public class Ticket {
     @Id
@@ -45,32 +45,25 @@ public class Ticket {
     @JoinColumn(name = "seat_id")
     Seat seat;
 
-    @Column(name = "qr_code", nullable = false, unique = true)
+    @Column(nullable = false, unique = true)
     String qrCode; // Unique QR code
 
-    @Column(name = "qr_code_image")
     String qrCodeImage; // URL to QR code image
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     TicketStatus status;
 
-    @Column(name = "purchase_date")
     LocalDateTime purchaseDate;
 
-    @Column(name = "checked_in_at")
     LocalDateTime checkedInAt;
 
-    @Column(name = "cancellation_reason")
     String cancellationReason;
 
-    @Column(name = "refund_amount")
     Integer refundAmount;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "refund_status")
     RefundStatus refundStatus;
 
-    @Column(name = "cancelled_at")
     LocalDateTime cancelledAt;
 }

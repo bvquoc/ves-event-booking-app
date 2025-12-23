@@ -2,7 +2,6 @@ package com.uit.vesbookingapi.service;
 
 import com.uit.vesbookingapi.dto.request.PurchaseRequest;
 import com.uit.vesbookingapi.dto.response.PurchaseResponse;
-import com.uit.vesbookingapi.dto.zalopay.ZaloPayCreateResponse;
 import com.uit.vesbookingapi.entity.*;
 import com.uit.vesbookingapi.enums.OrderStatus;
 import com.uit.vesbookingapi.enums.TicketStatus;
@@ -38,7 +37,6 @@ public class BookingService {
     UserRepository userRepository;
     VoucherRepository voucherRepository;
     OrderMapper orderMapper;
-    ZaloPayService zaloPayService;
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public PurchaseResponse purchaseTickets(PurchaseRequest request) {
@@ -116,7 +114,7 @@ public class BookingService {
         int subtotal = ticketType.getPrice() * request.getQuantity();
         int total = subtotal - discount;
 
-        // 9. Create order (WITHOUT paymentUrl initially)
+        // 9. Create order
         Order order = Order.builder()
                 .user(currentUser)
                 .event(event)
@@ -129,53 +127,21 @@ public class BookingService {
                 .voucher(voucher)
                 .status(OrderStatus.PENDING)
                 .paymentMethod(request.getPaymentMethod())
-                .paymentGateway("ZALOPAY")
+                .paymentUrl(generatePaymentUrl())
                 .expiresAt(LocalDateTime.now().plusMinutes(15))
                 .build();
 
         order = orderRepository.save(order);
         log.info("Order created: orderId={}, total={}", order.getId(), order.getTotal());
 
-        // 10. Call ZaloPay Create Order API
-        try {
-            ZaloPayCreateResponse zpResponse = zaloPayService.createOrder(order);
-
-            if (zpResponse.getReturnCode() != 1) {
-                log.error("ZaloPay order creation failed: code={}, msg={}",
-                        zpResponse.getReturnCode(), zpResponse.getReturnMessage());
-                // Rollback: release tickets
-                ticketType.setAvailable(ticketType.getAvailable() + request.getQuantity());
-                ticketTypeRepository.save(ticketType);
-                order.setStatus(OrderStatus.CANCELLED);
-                orderRepository.save(order);
-                throw new AppException(ErrorCode.PAYMENT_GATEWAY_ERROR);
-            }
-
-            // Update order with ZaloPay data
-            order.setAppTransId(zaloPayService.generateAppTransId(order.getId()));
-            order.setPaymentUrl(zpResponse.getOrderUrl());
-            orderRepository.save(order);
-
-        } catch (AppException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("Payment gateway error: {}", e.getMessage());
-            // Rollback
-            ticketType.setAvailable(ticketType.getAvailable() + request.getQuantity());
-            ticketTypeRepository.save(ticketType);
-            order.setStatus(OrderStatus.CANCELLED);
-            orderRepository.save(order);
-            throw new AppException(ErrorCode.PAYMENT_GATEWAY_ERROR);
-        }
-
-        // 11. Increment voucher usage count if voucher was applied
+        // Increment voucher usage count if voucher was applied
         if (voucher != null) {
             voucher.setUsedCount(voucher.getUsedCount() + 1);
             voucherRepository.save(voucher);
             log.info("Voucher usage incremented: code={}, usedCount={}", voucher.getCode(), voucher.getUsedCount());
         }
 
-        // 12. Create tickets (reserved state)
+        // 10. Create tickets (reserved state)
         List<Ticket> tickets = new ArrayList<>();
         for (int i = 0; i < request.getQuantity(); i++) {
             Seat seat = ticketType.getRequiresSeatSelection() ? selectedSeats.get(i) : null;
@@ -198,12 +164,11 @@ public class BookingService {
         ticketRepository.saveAll(tickets);
         log.info("Created {} tickets for order {}", tickets.size(), order.getId());
 
-        // 13. Decrement available count (optimistic lock will prevent overselling)
+        // 11. Decrement available count (optimistic lock will prevent overselling)
         ticketType.setAvailable(ticketType.getAvailable() - request.getQuantity());
         ticketTypeRepository.save(ticketType);
 
-        log.info("Ticket purchase successful: orderId={}, paymentUrl={}",
-                order.getId(), order.getPaymentUrl());
+        log.info("Ticket purchase successful: orderId={}", order.getId());
 
         return orderMapper.toPurchaseResponse(order);
     }
