@@ -57,11 +57,7 @@ class TicketSummary {
   final String name;
   final double price;
 
-  TicketSummary({
-    required this.id,
-    required this.name,
-    required this.price,
-  });
+  TicketSummary({required this.id, required this.name, required this.price});
 
   factory TicketSummary.fromJson(Map<String, dynamic> json) {
     return TicketSummary(
@@ -72,25 +68,23 @@ class TicketSummary {
   }
 }
 
-
-enum PaymentMethod {
-  vnpay,
-  vietQR,
-  shopeePay,
-  momo,
-  zaloPay,
-  card,
-}
+enum PaymentMethod { vnpay, vietqr, shopeepay, momo, zalopay, card }
 
 extension PaymentMethodX on PaymentMethod {
   String get apiValue {
     switch (this) {
+      case PaymentMethod.vnpay:
+        return 'E_WALLET';
+      case PaymentMethod.vietqr:
+        return 'E_WALLET';
+      case PaymentMethod.shopeepay:
+        return 'E_WALLET';
+      case PaymentMethod.momo:
+        return 'E_WALLET';
+      case PaymentMethod.zalopay:
+        return 'E_WALLET';
       case PaymentMethod.card:
-        return 'credit_card';
-      case PaymentMethod.vietQR:
-        return 'bank_transfer';
-      default:
-        return 'e_wallet';
+        return 'DEBIT_CARD';
     }
   }
 
@@ -98,13 +92,13 @@ extension PaymentMethodX on PaymentMethod {
     switch (this) {
       case PaymentMethod.vnpay:
         return 'VNPay';
-      case PaymentMethod.vietQR:
+      case PaymentMethod.vietqr:
         return 'VietQR';
-      case PaymentMethod.shopeePay:
+      case PaymentMethod.shopeepay:
         return 'ShopeePay';
       case PaymentMethod.momo:
         return 'MoMo';
-      case PaymentMethod.zaloPay:
+      case PaymentMethod.zalopay:
         return 'ZaloPay';
       case PaymentMethod.card:
         return 'Thẻ ghi nợ / Thẻ tín dụng';

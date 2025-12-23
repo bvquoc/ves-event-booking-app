@@ -25,7 +25,7 @@ class PaymentScreen extends StatefulWidget {
 }
 
 class _PaymentScreenState extends State<PaymentScreen> {
-  PaymentMethod _selectedMethod = PaymentMethod.zaloPay;
+  PaymentMethod _selectedMethod = PaymentMethod.zalopay;
   UserModel? user;
 
   /// 🔑 DANH SÁCH VÉ ĐÃ CHỌN (MULTI)
@@ -314,13 +314,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
   // ===================== ACTION =====================
 
   void _onPayPressed(TicketProvider provider) async {
-    // await provider.createZalopayOrder(
-    //   user!.username,
-    //   widget.totalPrice.toInt(),
-    // );
-
-    // print('ZaloPay Order: ${provider.zalopayOrder}');
-
     // Gọi API tạo đơn thanh toán khi đẫ hoàn thành chuyển tiền
     List<Future<void>> futures = [];
 
@@ -330,7 +323,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
           eventId: widget.booking.eventId,
           ticketTypeId: item.id,
           quantity: item.quantity,
-          seatIds: [],
+          seatIds: widget.booking.getSeatIdsByTicketType(item.id),
           voucherCode: "",
           paymentMethod: _selectedMethod.apiValue,
         ),
