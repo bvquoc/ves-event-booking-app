@@ -40,15 +40,6 @@ jwt:
   valid-duration: 3600 # in second
   refreshable-duration: 36000 # in seconds
 
-# ZaloPay Payment Gateway Configuration
-zalopay:
-  app-id: ${ZALOPAY_APP_ID:sandbox_app_id}
-  key1: ${ZALOPAY_KEY1:sandbox_key1}
-  key2: ${ZALOPAY_KEY2:sandbox_key2}
-  endpoint: ${ZALOPAY_ENDPOINT:https://sb-openapi.zalopay.vn/v2}
-  callback-url: ${ZALOPAY_CALLBACK_URL:https://your-domain.com/api/payments/zalopay/callback}
-  payment-timeout-minutes: 15
-
 # SpringDoc OpenAPI (Swagger) Configuration
 springdoc:
   api-docs:
