@@ -170,7 +170,7 @@ class _ExhibitionBookingScreenState extends State<ExhibitionBookingScreen> {
     print('===================================');
   }
 
-  Widget _buildBottomBar() {
+  Widget _buildBottomBar(BuildContext context) {
     final totalPrice = _calculateTotalPrice();
 
     final toltalQuantity = booking.totalQuantity;
@@ -251,30 +251,30 @@ class _ExhibitionBookingScreenState extends State<ExhibitionBookingScreen> {
     );
   }
 
-  void _handleNextStep(double totalPrice, int totalQuantity) {
+  void _handleNextStep(double totalPrice, int totalQuantity) async {
     if (widget.event.venueId != null) {
-      Navigator.push(
+      final result = await Navigator.push(
         context,
         MaterialPageRoute(
           builder: (_) => SeatSelectionScreen(
             eventId: widget.event.id,
             venueId: widget.event.venueId!,
-
-            // Truyền map số lượng vé {id: quantity}
             requiredQuantities: booking.items,
-
-            // Truyền danh sách loại vé để lấy tên hiển thị
             ticketTypes: widget.event.ticketTypes,
-
-            onConfirm: (ticketSeatMapResult) {
-              // Lưu kết quả Map vào booking request
-              booking.ticketSeatMap = ticketSeatMapResult;
-
-              _goToPayment(totalPrice);
-            },
           ),
         ),
       );
+
+      if (result != null && result is Map<String, List<String>>) {
+        // Lưu danh sách ghế đã chọn vào booking
+        booking.ticketSeatMap = result;
+
+        // Kiểm tra widget còn mounted không trước khi dùng context
+        if (!mounted) return;
+
+        // Chuyển sang màn hình thanh toán
+        _goToPayment(totalPrice);
+      }
     } else {
       _goToPayment(totalPrice);
     }
@@ -378,7 +378,7 @@ class _ExhibitionBookingScreenState extends State<ExhibitionBookingScreen> {
           ),
 
           // Bottom tổng tiền
-          _buildBottomBar(),
+          _buildBottomBar(context),
         ],
       ),
     );
