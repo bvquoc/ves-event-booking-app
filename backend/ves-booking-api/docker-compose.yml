@@ -7,8 +7,8 @@ services:
       MYSQL_DATABASE: ves_booking_api
       MYSQL_USER: vesbooking
       MYSQL_PASSWORD: vesbooking
-    ports:
-      - "3306:3306"
+    # MySQL port not exposed by default - only accessible within Docker network
+    # Use docker-compose.dev.yml or docker-compose.local.yml to expose locally
     volumes:
       - mysql_data:/var/lib/mysql
       - ./docker/mysql/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
@@ -43,6 +43,8 @@ services:
     restart: unless-stopped
 
   app:
+    profiles:
+      - app
     build:
       context: .
       dockerfile: Dockerfile
