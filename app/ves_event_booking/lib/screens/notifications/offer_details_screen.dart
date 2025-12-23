@@ -59,7 +59,7 @@ class OfferDetailScreen extends StatelessWidget {
 
   // Widget cho Ảnh Header
   Widget _buildHeaderImage() {
-    final String imageUrl = notification.data?['image'];
+    final String imageUrl = notification.data['image'];
 
     return Stack(
       children: [

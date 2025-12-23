@@ -41,7 +41,7 @@ class _EventCardItemState extends State<TicketCardItem> {
             children: [
               // 1. Ảnh nền
               Image.network(
-                widget.ticket.eventThumbnail,
+                widget.ticket.eventThumbnail ?? '',
                 height: 200,
                 width: double.infinity,
                 fit: BoxFit.cover,

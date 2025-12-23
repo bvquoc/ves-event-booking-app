@@ -1,11 +1,12 @@
 import 'package:dio/dio.dart';
+import 'package:ves_event_booking/config/dio_client.dart';
 import 'package:ves_event_booking/models/event/event_model.dart';
 import 'package:ves_event_booking/models/utils/api_response.dart';
 import 'package:ves_event_booking/models/utils/pagination_request.dart';
 import 'package:ves_event_booking/models/utils/pagination_response.dart';
 
 class FavoriteService {
-  final Dio _dio = Dio();
+  final Dio _dio = DioClient.dio;
 
   Future<void> addToFavorites(String eventId) async {
     try {
@@ -17,7 +18,7 @@ class FavoriteService {
     }
   }
 
-  Future<PageResult<List<EventModel>>> getFavoriteEvents({
+  Future<PageResult<EventModel>> getFavoriteEvents({
     required PaginationRequest pageable,
   }) async {
     try {
@@ -28,11 +29,7 @@ class FavoriteService {
 
       final apiResponse = ApiResponse.fromJson(
         response.data,
-        (json) => PageResult.fromJson(
-          json,
-          (content) =>
-              (content as List).map((e) => EventModel.fromJson(e)).toList(),
-        ),
+        (json) => PageResult.fromJson(json, (e) => EventModel.fromJson(e)),
       );
 
       return apiResponse.result;

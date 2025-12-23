@@ -48,7 +48,6 @@ class NotificationsScreenState extends State<NotificationsScreen> {
               leading: IconButton(
                 icon: const Icon(Icons.arrow_back_rounded, color: Colors.black),
                 onPressed: () {
-                  // Có thể dùng Navigator.pop(context) nếu đây là màn hình được push
                   if (Navigator.canPop(context)) {
                     Navigator.pop(context);
                   }

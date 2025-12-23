@@ -24,15 +24,13 @@ class EventCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _EventImage(
-            imageUrl: event.thumbnail,
-            isFavorite: event.isFavorite,
+            imageUrl: event.thumbnail ?? '',
+            isFavorite: event.isFavorite != null && event.isFavorite == true,
             onFavoriteTap: onFavoriteTap,
           ),
 
           const SizedBox(height: 6),
-          Expanded(
-            child: _EventContent(event: event),
-          ),
+          Expanded(child: _EventContent(event: event)),
         ],
       ),
     );
@@ -57,12 +55,34 @@ class _EventImage extends StatelessWidget {
       child: Stack(
         children: [
           Image(
-            height: 100, 
+            height: 100,
             width: double.infinity,
             fit: BoxFit.cover,
             image: imageUrl.startsWith('http')
                 ? NetworkImage(imageUrl)
                 : AssetImage(imageUrl) as ImageProvider,
+            errorBuilder: (context, error, stackTrace) {
+              return Container(
+                height: 100,
+                width: double.infinity,
+                color: Colors.grey[300], // Màu nền xám nhạt
+                alignment: Alignment.center,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: const [
+                    Icon(Icons.broken_image, color: Colors.grey, size: 24),
+                    SizedBox(height: 4),
+                    Text(
+                      "img not found",
+                      style: TextStyle(
+                        color: Colors.grey, // Chữ màu xám đậm
+                        fontSize: 10,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
           ),
 
           Positioned(
@@ -78,9 +98,7 @@ class _EventImage extends StatelessWidget {
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
-                  isFavorite
-                      ? Icons.favorite
-                      : Icons.favorite_border,
+                  isFavorite ? Icons.favorite : Icons.favorite_border,
                   size: 16,
                   color: Colors.blue.shade900,
                 ),
@@ -109,34 +127,25 @@ class _EventContent extends StatelessWidget {
           event.name,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: const TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w900,
-          ),
+          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900),
         ),
 
         Row(
           children: [
-            const Icon(
-              Icons.access_time_filled,
-              size: 14,
-            ),
+            const Icon(Icons.access_time_filled, size: 14),
             const SizedBox(width: 4),
             Text(
               _formatDate(event.startDate),
-              style: const TextStyle(
-                fontSize: 12,
-                fontStyle: FontStyle.italic,
-              ),
+              style: const TextStyle(fontSize: 12, fontStyle: FontStyle.italic),
             ),
             const Spacer(),
             Text(
-              'Từ ${formatter.format(event.minPrice.toInt())}đ',
+              'Từ ${formatter.format(event.minPrice != null ? event.minPrice!.toInt() : 0)}đ',
               style: const TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w900,
                 color: Color(0xff0007ab),
-                fontStyle: FontStyle.italic
+                fontStyle: FontStyle.italic,
               ),
             ),
           ],

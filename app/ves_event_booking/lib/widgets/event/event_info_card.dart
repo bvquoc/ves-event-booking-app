@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:ves_event_booking/models/event/event_model.dart';
+import 'package:ves_event_booking/models/event/event_details_model.dart';
 
 class EventInfoCard extends StatelessWidget {
-  final EventModel event;
+  final EventDetailsModel event;
 
   const EventInfoCard({super.key, required this.event});
 
@@ -31,7 +31,7 @@ class EventInfoCard extends StatelessWidget {
           ClipRRect(
             borderRadius: BorderRadius.circular(12),
             child: Image.network(
-              event.thumbnail,
+              event.thumbnail ?? '',
               width: 90,
               height: 90,
               fit: BoxFit.cover,

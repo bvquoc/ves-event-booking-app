@@ -1,10 +1,12 @@
 import 'package:dio/dio.dart';
 import 'package:ves_event_booking/config/dio_client.dart';
+import 'package:ves_event_booking/models/event/event_details_model.dart';
 import 'package:ves_event_booking/models/utils/api_response.dart';
 import 'package:ves_event_booking/models/event/event_model.dart';
 import 'package:ves_event_booking/models/event/event_model_request.dart';
 import 'package:ves_event_booking/models/ticket/ticket_type_model.dart';
 import 'package:ves_event_booking/models/utils/pagination_request.dart';
+import 'package:ves_event_booking/models/utils/pagination_response.dart';
 
 class EventService {
   final Dio _dio = DioClient.dio;
@@ -35,14 +37,15 @@ class EventService {
   }
 
   // GET
-  Future<ApiResponse<EventModel>> getEvent(String eventId) async {
+  Future<EventDetailsModel> getEvent(String eventId) async {
     try {
       final res = await _dio.get('/events/$eventId');
 
-      return ApiResponse.fromJson(
+      final apiResponse = ApiResponse.fromJson(
         res.data,
-        (json) => EventModel.fromJson(json),
+        (json) => EventDetailsModel.fromJson(json),
       );
+      return apiResponse.result;
     } on DioException catch (e) {
       throw Exception(e.response?.data?['message'] ?? 'Failed to get event');
     }
@@ -84,7 +87,7 @@ class EventService {
     }
   }
 
-  Future<List<EventModel>> getEvents({
+  Future<PageResult<EventModel>> getEvents({
     String? category,
     String? city,
     bool? trending,
@@ -113,14 +116,12 @@ class EventService {
 
       final apiResponse = ApiResponse.fromJson(
         response.data,
-        (json) => (json['content'] as List)
-            .map((e) => EventModel.fromJson(e))
-            .toList(),
+        (json) => PageResult.fromJson(json, (e) => EventModel.fromJson(e)),
       );
 
       return apiResponse.result;
     } on DioException catch (e) {
-      throw Exception(e.response?.data?['message'] ?? 'Failed to load events');
+      throw Exception('Failed to load events');
     }
   }
 }

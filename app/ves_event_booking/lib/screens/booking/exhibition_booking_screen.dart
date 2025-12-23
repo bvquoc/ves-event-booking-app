@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:ves_event_booking/models/event/event_model.dart';
+import 'package:ves_event_booking/models/event/event_details_model.dart';
 import 'package:ves_event_booking/models/ticket/ticket_model.dart';
 import 'package:ves_event_booking/models/ticket/ticket_type_model.dart';
-import 'package:ves_event_booking/screens/booking/payment_screen.dart'
-    hide PaymentMethod;
+import 'package:ves_event_booking/screens/booking/payment_screen.dart';
 import 'package:ves_event_booking/widgets/tickets_screen_widgets/ticket_item/ticket_card.dart';
 import '../../models/booking_request.dart';
 import '../../widgets/event/event_info_card.dart';
 
 class ExhibitionBookingScreen extends StatefulWidget {
-  final EventModel event;
+  final EventDetailsModel event;
 
   const ExhibitionBookingScreen({super.key, required this.event});
 
@@ -36,7 +35,7 @@ class _ExhibitionBookingScreenState extends State<ExhibitionBookingScreen> {
       final ticketId = entry.key;
       final quantity = entry.value;
 
-      final ticket = widget.event.ticketTypes!.firstWhere(
+      final ticket = widget.event.ticketTypes.firstWhere(
         (t) => t.id == ticketId,
       );
 
@@ -84,18 +83,18 @@ class _ExhibitionBookingScreenState extends State<ExhibitionBookingScreen> {
                 const SizedBox(height: 12),
 
                 /// Description
-                Text(ticket.description),
+                Text(ticket.description ?? 'Không có mô tả'),
 
                 const SizedBox(height: 12),
 
                 /// Benefits
-                if (ticket.benefits.isNotEmpty) ...[
+                if (ticket.benefits != null && ticket.benefits!.isNotEmpty) ...[
                   const Text(
                     'Quyền lợi:',
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 6),
-                  ...ticket.benefits.map(
+                  ...ticket.benefits!.map(
                     (b) => Row(
                       children: [
                         const Icon(Icons.check, size: 16, color: Colors.green),
@@ -278,7 +277,7 @@ class _ExhibitionBookingScreenState extends State<ExhibitionBookingScreen> {
           Expanded(
             child: ListView.builder(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              itemCount: tickets!.length,
+              itemCount: tickets.length,
               itemBuilder: (_, index) {
                 final ticket = tickets[index];
                 final quantity = booking.items[ticket.id] ?? 0;
@@ -312,7 +311,7 @@ class _ExhibitionBookingScreenState extends State<ExhibitionBookingScreen> {
                           padding: const EdgeInsets.all(12),
                           child: TicketCard(
                             title: ticket.name,
-                            description: ticket.description,
+                            description: ticket.description ?? '',
                             price: ticket.price,
                             quantity: quantity,
                             onAdd: () {

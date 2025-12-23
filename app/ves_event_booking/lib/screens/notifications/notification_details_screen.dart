@@ -59,12 +59,11 @@ class NotificationDetailScreen extends StatelessWidget {
 
   // Widget cho Ảnh Header
   Widget _buildHeaderImage() {
-    final String imageUrl = notification.data?['image'];
+    final String imageUrl = notification.data['image'];
 
     return Stack(
       children: [
         Image.network(
-          // Đổi sang Image.network
           imageUrl,
           height: 200,
           width: double.infinity,
@@ -103,7 +102,6 @@ class NotificationDetailScreen extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: 4.0),
-              // Tạm thời hardcode ngày tháng
               Text(
                 'Ngày: ${notification.createdAt.toString().split(' ')[0]}',
                 style: TextStyle(color: Colors.white, fontSize: 14.0),

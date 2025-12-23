@@ -1,11 +1,12 @@
 import 'package:dio/dio.dart';
+import 'package:ves_event_booking/config/dio_client.dart';
 import 'package:ves_event_booking/models/notification/notification_model.dart';
 import 'package:ves_event_booking/models/utils/api_response.dart';
 import 'package:ves_event_booking/models/utils/pagination_request.dart';
 import 'package:ves_event_booking/models/utils/pagination_response.dart';
 
 class NotificationService {
-  final Dio _dio = Dio();
+  final _dio = DioClient.dio;
 
   Future<PageResult<NotificationModel>> getNotifications({
     required PaginationRequest pageable,

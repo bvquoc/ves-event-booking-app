@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:ves_event_booking/models/event/event_model.dart';
+import 'package:ves_event_booking/models/event/event_details_model.dart';
 import 'package:ves_event_booking/screens/booking/concert_booking_screen.dart';
 import 'package:ves_event_booking/screens/booking/exhibition_booking_screen.dart';
 
 class EventBottomBar extends StatelessWidget {
-  final EventModel event;
+  final EventDetailsModel event;
 
   const EventBottomBar({super.key, required this.event});
 
   void onBookingPressed(BuildContext context) {
-    print(event.category.name);
     final String i = '0';
     switch (i) {
       case '0': //Triển lãm

@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:ves_event_booking/models/event/event_model.dart';
+import 'package:ves_event_booking/models/event/event_details_model.dart';
 
 class EventAppBar extends StatelessWidget {
-  final EventModel event;
+  final EventDetailsModel event;
   final VoidCallback onFavoritePressed;
 
   const EventAppBar({
-    Key? key,
+    super.key,
     required this.event,
     required this.onFavoritePressed,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -21,13 +21,15 @@ class EventAppBar extends StatelessWidget {
         icon: const Icon(Icons.arrow_back, color: Colors.white),
         onPressed: () => Navigator.pop(context),
       ),
-      title: Center(child: Text('Chi tiết sự kiện', style: TextStyle(color: Colors.white),)),
-      
+      title: Center(
+        child: Text('Chi tiết sự kiện', style: TextStyle(color: Colors.white)),
+      ),
+
       actions: [
         IconButton(
           icon: Icon(
-            event.isFavorite ? Icons.favorite : Icons.favorite_border,
-            color: event.isFavorite ? Colors.red : Colors.white,
+            event.isFavorite == true ? Icons.favorite : Icons.favorite_border,
+            color: event.isFavorite == true ? Colors.red : Colors.white,
           ),
           onPressed: onFavoritePressed,
         ),
@@ -38,7 +40,7 @@ class EventAppBar extends StatelessWidget {
           children: [
             // Event Image
             Image.network(
-              event.thumbnail,
+              event.thumbnail ?? '',
               fit: BoxFit.cover,
               errorBuilder: (context, error, stackTrace) {
                 return Container(
@@ -51,17 +53,14 @@ class EventAppBar extends StatelessWidget {
                 );
               },
             ),
-            
+
             // Gradient Overlay
             Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.transparent,
-                    Colors.black.withOpacity(0.7),
-                  ],
+                  colors: [Colors.transparent, Colors.black.withOpacity(0.7)],
                 ),
               ),
             ),

@@ -1,16 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:ves_event_booking/models/booking_request.dart';
-import 'package:ves_event_booking/models/event/event_model.dart';
+import 'package:ves_event_booking/models/event/event_details_model.dart';
 import 'package:ves_event_booking/widgets/event/event_info_card.dart';
 import 'payment_screen.dart';
 
 class ConcertBookingScreen extends StatefulWidget {
-  final EventModel event;
+  final EventDetailsModel event;
 
-  const ConcertBookingScreen({
-    super.key,
-    required this.event,
-  });
+  const ConcertBookingScreen({super.key, required this.event});
 
   @override
   State<ConcertBookingScreen> createState() => _ConcertBookingScreenState();
@@ -25,27 +22,18 @@ class _ConcertBookingScreenState extends State<ConcertBookingScreen> {
     super.initState();
 
     zones = widget.event.ticketTypes.map((t) {
-      return _ZoneTicket(
-        id: t.id,
-        name: t.name,
-        price: t.price.toInt(),
-      );
+      return _ZoneTicket(id: t.id, name: t.name, price: t.price.toInt());
     }).toList();
   }
 
   int get totalPrice {
-    return selectedZones.values.fold(
-      0,
-      (sum, z) => sum + z.price * z.quantity,
-    );
+    return selectedZones.values.fold(0, (sum, z) => sum + z.price * z.quantity);
   }
 
   void _onContinue() {
     final booking = BookingRequest(
       eventId: widget.event.id,
-      items: {
-        for (final z in selectedZones.values) z.id: z.quantity,
-      },
+      items: {for (final z in selectedZones.values) z.id: z.quantity},
     );
 
     Navigator.push(
@@ -64,16 +52,18 @@ class _ConcertBookingScreenState extends State<ConcertBookingScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(title: const Text('Chọn vé concert'), backgroundColor: Colors.white,),
+      appBar: AppBar(
+        title: const Text('Chọn vé concert'),
+        backgroundColor: Colors.white,
+      ),
       bottomNavigationBar: _BottomBar(
         totalPrice: totalPrice,
         onContinue: _onContinue,
       ),
       body: Column(
         children: [
-
           EventInfoCard(event: widget.event),
-          
+
           /// ZONE LIST (MAP)
           Padding(
             padding: const EdgeInsets.all(16),
@@ -90,8 +80,7 @@ class _ConcertBookingScreenState extends State<ConcertBookingScreen> {
           Expanded(
             child: ListView(
               padding: const EdgeInsets.all(16),
-              children:
-                  selectedZones.values.map(_selectedZoneItem).toList(),
+              children: selectedZones.values.map(_selectedZoneItem).toList(),
             ),
           ),
         ],
@@ -146,10 +135,7 @@ class _ConcertBookingScreenState extends State<ConcertBookingScreen> {
       ),
       child: Row(
         children: [
-          CircleAvatar(
-            radius: 14,
-            child: Text(zone.quantity.toString()),
-          ),
+          CircleAvatar(radius: 14, child: Text(zone.quantity.toString())),
           const SizedBox(width: 12),
 
           Expanded(
@@ -182,8 +168,7 @@ class _ConcertBookingScreenState extends State<ConcertBookingScreen> {
           ),
           IconButton(
             icon: const Icon(Icons.close, color: Colors.red),
-            onPressed: () =>
-                setState(() => selectedZones.remove(zone.id)),
+            onPressed: () => setState(() => selectedZones.remove(zone.id)),
           ),
         ],
       ),
@@ -195,10 +180,7 @@ class _BottomBar extends StatelessWidget {
   final int totalPrice;
   final VoidCallback onContinue;
 
-  const _BottomBar({
-    required this.totalPrice,
-    required this.onContinue,
-  });
+  const _BottomBar({required this.totalPrice, required this.onContinue});
 
   @override
   Widget build(BuildContext context) {
@@ -210,10 +192,7 @@ class _BottomBar extends StatelessWidget {
           Expanded(
             child: Text(
               'Tổng tiền\n$totalPrice VND',
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
           ),
           ElevatedButton(

@@ -1,8 +1,22 @@
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
+import 'package:ves_event_booking/screens/profile/profile_creen.dart';
 
-class HomeHeader extends StatelessWidget {
-  const HomeHeader({super.key});
+class HomeHeader extends StatefulWidget {
+  final Function(String) onSearch;
+  const HomeHeader({super.key, required this.onSearch});
+
+  @override
+  State<HomeHeader> createState() => _HomeHeaderState();
+}
+
+class _HomeHeaderState extends State<HomeHeader> {
+  final TextEditingController _searchController = TextEditingController();
+
+  void _handleSearch(String value) {
+    widget.onSearch(value);
+    _searchController.clear();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +32,14 @@ class HomeHeader extends StatelessWidget {
                 Image.asset('assets/images/logo.png'),
                 IconButton(
                   iconSize: 60,
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const ProfileScreen(),
+                      ),
+                    );
+                  },
                   icon: Icon(Icons.account_circle, color: Colors.white),
                 ),
               ],
@@ -91,74 +112,34 @@ class HomeHeader extends StatelessWidget {
                     borderRadius: BorderRadius.circular(22),
                   ),
                   child: Row(
-                    children: const [
+                    children: [
                       Icon(Icons.search, color: Colors.grey),
                       SizedBox(width: 8),
                       Expanded(
-                        child: Text(
-                          'Tìm kiếm',
-                          style: TextStyle(color: Colors.grey, fontSize: 16),
+                        child: TextField(
+                          controller: _searchController,
+                          textInputAction: TextInputAction.search,
+                          onSubmitted: (value) => _handleSearch(value),
+                          style: const TextStyle(
+                            color: Colors.black,
+                            fontSize: 16,
+                          ),
+                          decoration: const InputDecoration(
+                            hintText: 'Tìm kiếm',
+                            hintStyle: TextStyle(
+                              color: Colors.grey,
+                              fontSize: 16,
+                            ),
+                            border: InputBorder.none,
+                            contentPadding: EdgeInsets.symmetric(
+                              vertical: 10,
+                            ), // Căn giữa text
+                            isDense: true,
+                          ),
                         ),
                       ),
                       Icon(Icons.mic, color: Colors.grey),
                     ],
-                  ),
-                ),
-              ),
-              const SizedBox(width: 16),
-              Icon(Icons.discount_rounded, color: Colors.white),
-              const SizedBox(width: 16),
-
-              Icon(Icons.favorite, color: Colors.white),
-            ],
-          ),
-          const SizedBox(height: 20),
-
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // ACTIVE BUTTON
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 10,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.blue,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: const Text(
-                  'Trong tuần',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-
-              const SizedBox(width: 12),
-
-              // DIVIDER
-              Container(height: 24, width: 3, color: Colors.white),
-
-              const SizedBox(width: 12),
-
-              // OUTLINE BUTTON
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 10,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.blue, width: 2),
-                ),
-                child: const Text(
-                  'Sắp diễn ra',
-                  style: TextStyle(
-                    color: Colors.blue,
-                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ),

@@ -1,23 +1,31 @@
 import 'package:flutter/material.dart';
+import 'package:ves_event_booking/models/category/category_model.dart';
 import 'package:ves_event_booking/models/event/event_model.dart';
 import 'package:ves_event_booking/models/utils/pagination_request.dart';
 import 'package:ves_event_booking/models/voucher/voucher_status_model.dart';
+import 'package:ves_event_booking/services/category_service.dart';
 import 'package:ves_event_booking/services/event_service.dart';
 import 'package:ves_event_booking/services/voucher_service.dart';
+import 'package:ves_event_booking/services/favorite_service.dart';
 
 class HomeProvider extends ChangeNotifier {
   final EventService _eventService = EventService();
   final VoucherService _voucherService = VoucherService();
+  final CategoryService _categoryService = CategoryService();
+  final FavoriteService _favoriteService = FavoriteService();
 
   bool _isLoading = false;
   String? _errorMessage;
   List<EventModel> _events = [];
   List<VoucherStatusModel> _vouchers = [];
+  List<CategoryModel> _categories = [];
+  Set<String> _favoriteEventIds = {};
 
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
   List<EventModel> get events => _events;
   List<VoucherStatusModel> get vouchers => _vouchers;
+  List<CategoryModel> get categories => _categories;
 
   Future<void> fetchEvents({
     required PaginationRequest pageable,
@@ -44,7 +52,7 @@ class HomeProvider extends ChangeNotifier {
         search: search,
         sortBy: sortBy,
       );
-      _events = response;
+      _events = response.content;
     } catch (e) {
       _errorMessage = e.toString();
     } finally {
@@ -64,6 +72,91 @@ class HomeProvider extends ChangeNotifier {
       _errorMessage = e.toString();
     } finally {
       _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> fetchCategoties() async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      _categories = await _categoryService.getCategories();
+    } catch (e) {
+      _errorMessage = e.toString();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> fetchFavoriteEventIds({
+    required PaginationRequest pageable,
+  }) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final pageResult = await _favoriteService.getFavoriteEvents(
+        pageable: pageable,
+      );
+
+      _favoriteEventIds = pageResult.content.map((event) => event.id).toSet();
+      _syncFavoriteStatus();
+    } catch (e) {
+      _favoriteEventIds = {};
+      _errorMessage = e.toString();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  void _syncFavoriteStatus() {
+    // Duyệt qua tất cả event đang hiển thị
+    // Nếu ID của event nằm trong _favoriteEventIds -> set isFavorite = true
+    _events = _events.map((event) {
+      final isFav = _favoriteEventIds.contains(event.id);
+      return event.copyWith(isFavorite: isFav);
+    }).toList();
+  }
+
+  Future<void> toggleFavorite(String eventId) async {
+    // 1. Lưu trạng thái cũ để revert nếu lỗi
+    final bool wasFavorite = _favoriteEventIds.contains(eventId);
+
+    // 2. OPTIMISTIC UPDATE: Cập nhật UI ngay lập tức trước khi gọi API
+    if (wasFavorite) {
+      _favoriteEventIds.remove(eventId); // Xóa khỏi bộ nhớ local
+    } else {
+      _favoriteEventIds.add(eventId); // Thêm vào bộ nhớ local
+    }
+
+    // Đồng bộ lại UI list events và báo view vẽ lại
+    _syncFavoriteStatus();
+    notifyListeners();
+
+    try {
+      // 3. Gọi API thực tế
+      if (wasFavorite) {
+        // Đang thích -> Gọi API Bỏ thích (DELETE)
+        await _favoriteService.removeFromFavorites(eventId);
+      } else {
+        // Chưa thích -> Gọi API Thích (POST)
+        await _favoriteService.addToFavorites(eventId);
+      }
+    } catch (e) {
+      // 4. REVERT: Nếu API lỗi, trả lại trạng thái cũ
+      if (wasFavorite) {
+        _favoriteEventIds.add(eventId); // Trả lại ID
+      } else {
+        _favoriteEventIds.remove(eventId); // Xóa lại ID
+      }
+
+      // Update lại UI về như cũ
+      _syncFavoriteStatus();
       notifyListeners();
     }
   }

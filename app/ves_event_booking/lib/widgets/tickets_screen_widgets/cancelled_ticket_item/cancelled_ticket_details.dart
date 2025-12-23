@@ -158,7 +158,7 @@ class CancelledTicketDetail extends StatelessWidget {
         ClipRRect(
           borderRadius: BorderRadius.circular(16.0),
           child: Image.network(
-            ticket.eventThumbnail,
+            ticket.eventThumbnail ?? '',
             height: 180,
             width: double.infinity,
             fit: BoxFit.cover,
