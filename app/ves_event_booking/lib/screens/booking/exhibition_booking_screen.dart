@@ -351,6 +351,38 @@ class _ExhibitionBookingScreenState extends State<ExhibitionBookingScreen> {
                             price: ticket.price,
                             quantity: quantity,
                             onAdd: () {
+                              if (booking.items.isNotEmpty) {
+                                // Lấy ra id của loại vé đang có trong giỏ
+                                // Vì chỉ cho chọn 1 loại nên nếu map không rỗng, nó sẽ có 1 key
+                                final existingTypeId = booking.items.keys.first;
+
+                                // 2. So sánh: Nếu loại trong giỏ KHÁC loại đang bấm
+                                if (existingTypeId != ticket.id) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: const Text(
+                                        'Bạn chỉ được chọn 1 loại vé cho mỗi lần thanh toán!',
+                                      ),
+                                      backgroundColor: Colors.redAccent,
+                                      behavior: SnackBarBehavior.floating,
+                                      action: SnackBarAction(
+                                        label: 'ĐỔI HẠNG VÉ',
+                                        textColor: Colors.white,
+                                        onPressed: () {
+                                          // Tùy chọn: Cho phép xóa nhanh để chọn loại mới
+                                          setState(() {
+                                            booking.items.clear();
+                                            booking.items[ticket.id] = 1;
+                                          });
+                                        },
+                                      ),
+                                    ),
+                                  );
+                                  return; // không tăng số lượng
+                                }
+                              }
+
+                              // 3. Nếu hợp lệ (Giỏ rỗng hoặc trùng loại) -> Tăng số lượng
                               setState(() {
                                 booking.items[ticket.id] = quantity + 1;
                               });
