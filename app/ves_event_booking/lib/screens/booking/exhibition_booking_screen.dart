@@ -170,7 +170,7 @@ class _ExhibitionBookingScreenState extends State<ExhibitionBookingScreen> {
     print('===================================');
   }
 
-  Widget _buildBottomBar() {
+  Widget _buildBottomBar(BuildContext context) {
     final totalPrice = _calculateTotalPrice();
 
     final toltalQuantity = booking.totalQuantity;
@@ -211,7 +211,7 @@ class _ExhibitionBookingScreenState extends State<ExhibitionBookingScreen> {
             ElevatedButton(
               onPressed: totalPrice > 0
                   ? () {
-                      _handleNextStep(totalPrice, toltalQuantity);
+                      _handleNextStep(context, totalPrice, toltalQuantity);
                     }
                   : null,
 
@@ -251,7 +251,11 @@ class _ExhibitionBookingScreenState extends State<ExhibitionBookingScreen> {
     );
   }
 
-  void _handleNextStep(double totalPrice, int totalQuantity) {
+  void _handleNextStep(
+    BuildContext context,
+    double totalPrice,
+    int totalQuantity,
+  ) {
     if (widget.event.venueId != null) {
       Navigator.push(
         context,
@@ -270,17 +274,17 @@ class _ExhibitionBookingScreenState extends State<ExhibitionBookingScreen> {
               // Lưu kết quả Map vào booking request
               booking.ticketSeatMap = ticketSeatMapResult;
 
-              _goToPayment(totalPrice);
+              _goToPayment(context, totalPrice);
             },
           ),
         ),
       );
     } else {
-      _goToPayment(totalPrice);
+      _goToPayment(context, totalPrice);
     }
   }
 
-  void _goToPayment(double totalPrice) {
+  void _goToPayment(BuildContext context, double totalPrice) {
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -378,7 +382,7 @@ class _ExhibitionBookingScreenState extends State<ExhibitionBookingScreen> {
           ),
 
           // Bottom tổng tiền
-          _buildBottomBar(),
+          _buildBottomBar(context),
         ],
       ),
     );

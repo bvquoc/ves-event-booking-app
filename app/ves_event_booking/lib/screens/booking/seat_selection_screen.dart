@@ -134,7 +134,7 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
           Expanded(child: _buildBody()),
         ],
       ),
-      bottomNavigationBar: _buildBottomBar(),
+      bottomNavigationBar: _buildBottomBar(context),
     );
   }
 
@@ -238,6 +238,13 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
                     ),
                     const SizedBox(height: 10),
                     ...section.rows.map((row) {
+                      final sortedSeats = List.of(row.seats)
+                        ..sort((a, b) {
+                          final aNum = int.tryParse(a.seatNumber) ?? 0;
+                          final bNum = int.tryParse(b.seatNumber) ?? 0;
+                          return aNum.compareTo(bNum);
+                        });
+
                       return Padding(
                         padding: const EdgeInsets.symmetric(vertical: 4),
                         child: Row(
@@ -252,7 +259,7 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
                                 ),
                               ),
                             ),
-                            ...row.seats.map((seat) => _buildSeatItem(seat)),
+                            ...sortedSeats.map((seat) => _buildSeatItem(seat)),
                           ],
                         ),
                       );
@@ -313,7 +320,7 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
     );
   }
 
-  Widget _buildBottomBar() {
+  Widget _buildBottomBar(BuildContext context) {
     // Kiểm tra đã chọn hết tất cả chưa
     bool isDone = _currentActiveTicketTypeId == null;
 
