@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface OrderRepository extends JpaRepository<Order, String>, JpaSpecificationExecutor<Order> {
@@ -21,4 +22,11 @@ public interface OrderRepository extends JpaRepository<Order, String>, JpaSpecif
     // Find expired pending orders for cleanup
     @Query("SELECT o FROM Order o WHERE o.status = 'PENDING' AND o.expiresAt < :now")
     List<Order> findExpiredPendingOrders(@Param("now") LocalDateTime now);
+
+    // ZaloPay-specific queries
+    Optional<Order> findByAppTransId(String appTransId);
+
+    // For reconciliation: find PENDING orders older than X minutes
+    @Query("SELECT o FROM Order o WHERE o.status = 'PENDING' AND o.createdAt < :threshold")
+    List<Order> findPendingOrdersOlderThan(@Param("threshold") LocalDateTime threshold);
 }
