@@ -1,0 +1,8 @@
+# Docker Compose for Local Development
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.local.yml --profile app up
+# This starts both app and database with MySQL exposed for local development
+services:
+  mysql:
+    ports:
+      - "3306:3306"  # Expose MySQL for local development tools
+

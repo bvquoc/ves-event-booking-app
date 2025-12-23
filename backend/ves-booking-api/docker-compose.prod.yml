@@ -1,0 +1,5 @@
+# Docker Compose for Production (VPS)
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.prod.yml --profile app up
+# This starts both app and database, MySQL NOT exposed externally (only internal network)
+# Note: Base docker-compose.yml already doesn't expose MySQL
+
