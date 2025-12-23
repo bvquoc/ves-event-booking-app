@@ -226,6 +226,9 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
 
               // Sections
               ..._seatMap!.sections.map((section) {
+                final sortedRows = List.of(section.rows)
+                  ..sort((a, b) => a.rowName.compareTo(b.rowName));
+
                 return Column(
                   children: [
                     Text(
@@ -233,7 +236,8 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 10),
-                    ...section.rows.map((row) {
+
+                    ...sortedRows.map((row) {
                       final sortedSeats = List.of(row.seats)
                         ..sort((a, b) {
                           final aNum = int.tryParse(a.seatNumber) ?? 0;

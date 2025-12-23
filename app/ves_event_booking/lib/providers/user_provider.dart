@@ -18,6 +18,11 @@ class UserProvider extends ChangeNotifier {
   String? get errorMessage => _errorMessage;
   UserModel? get user => _user;
 
+  void clearError() {
+    _errorMessage = null;
+    notifyListeners();
+  }
+
   Future<void> fetchUserInfo() async {
     _isLoading = true;
     _errorMessage = null;

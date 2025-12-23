@@ -41,14 +41,15 @@ class _FavoriteEventsScreenState extends State<FavoriteEventsScreen> {
 
         // ❌ Error
         if (provider.errorMessage != null) {
-          return Scaffold(
-            body: Center(
-              child: Text(
-                provider.errorMessage!,
-                style: const TextStyle(color: Colors.red),
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(provider.errorMessage!),
+                backgroundColor: Colors.red,
               ),
-            ),
-          );
+            );
+            provider.clearError(); // VERY IMPORTANT
+          });
         }
 
         final favoriteEvents = provider.events

@@ -19,6 +19,11 @@ class AuthProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
+  void clearError() {
+    _errorMessage = null;
+    notifyListeners();
+  }
+
   // Xử lý Đăng nhập
   Future<bool> login(String email, String password) async {
     _setLoading(true);

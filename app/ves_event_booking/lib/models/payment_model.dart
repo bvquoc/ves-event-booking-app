@@ -68,40 +68,20 @@ class TicketSummary {
   }
 }
 
-enum PaymentMethod { vnpay, vietqr, shopeepay, momo, zalopay, card }
+enum PaymentMethod { zalopay }
 
 extension PaymentMethodX on PaymentMethod {
   String get apiValue {
     switch (this) {
-      case PaymentMethod.vnpay:
-        return 'E_WALLET';
-      case PaymentMethod.vietqr:
-        return 'E_WALLET';
-      case PaymentMethod.shopeepay:
-        return 'E_WALLET';
-      case PaymentMethod.momo:
-        return 'E_WALLET';
       case PaymentMethod.zalopay:
         return 'E_WALLET';
-      case PaymentMethod.card:
-        return 'DEBIT_CARD';
     }
   }
 
   String get title {
     switch (this) {
-      case PaymentMethod.vnpay:
-        return 'VNPay';
-      case PaymentMethod.vietqr:
-        return 'VietQR';
-      case PaymentMethod.shopeepay:
-        return 'ShopeePay';
-      case PaymentMethod.momo:
-        return 'MoMo';
       case PaymentMethod.zalopay:
         return 'ZaloPay';
-      case PaymentMethod.card:
-        return 'Thẻ ghi nợ / Thẻ tín dụng';
     }
   }
 }

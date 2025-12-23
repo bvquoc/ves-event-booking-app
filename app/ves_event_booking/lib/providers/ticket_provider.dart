@@ -24,6 +24,11 @@ class TicketProvider extends ChangeNotifier {
   UserModel? get user => _user;
   ZalopayResponse? get zalopayOrder => _zalopayOrder;
 
+  void clearError() {
+    _errorMessage = null;
+    notifyListeners();
+  }
+
   Future<void> fetchTickets(TicketStatus ticketStatus) async {
     _isLoading = true;
     _errorMessage = null;

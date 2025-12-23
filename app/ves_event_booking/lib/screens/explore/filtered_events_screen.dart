@@ -54,12 +54,15 @@ class FilteredEventsScreenState extends State<FilteredEventsScreen> {
 
         // ❌ Error
         if (provider.errorMessage != null) {
-          return Center(
-            child: Text(
-              provider.errorMessage!,
-              style: const TextStyle(color: Colors.red),
-            ),
-          );
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(provider.errorMessage!),
+                backgroundColor: Colors.red,
+              ),
+            );
+            provider.clearError(); // VERY IMPORTANT
+          });
         }
 
         final listEvents = provider.events;

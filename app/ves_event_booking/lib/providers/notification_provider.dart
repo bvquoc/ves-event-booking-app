@@ -16,6 +16,11 @@ class NotificationProvider extends ChangeNotifier {
   List<NotificationModel> get eventNotifications => _eventNotifications;
   List<NotificationModel> get offerNotifications => _offerNotifications;
 
+  void clearError() {
+    _errorMessage = null;
+    notifyListeners();
+  }
+
   Future<void> fetchNotifications() async {
     _isLoading = true;
     _errorMessage = null;

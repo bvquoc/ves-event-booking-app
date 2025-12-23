@@ -69,12 +69,15 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
         // ❌ Error
         if (provider.errorMessage != null) {
-          return Center(
-            child: Text(
-              provider.errorMessage!,
-              style: const TextStyle(color: Colors.red),
-            ),
-          );
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(provider.errorMessage!),
+                backgroundColor: Colors.red,
+              ),
+            );
+            provider.clearError(); // VERY IMPORTANT
+          });
         }
 
         user = provider.user;

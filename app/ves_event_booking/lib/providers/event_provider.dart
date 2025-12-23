@@ -30,6 +30,11 @@ class EventProvider extends ChangeNotifier {
   List<CityModel> get cities => _cities;
   EventDetailsModel? get event => _event;
 
+  void clearError() {
+    _errorMessage = null;
+    notifyListeners();
+  }
+
   Future<void> fetchEvents({
     required PaginationRequest pageable,
     String? category,
