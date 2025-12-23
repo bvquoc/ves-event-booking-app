@@ -1,14 +1,13 @@
 import 'package:dio/dio.dart';
 import 'package:ves_event_booking/config/dio_client.dart';
 import 'package:ves_event_booking/enums/ticket_status.dart';
+import 'package:ves_event_booking/models/ticket/cancel_ticket_response.dart';
 import 'package:ves_event_booking/models/utils/api_response.dart';
 import 'package:ves_event_booking/models/utils/pagination_request.dart';
 import 'package:ves_event_booking/models/utils/pagination_response.dart';
-import 'package:ves_event_booking/models/purchase/purchase_cancel_request.dart';
-import 'package:ves_event_booking/models/purchase/purchase_cancel_response.dart';
-import 'package:ves_event_booking/models/purchase/purchase_model.dart';
-import 'package:ves_event_booking/models/purchase/purchase_model_request.dart';
 import 'package:ves_event_booking/models/ticket/ticket_model.dart';
+import 'package:ves_event_booking/models/zalopay/zalopay_model_request.dart';
+import 'package:ves_event_booking/models/zalopay/zalopay_response.dart';
 
 class TicketService {
   final Dio _dio = DioClient.dio;
@@ -50,8 +49,30 @@ class TicketService {
     }
   }
 
-  // POST /tickets/purchase
-  Future<PurchaseModel> purchaseTicket(PurchaseModelRequest request) async {
+  Future<CancelTicketResponse> cancelTicket(
+    String ticketId,
+    String reason,
+  ) async {
+    try {
+      final response = await _dio.put(
+        '/tickets/$ticketId/cancel',
+        data: {'reason': reason},
+      );
+
+      final apiResponse = ApiResponse.fromJson(
+        response.data,
+        (json) => CancelTicketResponse.fromJson(json),
+      );
+
+      return apiResponse.result;
+    } on DioException catch (e) {
+      throw Exception(
+        e.response?.data?['message'] ?? 'Failed to fetch vouchers',
+      );
+    }
+  }
+
+  Future<ZalopayResponse> purchaseTicket(ZalopayModelRequest request) async {
     try {
       final response = await _dio.post(
         '/tickets/purchase',
@@ -60,37 +81,13 @@ class TicketService {
 
       final apiResponse = ApiResponse.fromJson(
         response.data,
-        (json) => PurchaseModel.fromJson(json),
+        (json) => ZalopayResponse.fromJson(json),
       );
 
       return apiResponse.result;
     } on DioException catch (e) {
       throw Exception(
-        e.response?.data?['message'] ?? 'Failed to purchase ticket',
-      );
-    }
-  }
-
-  // PUT /tickets/{ticketId}/cancel
-  Future<PurchaseCancelResponse> cancelTicket(
-    String ticketId,
-    PurchaseCancelRequest request,
-  ) async {
-    try {
-      final response = await _dio.put(
-        '/tickets/$ticketId/cancel',
-        data: request.toJson(),
-      );
-
-      final apiResponse = ApiResponse.fromJson(
-        response.data,
-        (json) => PurchaseCancelResponse.fromJson(json),
-      );
-
-      return apiResponse.result;
-    } on DioException catch (e) {
-      throw Exception(
-        e.response?.data?['message'] ?? 'Failed to cancel ticket',
+        e.response?.data?['message'] ?? 'Failed to fetch vouchers',
       );
     }
   }

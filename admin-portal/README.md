@@ -31,16 +31,19 @@ A modern, simple admin portal for managing the VES Booking event system.
 ### Installation
 
 1. Install dependencies:
+
 ```bash
 npm install
 ```
 
 2. Create a `.env` file (copy from `.env.example`):
+
 ```bash
 cp .env.example .env
 ```
 
 3. Update `.env` with your API base URL:
+
 ```
 VITE_API_BASE_URL=http://localhost:8080/api
 ```
@@ -48,6 +51,7 @@ VITE_API_BASE_URL=http://localhost:8080/api
 ### Development
 
 Start the development server:
+
 ```bash
 npm run dev
 ```
@@ -57,6 +61,7 @@ The app will be available at `http://localhost:5173`
 ### Build
 
 Build for production:
+
 ```bash
 npm run build
 ```
@@ -66,6 +71,7 @@ The built files will be in the `dist` directory.
 ### Preview Production Build
 
 Preview the production build:
+
 ```bash
 npm run preview
 ```
@@ -114,7 +120,43 @@ The app uses JWT tokens stored in localStorage. After login, the token is automa
 - The layout is responsive with a collapsible sidebar on mobile
 - Protected routes automatically redirect to login if not authenticated
 
+## Deployment
+
+### First Time Setup
+
+```bash
+./deploy.sh
+```
+
+That's it! The script handles everything.
+
+### Deploy New Source
+
+After updating code:
+
+```bash
+./deploy-new.sh
+```
+
+Stops, rebuilds, and restarts automatically.
+
+### Manual Deploy
+
+```bash
+# 1. Set API URL (use VPS IP, NOT localhost!)
+echo "VITE_API_BASE_URL=http://YOUR_VPS_IP:8080/api" > .env
+
+# 2. Build
+npm install && npm run build
+
+# 3. Start
+pm2 start ecosystem.config.js && pm2 save
+```
+
+**Important:** Use your VPS IP address in `.env`, not `localhost` (API calls come from user's browser).
+
+See [DEPLOY.md](./DEPLOY.md) for details.
+
 ## License
 
 MIT
-

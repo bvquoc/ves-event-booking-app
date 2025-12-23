@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:ves_event_booking/models/booking_request.dart';
 import 'package:ves_event_booking/models/payment_model.dart';
-import 'package:ves_event_booking/models/purchase/purchase_model_request.dart';
 import 'package:ves_event_booking/models/event/event_details_model.dart';
 import 'package:ves_event_booking/models/ticket/ticket_type_model.dart';
 import 'package:ves_event_booking/models/user/user_model.dart';
+import 'package:ves_event_booking/models/zalopay/zalopay_model_request.dart';
 import 'package:ves_event_booking/providers/ticket_provider.dart';
 
 class PaymentScreen extends StatefulWidget {
@@ -325,8 +325,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
     List<Future<void>> futures = [];
 
     for (final item in _ticketItems) {
-      final request = provider.createTicket(
-        PurchaseModelRequest(
+      final request = provider.createZalopayOrder(
+        ZalopayModelRequest(
           eventId: widget.booking.eventId,
           ticketTypeId: item.id,
           quantity: item.quantity,

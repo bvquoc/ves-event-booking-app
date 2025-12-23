@@ -1,0 +1,20 @@
+[Unit]
+Description=VES Booking Admin Portal
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+WorkingDirectory=/path/to/admin-portal
+Environment=NODE_ENV=production
+Environment=PORT=3000
+ExecStart=/usr/bin/npm start
+Restart=always
+RestartSec=10
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=ves-admin-portal
+
+[Install]
+WantedBy=multi-user.target
+
