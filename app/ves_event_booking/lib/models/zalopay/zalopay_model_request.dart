@@ -1,17 +1,17 @@
-class PurchaseModelRequest {
+class ZalopayModelRequest {
   final String eventId;
   final String ticketTypeId;
   final int quantity;
-  final List<String> seatIds;
-  final String voucherCode;
-  final String paymentMethod;
+  final List<String>? seatIds;
+  final String? voucherCode;
+  final String paymentMethod; // ZALOPAY, CREDIT_CARD, etc.
 
-  PurchaseModelRequest({
+  ZalopayModelRequest({
     required this.eventId,
     required this.ticketTypeId,
     required this.quantity,
-    required this.seatIds,
-    required this.voucherCode,
+    this.seatIds,
+    this.voucherCode,
     required this.paymentMethod,
   });
 
@@ -20,8 +20,8 @@ class PurchaseModelRequest {
       'eventId': eventId,
       'ticketTypeId': ticketTypeId,
       'quantity': quantity,
-      'seatIds': seatIds,
-      'voucherCode': voucherCode,
+      if (seatIds != null) 'seatIds': seatIds,
+      if (voucherCode != null) 'voucherCode': voucherCode,
       'paymentMethod': paymentMethod,
     };
   }
