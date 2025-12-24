@@ -1,5 +1,6 @@
 package com.uit.vesbookingapi.service;
 
+import com.uit.vesbookingapi.configuration.VNPayConfig;
 import com.uit.vesbookingapi.dto.request.PurchaseRequest;
 import com.uit.vesbookingapi.dto.response.PurchaseResponse;
 import com.uit.vesbookingapi.dto.vnpay.VNPayPaymentResponse;
@@ -39,6 +40,7 @@ public class BookingService {
     VoucherRepository voucherRepository;
     OrderMapper orderMapper;
     VNPayService vnPayService;
+    VNPayConfig vnPayConfig;
 
     @Transactional(isolation = Isolation.REPEATABLE_READ)
     public PurchaseResponse purchaseTickets(PurchaseRequest request, String clientIp) {
@@ -130,7 +132,7 @@ public class BookingService {
                 .status(OrderStatus.PENDING)
                 .paymentMethod(request.getPaymentMethod())
                 .paymentGateway("VNPAY")
-                .expiresAt(LocalDateTime.now().plusMinutes(15))
+                .expiresAt(LocalDateTime.now().plusMinutes(vnPayConfig.getPaymentTimeoutMinutes()))
                 .build();
 
         order = orderRepository.save(order);
