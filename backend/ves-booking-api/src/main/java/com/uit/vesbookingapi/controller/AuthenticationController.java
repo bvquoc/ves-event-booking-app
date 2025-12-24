@@ -19,6 +19,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.text.ParseException;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/auth")
@@ -35,14 +37,21 @@ public class AuthenticationController {
         var userResponse = userService.createUser(request);
         
         // Auto login after registration - get user and generate token
-        var user = userRepository.findByUsername(request.getUsername())
+        var user = userRepository.findByUsernameWithRoles(request.getUsername())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
         
         var token = authenticationService.generateTokenForUser(user);
         
+        List<String> roles = user.getRoles() != null
+                ? user.getRoles().stream()
+                        .map(role -> role.getName())
+                        .collect(Collectors.toList())
+                : List.of();
+        
         var result = AuthenticationResponse.builder()
                 .token(token)
                 .authenticated(true)
+                .roles(roles)
                 .build();
         
         return ApiResponse.<AuthenticationResponse>builder().result(result).build();
