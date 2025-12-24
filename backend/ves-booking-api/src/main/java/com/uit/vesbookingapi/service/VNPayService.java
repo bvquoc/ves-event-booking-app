@@ -32,14 +32,16 @@ public class VNPayService {
      * Following VNPay documentation: https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
      */
     public VNPayPaymentResponse createPaymentUrl(Order order, String clientIp) {
-        log.info("Creating VNPay payment URL: orderId={}, amount={}, user={}",
-                order.getId(), order.getTotal(), order.getUser().getUsername());
+        log.info("Creating VNPay payment URL: orderId={}, amount={}, user={}, clientIp={}",
+                order.getId(), order.getTotal(), order.getUser().getUsername(), clientIp);
 
         // Generate transaction reference (must be unique per day)
         String vnpTxnRef = generateTxnRef(order.getId());
+        log.debug("Generated vnpTxnRef: {}", vnpTxnRef);
 
         // Amount: multiply by 100 to remove decimals (VNPay requirement)
         long vnpAmount = order.getTotal() * 100L;
+        log.debug("Amount calculation: {} * 100 = {}", order.getTotal(), vnpAmount);
 
         // Create date and expire date (GMT+7)
         Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("Etc/GMT+7"));
@@ -47,10 +49,13 @@ public class VNPayService {
         String vnpCreateDate = formatter.format(cal.getTime());
         cal.add(Calendar.MINUTE, config.getPaymentTimeoutMinutes());
         String vnpExpireDate = formatter.format(cal.getTime());
+        log.debug("Date calculation: createDate={}, expireDate={}, timeoutMinutes={}",
+                vnpCreateDate, vnpExpireDate, config.getPaymentTimeoutMinutes());
 
         // Build order info (no Vietnamese accents, no special chars)
         // Use transaction reference in orderInfo (matching VNPay example pattern)
         String vnpOrderInfo = "Thanh toan don hang:" + vnpTxnRef;
+        log.debug("OrderInfo: {}", vnpOrderInfo);
 
         // Build parameters map
         Map<String, String> vnpParams = new HashMap<>();
@@ -69,14 +74,21 @@ public class VNPayService {
         vnpParams.put("vnp_ExpireDate", vnpExpireDate);
         // vnp_BankCode is optional - omit to let user choose
 
+        log.info("VNPay parameters: version={}, command=pay, tmnCode={}, amount={}, currCode={}, txnRef={}, orderInfo={}, orderType=other, locale={}, returnUrl={}, ipAddr={}, createDate={}, expireDate={}",
+                config.getVersion(), config.getTmnCode(), vnpAmount, config.getCurrency(),
+                vnpTxnRef, vnpOrderInfo, config.getLocale(), config.getReturnUrl(),
+                clientIp, vnpCreateDate, vnpExpireDate);
+
         // Build hash data (sorted alphabetically, URL-encoded values) for signature
         // IMPORTANT: Hash data must use URL-encoded values (as per VNPay example)
         String hashData = VNPaySignatureUtil.buildHashData(vnpParams);
-        log.debug("VNPay hash data: {}", hashData);
+        log.info("VNPay hash data (for signature): {}", hashData);
+        log.debug("Hash data length: {}", hashData.length());
 
         // Generate secure hash
         String vnpSecureHash = VNPaySignatureUtil.hmacSHA512(hashData, config.getHashSecret());
-        log.debug("VNPay secure hash: {}", vnpSecureHash);
+        log.info("VNPay secure hash: {}", vnpSecureHash);
+        log.debug("Secure hash length: {}", vnpSecureHash.length());
 
         // Build final payment URL with URL encoding
         StringBuilder paymentUrl = new StringBuilder(config.getPayUrl());
@@ -84,22 +96,28 @@ public class VNPayService {
 
         // Add all parameters with URL encoding
         TreeMap<String, String> sortedParams = new TreeMap<>(vnpParams);
+        log.debug("Building query URL with {} parameters", sortedParams.size());
+        
         for (Map.Entry<String, String> entry : sortedParams.entrySet()) {
             if (entry.getValue() != null && !entry.getValue().isEmpty()) {
                 if (queryUrl.length() > 0) {
                     queryUrl.append("&");
                 }
-                queryUrl.append(URLEncoder.encode(entry.getKey(), StandardCharsets.US_ASCII))
-                        .append("=")
-                        .append(URLEncoder.encode(entry.getValue(), StandardCharsets.US_ASCII));
+                String encodedKey = URLEncoder.encode(entry.getKey(), StandardCharsets.US_ASCII);
+                String encodedValue = URLEncoder.encode(entry.getValue(), StandardCharsets.US_ASCII);
+                queryUrl.append(encodedKey).append("=").append(encodedValue);
+                log.debug("Query param: {}={} (encoded: {}={})",
+                        entry.getKey(), entry.getValue(), encodedKey, encodedValue);
             }
         }
         queryUrl.append("&vnp_SecureHash=").append(vnpSecureHash);
 
         paymentUrl.append("?").append(queryUrl);
 
-        log.info("VNPay payment URL generated: orderId={}, txnRef={}, amount={}",
-                order.getId(), vnpTxnRef, vnpAmount);
+        String finalUrl = paymentUrl.toString();
+        log.info("VNPay payment URL generated: orderId={}, txnRef={}, amount={}, urlLength={}",
+                order.getId(), vnpTxnRef, vnpAmount, finalUrl.length());
+        log.debug("Full payment URL: {}", finalUrl);
 
         return VNPayPaymentResponse.builder()
                 .paymentUrl(paymentUrl.toString())
