@@ -153,6 +153,8 @@ public class SeatService {
     private SeatResponse toSeatResponse(Seat seat) {
         return SeatResponse.builder()
                 .id(seat.getId())
+                .sectionName(seat.getSectionName())
+                .rowName(seat.getRowName())
                 .seatNumber(seat.getSeatNumber())
                 .status(SeatStatus.AVAILABLE) // Default status, actual status calculated per event
                 .build();

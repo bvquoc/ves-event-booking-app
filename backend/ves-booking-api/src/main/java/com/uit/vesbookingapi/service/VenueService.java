@@ -136,6 +136,8 @@ public class VenueService {
             // Create SeatResponse
             SeatResponse seatResponse = SeatResponse.builder()
                     .id(seat.getId())
+                    .sectionName(seat.getSectionName())
+                    .rowName(seat.getRowName())
                     .seatNumber(seat.getSeatNumber())
                     .status(status)
                     .build();
