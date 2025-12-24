@@ -20,21 +20,23 @@ import java.util.List;
 public class SeatController {
     SeatService seatService;
 
-    @GetMapping
+    @GetMapping("/manage")
+    @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<List<SeatResponse>> getSeatsByVenue(@PathVariable String venueId) {
         return ApiResponse.<List<SeatResponse>>builder()
                 .result(seatService.getSeatsByVenue(venueId))
                 .build();
     }
 
-    @GetMapping("/{seatId}")
+    @GetMapping("/manage/{seatId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<SeatResponse> getSeatById(@PathVariable String seatId) {
         return ApiResponse.<SeatResponse>builder()
                 .result(seatService.getSeatById(seatId))
                 .build();
     }
 
-    @PostMapping
+    @PostMapping("/manage")
     @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<SeatResponse> createSeat(
             @PathVariable String venueId,
@@ -44,7 +46,7 @@ public class SeatController {
                 .build();
     }
 
-    @PostMapping("/bulk")
+    @PostMapping("/manage/bulk")
     @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<List<SeatResponse>> createBulkSeats(
             @PathVariable String venueId,
@@ -54,7 +56,7 @@ public class SeatController {
                 .build();
     }
 
-    @PutMapping("/{seatId}")
+    @PutMapping("/manage/{seatId}")
     @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<SeatResponse> updateSeat(
             @PathVariable String seatId,
@@ -64,7 +66,7 @@ public class SeatController {
                 .build();
     }
 
-    @DeleteMapping("/{seatId}")
+    @DeleteMapping("/manage/{seatId}")
     @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<Void> deleteSeat(@PathVariable String seatId) {
         seatService.deleteSeat(seatId);
