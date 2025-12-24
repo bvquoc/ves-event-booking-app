@@ -81,35 +81,23 @@ public class ZaloPayService {
 
         // CRITICAL: Build signature data using EXACT values that will be sent in request
         // Format: app_id|app_trans_id|app_user|amount|app_time|embed_data|item
-        // All values must match EXACTLY what's in the request params (same strings, same format)
-        // IMPORTANT: ZaloPay expects:
-        //   - app_id: Int (convert to string for form data and signature)
-        //   - amount: Long (convert to string for form data and signature)
-        //   - app_time: Long (convert to string for form data and signature)
-
+        // Following ZaloPay example code pattern:
+        //   String data = app_id +"|"+ app_trans_id +"|"+ app_user +"|"+ amount +"|"+ app_time +"|"+ embed_data +"|"+ item;
+        
         // Parse app_id as Integer to ensure it's valid, then convert to string
         Integer appIdInt = config.getAppIdAsInt();
-        String appIdStr = String.valueOf(appIdInt);  // Int -> String (no leading zeros)
+        String appIdStr = String.valueOf(appIdInt);  // Int -> String
 
-        // Convert amount and app_time to Long, then to string
+        // Convert amount and app_time to Long, then to string (matching example: System.currentTimeMillis() returns long)
         Long amountLong = Long.valueOf(order.getTotal());
         String amountStr = String.valueOf(amountLong);  // Long -> String
 
         Long appTimeLong = Long.valueOf(appTime);
         String appTimeStr = String.valueOf(appTimeLong);  // Long -> String
-        
-        // Build signature data - use exact same string values as request
-        // Note: embed_data and item are JSON strings - use them as-is (raw, not URL-encoded)
-        // RestTemplate will URL-encode them when sending, but ZaloPay decodes before verifying
-        String signatureData = ZaloPaySignatureUtil.buildCreateOrderData(
-                appIdStr,
-                appTransId,
-                appUser,
-                amountLong,
-                appTimeLong,
-                embedData,
-                item
-        );
+
+        // Build signature data exactly as ZaloPay example: app_id +"|"+ app_trans_id +"|"+ app_user +"|"+ amount +"|"+ app_time +"|"+ embed_data +"|"+ item
+        // Using string concatenation to match example behavior (ensures exact toString() behavior)
+        String signatureData = appIdStr + "|" + appTransId + "|" + appUser + "|" + amountStr + "|" + appTimeStr + "|" + embedData + "|" + item;
 
         // Generate MAC using key1
         // CRITICAL: The signature data string must match EXACTLY what ZaloPay receives
@@ -119,7 +107,17 @@ public class ZaloPayService {
             log.error("ZaloPay key1 is null or empty! Check your configuration.");
             throw new RuntimeException("ZaloPay key1 is not configured");
         }
-        String mac = ZaloPaySignatureUtil.generateSignature(signatureData, config.getKey1());
+
+        // Get trimmed key1 (already trimmed in setter, but double-check)
+        String key1 = config.getKey1().trim();
+
+        // Log key1 info for debugging (without exposing full key)
+        log.info("Using Key1: length={}, first10='{}...', last10='...{}'",
+                key1.length(),
+                key1.length() > 10 ? key1.substring(0, 10) : key1,
+                key1.length() > 10 ? key1.substring(key1.length() - 10) : "");
+
+        String mac = ZaloPaySignatureUtil.generateSignature(signatureData, key1);
 
         // Log signature components for debugging
         log.info("=== Signature Components ===");
@@ -138,6 +136,7 @@ public class ZaloPayService {
         log.info("Generated MAC: '{}' (length: {})", mac, mac.length());
 
         // Build request - ensure data types match ZaloPay expectations
+        // Following example: params.add(new BasicNameValuePair(e.getKey(), e.getValue().toString()));
         // Form data is always sent as strings, but values must represent correct types
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("app_id", appIdStr);  // Int as string
@@ -145,8 +144,8 @@ public class ZaloPayService {
         params.add("app_user", appUser);  // Use username instead of UUID
         params.add("amount", amountStr);  // Long as string
         params.add("app_time", appTimeStr);  // Long as string
-        params.add("embed_data", embedData);
-        params.add("item", item);
+        params.add("embed_data", embedData);  // JSON string
+        params.add("item", item);  // JSON string
         params.add("description", "VES Booking - Order #" + order.getId());
         params.add("bank_code", "");  // Empty = show all banks
         params.add("callback_url", config.getCallbackUrl());
