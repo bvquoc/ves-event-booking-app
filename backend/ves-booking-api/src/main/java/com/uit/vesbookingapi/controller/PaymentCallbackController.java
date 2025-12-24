@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.uit.vesbookingapi.configuration.ZaloPayConfig;
 import com.uit.vesbookingapi.dto.zalopay.ZaloPayCallbackData;
 import com.uit.vesbookingapi.service.PaymentCallbackService;
-import com.uit.vesbookingapi.util.ZaloPaySignatureUtil;
+import com.uit.vesbookingapi.util.zalopay.crypto.HMACUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -66,8 +66,8 @@ public class PaymentCallbackController {
 
             log.debug("Callback data: {}, type: {}", data, type);
 
-            // Verify MAC using key2
-            String computedMac = ZaloPaySignatureUtil.generateSignature(data, zaloPayConfig.getKey2());
+            // Verify MAC using key2 (callback uses key2, not key1)
+            String computedMac = HMACUtil.HMacHexStringEncode(HMACUtil.HMACSHA256, zaloPayConfig.getKey2(), data);
             if (!computedMac.equalsIgnoreCase(mac)) {
                 log.error("Invalid callback MAC. Expected: {}, Got: {}", computedMac, mac);
                 result.put("return_code", -1);
@@ -114,8 +114,8 @@ public class PaymentCallbackController {
             String data = (String) payload.get("data");
             String mac = (String) payload.get("mac");
 
-            // Verify MAC
-            String computedMac = ZaloPaySignatureUtil.generateSignature(data, zaloPayConfig.getKey2());
+            // Verify MAC using key2 (refund callback uses key2)
+            String computedMac = HMACUtil.HMacHexStringEncode(HMACUtil.HMACSHA256, zaloPayConfig.getKey2(), data);
             if (!computedMac.equalsIgnoreCase(mac)) {
                 log.error("Invalid refund callback MAC");
                 result.put("return_code", -1);
