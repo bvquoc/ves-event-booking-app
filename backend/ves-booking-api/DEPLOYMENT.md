@@ -283,30 +283,64 @@ services:
 - [ ] Monitor resource usage
 - [ ] Set up health monitoring
 
-## 📝 Reverse Proxy Setup (Nginx)
+## 📝 Reverse Proxy Setup (Nginx) with SSL/HTTPS
 
-Example Nginx configuration:
+### Complete SSL/HTTPS Setup
 
-```nginx
-server {
-    listen 80;
-    server_name your-domain.com;
+For a complete guide on setting up Nginx with SSL/HTTPS for `ves-booking.io.vn`, see:
+- **Configuration file**: `nginx/ves-booking.io.vn.conf`
+- **Setup guide**: `nginx/SSL_SETUP.md`
 
-    location /api {
-        proxy_pass http://localhost:8080;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-}
-```
+The configuration includes:
+- ✅ HTTPS/SSL with Let's Encrypt
+- ✅ HTTP to HTTPS redirect
+- ✅ `/admin` → `localhost:3000` (Admin Portal)
+- ✅ `/api` → `localhost:8080/api` (API)
+- ✅ Security headers (HSTS, X-Frame-Options, etc.)
+- ✅ CORS support for API
+
+### Quick Setup Steps
+
+1. **Install Nginx and Certbot:**
+   ```bash
+   sudo apt update
+   sudo apt install -y nginx certbot python3-certbot-nginx
+   ```
+
+2. **Copy configuration:**
+   ```bash
+   sudo cp nginx/ves-booking.io.vn.conf /etc/nginx/sites-available/ves-booking.io.vn.conf
+   sudo ln -s /etc/nginx/sites-available/ves-booking.io.vn.conf /etc/nginx/sites-enabled/
+   ```
+
+3. **Obtain SSL certificate:**
+   ```bash
+   sudo certbot --nginx -d ves-booking.io.vn -d www.ves-booking.io.vn
+   ```
+
+4. **Verify and reload:**
+   ```bash
+   sudo nginx -t
+   sudo systemctl reload nginx
+   ```
+
+For detailed instructions, see `nginx/SSL_SETUP.md`.
 
 ## 🎯 Access Points
+
+### With Nginx/SSL Setup (Production)
+
+- **Admin Portal**: `https://ves-booking.io.vn/admin`
+- **API Base**: `https://ves-booking.io.vn/api`
+- **Swagger UI**: `https://ves-booking.io.vn/api/swagger-ui.html`
+- **API Docs**: `https://ves-booking.io.vn/api/v3/api-docs`
+
+### Direct Access (Development/Testing)
 
 - **API Base**: `http://your-vps-ip:8080/api`
 - **Swagger UI**: `http://your-vps-ip:8080/api/swagger-ui.html`
 - **API Docs**: `http://your-vps-ip:8080/api/v3/api-docs`
+- **Admin Portal**: `http://your-vps-ip:3000`
 
 ## 📚 Default Users
 
