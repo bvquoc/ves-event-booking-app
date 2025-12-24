@@ -20,9 +20,10 @@ server {
     # Max upload size
     client_max_body_size 10M;
 
-    # Frontend static assets (must come before /admin to match first)
-    location /assets {
-        proxy_pass http://localhost:3000/assets;
+    # Frontend static assets - handle all asset paths (JS, CSS, images, etc.)
+    # Vite builds assets in /assets/ directory
+    location /assets/ {
+        proxy_pass http://localhost:3000/assets/;
         proxy_http_version 1.1;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
@@ -31,7 +32,7 @@ server {
         
         # Cache static assets
         proxy_cache_valid 200 1d;
-        add_header Cache-Control "public, max-age=86400";
+        add_header Cache-Control "public, max-age=86400" always;
         
         # Timeouts
         proxy_connect_timeout 60s;
@@ -39,19 +40,35 @@ server {
         proxy_read_timeout 60s;
     }
 
-    # Other frontend static files (favicon, etc.)
-    location ~ ^/(favicon\.ico|vite\.svg|robots\.txt|manifest\.json)$ {
+    # Handle assets without trailing slash (some browsers might request this)
+    location = /assets {
+        return 301 /assets/;
+    }
+
+    # Other frontend static files (favicon, vite.svg, etc.)
+    location ~ ^/(favicon\.ico|vite\.svg|robots\.txt|manifest\.json|.*\.(ico|png|jpg|jpeg|gif|svg|webp|woff|woff2|ttf|eot))$ {
         proxy_pass http://localhost:3000$request_uri;
         proxy_http_version 1.1;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
+        
+        # Cache static files
+        proxy_cache_valid 200 7d;
+        add_header Cache-Control "public, max-age=604800" always;
+        
+        # Timeouts
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 60s;
     }
 
-    # Admin portal route (port 3000)
+    # Admin portal route - strip /admin prefix when proxying
+    # Using trailing slash in proxy_pass automatically strips /admin from the URI
+    # So /admin -> localhost:3000/, /admin/login -> localhost:3000/login
     location /admin {
-        proxy_pass http://localhost:3000;
+        proxy_pass http://localhost:3000/;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';
