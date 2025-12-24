@@ -66,21 +66,6 @@ class HomeProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> fetchMyVouchers() async {
-    _isLoading = true;
-    _errorMessage = null;
-    notifyListeners();
-
-    try {
-      _vouchers = await _voucherService.getMyVouchers();
-    } catch (e) {
-      _errorMessage = e.toString();
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
-  }
-
   Future<void> fetchCategoties() async {
     _isLoading = true;
     _errorMessage = null;

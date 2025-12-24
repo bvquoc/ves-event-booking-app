@@ -10,7 +10,7 @@ class AuthService {
   final Dio _dio = DioClient.dio;
 
   // 1. Đăng nhập
-  Future<String> login(LoginRequest request) async {
+  Future<AuthResponse> login(LoginRequest request) async {
     try {
       final response = await _dio.post('/auth/token', data: request.toJson());
 
@@ -18,7 +18,7 @@ class AuthService {
         response.data,
         (json) => AuthResponse.fromJson(json),
       );
-      return apiResponse.result.token;
+      return apiResponse.result;
     } on DioException catch (e) {
       throw e.error.toString();
     } catch (e) {

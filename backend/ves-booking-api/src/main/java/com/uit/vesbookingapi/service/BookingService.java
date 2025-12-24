@@ -129,7 +129,7 @@ public class BookingService {
                 .total(total)
                 .currency(ticketType.getCurrency())
                 .voucher(voucher)
-                .status(OrderStatus.PENDING)
+                .status(OrderStatus.COMPLETED)
                 .paymentMethod(request.getPaymentMethod())
                 .paymentGateway("VNPAY")
                 .expiresAt(LocalDateTime.now().plusMinutes(vnPayConfig.getPaymentTimeoutMinutes()))
@@ -181,7 +181,7 @@ public class BookingService {
                     .seat(seat)
                     .qrCode(generateQrCode())
                     .qrCodeImage(null) // Generate image later
-                    .status(TicketStatus.ACTIVE) // Mark as ACTIVE for pending orders
+                    .status(TicketStatus.ACTIVE) // Mark as ACTIVE for completed orders
                     .purchaseDate(LocalDateTime.now())
                     .build();
 

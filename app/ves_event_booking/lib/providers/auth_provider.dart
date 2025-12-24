@@ -25,23 +25,23 @@ class AuthProvider extends ChangeNotifier {
   }
 
   // Xử lý Đăng nhập
-  Future<bool> login(String email, String password) async {
+  Future<List<String>> login(String email, String password) async {
     _setLoading(true);
     try {
-      final accessToken = await _authService.login(
+      final authResponse = await _authService.login(
         LoginRequest(username: email, password: password),
       );
 
       // Lưu token vào máy
-      await _saveToken(accessToken);
+      await _saveToken(authResponse.token);
 
       _errorMessage = null;
       notifyListeners();
-      return true; // Đăng nhập thành công
+      return authResponse.roles; // Đăng nhập thành công
     } catch (e) {
       _errorMessage = e.toString();
       notifyListeners();
-      return false; // Đăng nhập thất bại
+      return []; // Đăng nhập thất bại
     } finally {
       _setLoading(false);
     }

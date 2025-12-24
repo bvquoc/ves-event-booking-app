@@ -48,7 +48,7 @@ class CancelledTicketsTabState extends State<CancelledTicketsTab> {
 
         // 📭 Empty
         if (tickets.isEmpty) {
-          return const Center(child: Text('No upcoming events'));
+          return const Center(child: Text('Chưa có vé đã hủy.'));
         }
 
         return Container(

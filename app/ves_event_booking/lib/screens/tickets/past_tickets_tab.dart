@@ -2,18 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:timeline_tile/timeline_tile.dart';
 import 'package:ves_event_booking/enums/ticket_status.dart';
+import 'package:ves_event_booking/models/ticket/ticket_model.dart';
 import 'package:ves_event_booking/providers/ticket_provider.dart';
-import 'package:ves_event_booking/widgets/tickets_screen_widgets/ticket_item/ticket_card_item.dart';
 import 'package:ves_event_booking/widgets/tickets_screen_widgets/ticket_item/timeline_info.dart';
+import 'package:ves_event_booking/widgets/tickets_screen_widgets/ticket_item/grouped_ticket_card.dart';
 
 class PastTicketsTab extends StatefulWidget {
   const PastTicketsTab({super.key});
 
   @override
-  State<PastTicketsTab> createState() => PastTicketsTabState();
+  State<PastTicketsTab> createState() => _PastTicketsTabState();
 }
 
-class PastTicketsTabState extends State<PastTicketsTab> {
+class _PastTicketsTabState extends State<PastTicketsTab> {
   @override
   void initState() {
     super.initState();
@@ -22,6 +23,19 @@ class PastTicketsTabState extends State<PastTicketsTab> {
       if (!mounted) return;
       context.read<TicketProvider>().fetchTickets(TicketStatus.USED);
     });
+  }
+
+  Map<String, List<TicketModel>> _groupTicketsByEvent(
+    List<TicketModel> tickets,
+  ) {
+    final Map<String, List<TicketModel>> grouped = {};
+    for (var ticket in tickets) {
+      if (!grouped.containsKey(ticket.eventId)) {
+        grouped[ticket.eventId] = [];
+      }
+      grouped[ticket.eventId]!.add(ticket);
+    }
+    return grouped;
   }
 
   @override
@@ -46,52 +60,55 @@ class PastTicketsTabState extends State<PastTicketsTab> {
           });
         }
 
-        final tickets = provider.tickets;
+        final rawTickets = provider.tickets;
 
         // 📭 Empty
-        if (tickets.isEmpty) {
-          return const Center(child: Text('No upcoming events'));
+        if (rawTickets.isEmpty) {
+          return const Center(child: Text('Không có vé đã sử dụng'));
         }
+
+        final groupedMap = _groupTicketsByEvent(rawTickets);
+        final groupedList = groupedMap.values.toList();
 
         return Container(
           color: Colors.white,
           child: ListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0).copyWith(
-              top: 24.0,
-              bottom: 80.0,
-            ), // <-- Chừa không gian cho bottom nav
-            itemCount: tickets.length,
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16.0,
+            ).copyWith(top: 24.0, bottom: 80.0),
+            itemCount: groupedList.length,
 
-            // 3. Build item
             itemBuilder: (context, index) {
-              final ticket = tickets[index];
+              final eventTickets = groupedList[index];
+              final representativeTicket = eventTickets.first;
 
               return TimelineTile(
-                // Căn chỉnh cho nội dung bên phải (endChild)
                 axis: TimelineAxis.vertical,
                 alignment: TimelineAlign.manual,
-                lineXY: 0.22, // Dịch chuyển đường line sang bên trái
-                // Widget trái (Ngày/Giờ)
-                startChild: TimelineInfo(date: ticket.eventStartDate),
+                lineXY: 0.22,
+                startChild: TimelineInfo(
+                  date: representativeTicket.eventStartDate,
+                ),
 
-                // Widget phải (Thẻ sự kiện)
                 endChild: RepaintBoundary(
-                  child: TicketCardItem(ticket: ticket),
+                  child: GroupedTicketCard(tickets: eventTickets),
                 ),
 
                 indicatorStyle: const IndicatorStyle(
                   width: 18,
-                  color: Colors.blue, // Màu của dấu chấm
+                  color: Colors.green, // Màu xám cho vé đã qua
                 ),
 
                 beforeLineStyle: LineStyle(
-                  color: Colors.blue.withOpacity(0.5),
+                  color: Colors.green.withOpacity(
+                    0.5,
+                  ), // Đường line màu xám nhạt
                   thickness: 2,
                 ),
 
                 // Đánh dấu item đầu và cuối
                 isFirst: index == 0,
-                isLast: index == tickets.length - 1,
+                isLast: index == groupedList.length - 1,
               );
             },
           ),

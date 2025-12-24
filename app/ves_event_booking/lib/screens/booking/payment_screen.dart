@@ -7,6 +7,8 @@ import 'package:ves_event_booking/models/ticket/ticket_type_model.dart';
 import 'package:ves_event_booking/models/user/user_model.dart';
 import 'package:ves_event_booking/models/zalopay/zalopay_model_request.dart';
 import 'package:ves_event_booking/providers/ticket_provider.dart';
+import 'package:ves_event_booking/screens/home_screen.dart';
+import 'package:ves_event_booking/screens/tickets/tickets_screen.dart';
 
 class PaymentScreen extends StatefulWidget {
   final EventDetailsModel event;
@@ -325,7 +327,12 @@ class _PaymentScreenState extends State<PaymentScreen> {
   // ===================== ACTION =====================
 
   void _onPayPressed(TicketProvider provider) async {
-    // Gọi API tạo đơn thanh toán khi đẫ hoàn thành chuyển tiền
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
+    );
+
     List<Future<void>> futures = [];
 
     for (final item in _ticketItems) {
@@ -343,6 +350,118 @@ class _PaymentScreenState extends State<PaymentScreen> {
     }
 
     await Future.wait(futures);
+
+    if (!mounted) return;
+    Navigator.pop(context); // Close loading dialog
+
+    if (provider.errorMessage != null) {
+      _showFailureDialog(provider.errorMessage!);
+    } else {
+      _showSuccessDialog();
+    }
+  }
+
+  void _showSuccessDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false, // Bắt buộc bấm nút để đóng
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Column(
+          children: const [
+            Icon(Icons.check_circle, color: Colors.green, size: 60),
+            SizedBox(height: 12),
+            Text(
+              'Thanh toán thành công!',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+        content: const Text(
+          'Vé của bạn đã được đặt thành công. Bạn có thể kiểm tra vé trong mục "Vé của tôi".',
+          textAlign: TextAlign.center,
+        ),
+        actions: [
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue.shade900,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              onPressed: () {
+                Navigator.pop(ctx);
+
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const TicketsScreen(),
+                  ),
+                  (route) => false, // Xóa hết stack
+                );
+              },
+              child: const Text(
+                'Tới trang Vé của tôi',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showFailureDialog(String error) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Column(
+          children: const [
+            Icon(Icons.error, color: Colors.red, size: 60),
+            SizedBox(height: 12),
+            Text(
+              'Thanh toán thất bại',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+        content: Text(
+          'Đã xảy ra lỗi trong quá trình xử lý: $error',
+          textAlign: TextAlign.center,
+        ),
+        actions: [
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.grey.shade800,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              onPressed: () {
+                Navigator.pop(ctx);
+
+                // Quay về HomeScreen để mua lại từ đầu
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => const HomeScreen()),
+                  (route) => false,
+                );
+              },
+              child: const Text(
+                'Về trang chủ (Mua lại)',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   // ===================== COMMON UI =====================

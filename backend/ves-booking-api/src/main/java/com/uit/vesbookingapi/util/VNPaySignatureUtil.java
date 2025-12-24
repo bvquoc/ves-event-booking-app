@@ -2,13 +2,11 @@ package com.uit.vesbookingapi.util;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
-/**
- * VNPay signature utility for HMAC-SHA512 signature generation
- * Following VNPay official example pattern
- */
 public class VNPaySignatureUtil {
 
     private static final String ALGORITHM = "HmacSHA512";
@@ -48,43 +46,40 @@ public class VNPaySignatureUtil {
     }
 
     /**
-     * Build hash data string from parameters (sorted alphabetically, RAW values - NO URL encoding)
-     * Used for signature generation - VNPay requires RAW values (not URL-encoded) for hashing
-     *
-     * - Hash data: Use RAW values (fieldName=rawValue)
-     * - URL query: Use URL-encoded values (URLEncoder.encode(fieldName)=URLEncoder.encode(fieldValue))
-     *
-     * @param params Map of parameters
-     * @return Sorted hash data string (fieldName=rawValue&fieldName2=rawValue2...) - NO encoding
+     * Build hash data string from parameters (sorted alphabetically, with URL-encoded values)
+     * @param params Map of parameters (values are already decoded by Spring)
+     * @return Sorted hash data string with URL-encoded values (fieldName=URLEncoder.encode(fieldValue)&...)
      */
     public static String buildHashData(Map<String, String> params) {
-        // Sort parameters alphabetically (matching VNPay example)
-        List<String> fieldNames = new ArrayList<>(params.keySet());
-        Collections.sort(fieldNames);
+        try {
+            // Sort parameters alphabetically (matching VNPay example)
+            List<String> fieldNames = new ArrayList<>(params.keySet());
+            Collections.sort(fieldNames);
 
-        StringBuilder hashData = new StringBuilder();
-        Iterator<String> itr = fieldNames.iterator();
-        while (itr.hasNext()) {
-            String fieldName = itr.next();
-            String fieldValue = params.get(fieldName);
-            if (fieldValue != null && !fieldValue.isEmpty()) {
-                // Build hash data: fieldName=rawValue (NO URL encoding for signature!)
-                hashData.append(fieldName);
-                hashData.append('=');
-                hashData.append(fieldValue); // RAW value, NOT encoded
-                // Add & only if there are more fields (matching VNPay example pattern)
-                if (itr.hasNext()) {
-                    hashData.append('&');
+            StringBuilder hashData = new StringBuilder();
+            Iterator<String> itr = fieldNames.iterator();
+            while (itr.hasNext()) {
+                String fieldName = itr.next();
+                String fieldValue = params.get(fieldName);
+                if (fieldValue != null && !fieldValue.isEmpty()) {
+                    // Build hash data with URL-encoded values (matching payment creation pattern)
+                    hashData.append(fieldName);
+                    hashData.append('=');
+                    hashData.append(URLEncoder.encode(fieldValue, StandardCharsets.US_ASCII.toString()));
+                    // Add & only if there are more fields
+                    if (itr.hasNext()) {
+                        hashData.append('&');
+                    }
                 }
             }
+            return hashData.toString();
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException("Failed to build hash data", e);
         }
-        return hashData.toString();
     }
 
     /**
      * Build query string from parameters (sorted alphabetically)
-     * Used for URL construction
-     *
      * @param params Map of parameters
      * @return Sorted query string (fieldName=fieldValue&fieldName2=fieldValue2...)
      */
@@ -107,8 +102,7 @@ public class VNPaySignatureUtil {
 
     /**
      * Verify VNPay signature
-     *
-     * @param params     Map of parameters (excluding vnp_SecureHash)
+     * @param params     Map of parameters (already decoded by Spring, excluding vnp_SecureHash)
      * @param secureHash Signature from VNPay
      * @param secretKey  Secret key
      * @return true if signature is valid
@@ -119,7 +113,8 @@ public class VNPaySignatureUtil {
         paramsForHash.remove("vnp_SecureHash");
         paramsForHash.remove("vnp_SecureHashType");
 
-        // Build hash data for verification (same as signature generation)
+        // Build hash data for verification (using URL-encoded values, matching payment creation)
+        // Spring decoded the parameters, but VNPay used URL-encoded values for signature
         String hashData = buildHashData(paramsForHash);
         String computedHash = hmacSHA512(secretKey, hashData);
         return computedHash.equals(secureHash);

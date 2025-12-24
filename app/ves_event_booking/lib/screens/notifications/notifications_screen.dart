@@ -45,14 +45,7 @@ class NotificationsScreenState extends State<NotificationsScreen> {
             appBar: AppBar(
               backgroundColor: Colors.white,
               elevation: 0,
-              leading: IconButton(
-                icon: const Icon(Icons.arrow_back_rounded, color: Colors.black),
-                onPressed: () {
-                  if (Navigator.canPop(context)) {
-                    Navigator.pop(context);
-                  }
-                },
-              ),
+              
               title: const Text(
                 'Thông báo',
                 style: TextStyle(
