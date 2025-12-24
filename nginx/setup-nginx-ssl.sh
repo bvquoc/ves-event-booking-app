@@ -9,6 +9,7 @@ DOMAIN="ves-booking.io.vn"
 NGINX_CONF="/etc/nginx/sites-available/${DOMAIN}.conf"
 NGINX_ENABLED="/etc/nginx/sites-enabled/${DOMAIN}.conf"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+CERTBOT_SUCCESS=false
 
 echo "🚀 Setting up Nginx with SSL for ${DOMAIN}..."
 
@@ -51,13 +52,18 @@ fi
 echo "📁 Creating certbot webroot directory..."
 mkdir -p /var/www/certbot
 
-# Copy nginx configuration
+# Copy nginx configuration (use initial config without SSL first)
 echo "📝 Copying Nginx configuration..."
-if [ -f "${SCRIPT_DIR}/ves-booking.io.vn.conf" ]; then
+if [ -f "${SCRIPT_DIR}/ves-booking.io.vn.conf.initial" ]; then
+    cp "${SCRIPT_DIR}/ves-booking.io.vn.conf.initial" "${NGINX_CONF}"
+    echo "✅ Initial configuration (HTTP only) copied to ${NGINX_CONF}"
+    echo "   Note: Certbot will automatically update this with SSL configuration"
+elif [ -f "${SCRIPT_DIR}/ves-booking.io.vn.conf" ]; then
     cp "${SCRIPT_DIR}/ves-booking.io.vn.conf" "${NGINX_CONF}"
     echo "✅ Configuration copied to ${NGINX_CONF}"
+    echo "⚠️  Warning: If SSL certificates don't exist, nginx may fail to start"
 else
-    echo "❌ Configuration file not found: ${SCRIPT_DIR}/ves-booking.io.vn.conf"
+    echo "❌ Configuration file not found: ${SCRIPT_DIR}/ves-booking.io.vn.conf.initial or ves-booking.io.vn.conf"
     exit 1
 fi
 
@@ -105,20 +111,93 @@ else
     echo "⚠️  No firewall detected. Please manually open ports 80 and 443."
 fi
 
-# Obtain SSL certificate
-echo "🔒 Obtaining SSL certificate from Let's Encrypt..."
-echo "⚠️  This will prompt for your email address and agreement to terms."
-read -p "Continue with SSL certificate setup? (y/N) " -n 1 -r
+# Obtain SSL certificate using certbot --nginx (automatically configures SSL)
+# Temporarily disable exit on error for certbot (we handle failures manually)
+set +e
+
+echo ""
+echo "🔒 Setting up SSL/HTTPS with Let's Encrypt..."
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "Certbot will:"
+echo "  ✓ Obtain SSL certificate from Let's Encrypt"
+echo "  ✓ Automatically configure nginx with SSL"
+echo "  ✓ Set up HTTP to HTTPS redirect"
+echo "  ✓ Configure automatic certificate renewal"
+echo ""
+
+read -p "Enter your email address for Let's Encrypt notifications (or press Enter to skip): " EMAIL
 echo
-if [[ $REPLY =~ ^[Yy]$ ]]; then
-    certbot --nginx -d ${DOMAIN} -d www.${DOMAIN} --non-interactive --agree-tos --register-unsafely-without-email || {
-        echo "⚠️  Certbot failed. You may need to run manually:"
-        echo "   sudo certbot --nginx -d ${DOMAIN} -d www.${DOMAIN}"
-    }
+
+CERTBOT_SUCCESS=false
+
+if [ -z "$EMAIL" ]; then
+    echo "📧 Obtaining certificate without email..."
+    if certbot --nginx -d ${DOMAIN} -d www.${DOMAIN} --non-interactive --agree-tos --register-unsafely-without-email --redirect; then
+        CERTBOT_SUCCESS=true
+        echo "✅ SSL certificate obtained and nginx configured successfully!"
+    else
+        echo "⚠️  Certbot with redirect failed. Trying without redirect..."
+        if certbot --nginx -d ${DOMAIN} -d www.${DOMAIN} --non-interactive --agree-tos --register-unsafely-without-email; then
+            CERTBOT_SUCCESS=true
+            echo "✅ SSL certificate obtained and nginx configured successfully!"
+        else
+            echo "❌ Certbot failed. Common issues:"
+            echo "   - DNS not pointing to this server"
+            echo "   - Port 80 not accessible from internet"
+            echo "   - Domain already has a certificate"
+            echo ""
+            echo "You can run manually later:"
+            echo "   sudo certbot --nginx -d ${DOMAIN} -d www.${DOMAIN}"
+        fi
+    fi
 else
-    echo "⏭️  Skipping SSL certificate setup. Run manually with:"
-    echo "   sudo certbot --nginx -d ${DOMAIN} -d www.${DOMAIN}"
+    echo "📧 Obtaining certificate with email: ${EMAIL}..."
+    if certbot --nginx -d ${DOMAIN} -d www.${DOMAIN} --non-interactive --agree-tos --email ${EMAIL} --redirect; then
+        CERTBOT_SUCCESS=true
+        echo "✅ SSL certificate obtained and nginx configured successfully!"
+    else
+        echo "⚠️  Certbot with redirect failed. Trying without redirect..."
+        if certbot --nginx -d ${DOMAIN} -d www.${DOMAIN} --non-interactive --agree-tos --email ${EMAIL}; then
+            CERTBOT_SUCCESS=true
+            echo "✅ SSL certificate obtained and nginx configured successfully!"
+        else
+            echo "❌ Certbot failed. Common issues:"
+            echo "   - DNS not pointing to this server"
+            echo "   - Port 80 not accessible from internet"
+            echo "   - Domain already has a certificate"
+            echo ""
+            echo "You can run manually later:"
+            echo "   sudo certbot --nginx -d ${DOMAIN} -d www.${DOMAIN}"
+        fi
+    fi
 fi
+
+# Verify certificate if certbot succeeded
+if [ "$CERTBOT_SUCCESS" = true ]; then
+    echo ""
+    echo "🔍 Verifying SSL certificate..."
+    if [ -f "/etc/letsencrypt/live/${DOMAIN}/fullchain.pem" ]; then
+        echo "✅ SSL certificate files found"
+        certbot certificates | grep -A 3 "${DOMAIN}" || true
+    else
+        echo "⚠️  Certificate files not found at expected location"
+    fi
+    
+    # Test nginx config after certbot modifications
+    echo ""
+    echo "🧪 Testing nginx configuration after SSL setup..."
+    if nginx -t; then
+        echo "✅ Nginx configuration is valid"
+    else
+        echo "❌ Nginx configuration has errors after certbot setup"
+        echo "   Please check: sudo nginx -t"
+    fi
+fi
+
+# Re-enable exit on error
+set -e
+
+echo ""
 
 # Reload nginx
 echo "🔄 Reloading Nginx..."
@@ -156,11 +235,31 @@ echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "✨ Setup complete!"
 echo ""
-echo "📋 Next steps:"
-echo "   1. Ensure your backend API is running on port 8080"
-echo "   2. Ensure your admin portal is running on port 3000"
-echo "   3. Test the setup:"
-echo "      - Admin: https://${DOMAIN}/admin"
-echo "      - API: https://${DOMAIN}/api/health"
+
+if [ "$CERTBOT_SUCCESS" = true ]; then
+    echo "✅ SSL/HTTPS is configured!"
+    echo ""
+    echo "📋 Test your setup:"
+    echo "   - Admin Portal: https://${DOMAIN}/admin"
+    echo "   - API Health: https://${DOMAIN}/api/healthz"
+    echo "   - API Base: https://${DOMAIN}/api"
+    echo ""
+    echo "🔒 SSL certificate will auto-renew via certbot timer"
+else
+    echo "⚠️  SSL certificate setup was skipped or failed"
+    echo ""
+    echo "📋 Your site is available via HTTP:"
+    echo "   - Admin Portal: http://${DOMAIN}/admin"
+    echo "   - API Health: http://${DOMAIN}/api/healthz"
+    echo "   - API Base: http://${DOMAIN}/api"
+    echo ""
+    echo "🔒 To set up SSL later, run:"
+    echo "   sudo certbot --nginx -d ${DOMAIN} -d www.${DOMAIN}"
+fi
+
+echo ""
+echo "📋 Ensure services are running:"
+echo "   1. Backend API on port 8080"
+echo "   2. Admin portal on port 3000"
 echo ""
 echo "📚 For more information, see: nginx/SSL_SETUP.md"

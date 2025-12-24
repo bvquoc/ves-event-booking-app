@@ -10,6 +10,22 @@ This guide will help you set up SSL/HTTPS on your VPS using Let's Encrypt (free 
 - Ports 80 and 443 open in firewall
 - Root or sudo access
 
+## 📝 Configuration Files
+
+This setup includes two nginx configuration files:
+
+1. **`ves-booking.io.vn.conf.initial`** - HTTP only (no SSL required)
+   - Use this **before** obtaining SSL certificates
+   - Allows nginx to start without SSL certificate errors
+   - Certbot will automatically update it when you run `certbot --nginx`
+
+2. **`ves-booking.io.vn.conf`** - Full SSL/HTTPS configuration
+   - Use this **only if** you already have SSL certificates
+   - Includes complete SSL configuration with security headers
+   - Requires certificates to exist at `/etc/letsencrypt/live/ves-booking.io.vn/`
+
+**Recommended approach:** Use the initial config first, then let certbot automatically configure SSL.
+
 ## 🔧 Step-by-Step Setup
 
 ### 1. Install Certbot (Let's Encrypt Client)
@@ -47,9 +63,15 @@ sudo mkdir -p /etc/nginx/sites-enabled
 
 ### 5. Copy Nginx Configuration
 
+**IMPORTANT:** Use the initial configuration first (without SSL), then switch to SSL config after obtaining certificates.
+
 ```bash
-# Copy the configuration file to nginx sites-available
-sudo cp nginx/ves-booking.io.vn.conf /etc/nginx/sites-available/ves-booking.io.vn.conf
+# Option A: Use initial config (HTTP only, no SSL required)
+# This allows nginx to start before certificates are obtained
+sudo cp nginx/ves-booking.io.vn.conf.initial /etc/nginx/sites-available/ves-booking.io.vn.conf
+
+# Option B: If you already have SSL certificates, use the main config
+# sudo cp nginx/ves-booking.io.vn.conf /etc/nginx/sites-available/ves-booking.io.vn.conf
 
 # Create symbolic link to enable the site
 sudo ln -s /etc/nginx/sites-available/ves-booking.io.vn.conf /etc/nginx/sites-enabled/
@@ -81,30 +103,28 @@ sudo systemctl enable nginx
 
 ### 9. Obtain SSL Certificate
 
-**Option A: Using Certbot with Nginx plugin (Recommended)**
+**Using Certbot with Nginx plugin (Recommended - Automatically configures SSL)**
+
+Certbot's `--nginx` flag will automatically:
+- Obtain the SSL certificate
+- Modify your nginx configuration to add SSL
+- Set up HTTP to HTTPS redirect
+- Configure automatic renewal
 
 ```bash
+# Interactive mode (will prompt for email)
 sudo certbot --nginx -d ves-booking.io.vn -d www.ves-booking.io.vn
+
+# Non-interactive mode (no email)
+sudo certbot --nginx -d ves-booking.io.vn -d www.ves-booking.io.vn --non-interactive --agree-tos --register-unsafely-without-email
+
+# With email (non-interactive)
+sudo certbot --nginx -d ves-booking.io.vn -d www.ves-booking.io.vn --non-interactive --agree-tos --email your-email@example.com
 ```
 
-This will:
-- Automatically obtain the certificate
-- Configure nginx to use SSL
-- Set up automatic renewal
+**Important:** After running certbot, it will automatically modify your nginx configuration file to add SSL settings. You don't need to manually edit the config file.
 
-**Option B: Manual Certificate Installation**
-
-If you prefer to use the provided nginx config file:
-
-```bash
-# First, temporarily modify nginx config to allow HTTP only for certbot challenge
-# Then run:
-sudo certbot certonly --webroot -w /var/www/certbot -d ves-booking.io.vn -d www.ves-booking.io.vn
-
-# After certificate is obtained, ensure the nginx config is correct and reload
-sudo nginx -t
-sudo systemctl reload nginx
-```
+**Note:** If you used the initial config (HTTP only), certbot will automatically convert it to HTTPS. If you used the full SSL config and certificates don't exist, use the initial config first, then run certbot.
 
 ### 10. Verify SSL Certificate
 
