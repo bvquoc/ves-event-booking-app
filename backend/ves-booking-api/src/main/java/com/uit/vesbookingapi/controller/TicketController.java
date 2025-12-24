@@ -10,6 +10,7 @@ import com.uit.vesbookingapi.dto.response.TicketResponse;
 import com.uit.vesbookingapi.enums.TicketStatus;
 import com.uit.vesbookingapi.service.BookingService;
 import com.uit.vesbookingapi.service.TicketService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -32,10 +33,23 @@ public class TicketController {
 
     @PostMapping("/purchase")
     @PreAuthorize("isAuthenticated()")
-    public ApiResponse<PurchaseResponse> purchaseTickets(@Valid @RequestBody PurchaseRequest request) {
+    public ApiResponse<PurchaseResponse> purchaseTickets(
+            @Valid @RequestBody PurchaseRequest request,
+            HttpServletRequest httpRequest) {
+        String clientIp = getClientIp(httpRequest);
         return ApiResponse.<PurchaseResponse>builder()
-                .result(bookingService.purchaseTickets(request))
+                .result(bookingService.purchaseTickets(request, clientIp))
                 .build();
+    }
+
+    private String getClientIp(HttpServletRequest request) {
+        String ip = request.getHeader("X-Forwarded-For");
+        if (ip == null || ip.isEmpty()) {
+            ip = request.getRemoteAddr();
+        } else {
+            ip = ip.split(",")[0].trim();
+        }
+        return ip;
     }
 
     @GetMapping

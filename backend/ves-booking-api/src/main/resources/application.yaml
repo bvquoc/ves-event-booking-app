@@ -40,13 +40,18 @@ jwt:
   valid-duration: 3600 # in second
   refreshable-duration: 36000 # in seconds
 
-# ZaloPay Payment Gateway Configuration
-zalopay:
-  app-id: ${ZALOPAY_APP_ID:2554}
-  key1: ${ZALOPAY_KEY1:sdngKKJmqEMzvh5QQcdD2A9XBSKUNaYn}
-  key2: ${ZALOPAY_KEY2:trMrHtvjo6myautxDUiAcYsVtaeQ8nhf}
-  endpoint: ${ZALOPAY_ENDPOINT:https://sb-openapi.zalopay.vn/v2}
-  callback-url: ${ZALOPAY_CALLBACK_URL:https://ves-booking.io.vn/api/payments/zalopay/callback}
+# VNPay Payment Gateway Configuration (Sandbox)
+vnpay:
+  tmn-code: ${VNPAY_TMN_CODE:D5JIMBCU}
+  hash-secret: ${VNPAY_HASH_SECRET:R8IUFP3IW6E1DCSVXR0ZUTJ8UWSLOGPK}
+  pay-url: ${VNPAY_PAY_URL:https://sandbox.vnpayment.vn/paymentv2/vpcpay.html}
+  return-url: ${VNPAY_RETURN_URL:https://ves-booking.io.vn/api/payments/vnpay/return}
+  ipn-url: ${VNPAY_IPN_URL:https://ves-booking.io.vn/api/payments/vnpay/ipn}
+  query-url: ${VNPAY_QUERY_URL:https://sandbox.vnpayment.vn/merchant_webapi/api/transaction}
+  refund-url: ${VNPAY_REFUND_URL:https://sandbox.vnpayment.vn/merchant_webapi/api/transaction}
+  version: 2.1.0
+  locale: vn
+  currency: VND
   payment-timeout-minutes: 15
 
 # SpringDoc OpenAPI (Swagger) Configuration

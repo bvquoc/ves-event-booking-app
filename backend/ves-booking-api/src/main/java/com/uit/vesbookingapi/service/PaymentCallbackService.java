@@ -1,7 +1,7 @@
 package com.uit.vesbookingapi.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.uit.vesbookingapi.dto.zalopay.ZaloPayCallbackData;
+import com.uit.vesbookingapi.dto.vnpay.VNPayCallbackData;
 import com.uit.vesbookingapi.entity.*;
 import com.uit.vesbookingapi.enums.*;
 import com.uit.vesbookingapi.repository.*;
@@ -27,66 +27,6 @@ public class PaymentCallbackService {
     RefundRepository refundRepository;
     ObjectMapper objectMapper;
 
-    @Transactional
-    public void processPaymentCallback(ZaloPayCallbackData data, String clientIp) {
-        String appTransId = data.getAppTransId();
-
-        log.info("Processing payment callback: appTransId={}, amount={}, zpTransId={}",
-                appTransId, data.getAmount(), data.getZpTransId());
-
-        // 1. Log audit
-        logAudit(null, appTransId, "CALLBACK_RECEIVED", clientIp, toJson(data));
-
-        // 2. Find order by appTransId
-        Order order = orderRepository.findByAppTransId(appTransId)
-                .orElseThrow(() -> {
-                    log.error("Order not found for appTransId: {}", appTransId);
-                    return new RuntimeException("Order not found: " + appTransId);
-                });
-
-        // 3. Idempotency check: skip if already completed
-        if (order.getStatus() == OrderStatus.COMPLETED) {
-            log.info("Order already completed, skipping: orderId={}", order.getId());
-            return;
-        }
-
-        // 4. Verify amount matches
-        if (data.getAmount() != order.getTotal().longValue()) {
-            log.error("Amount mismatch: expected={}, received={}",
-                    order.getTotal(), data.getAmount());
-            throw new RuntimeException("Amount mismatch");
-        }
-
-        // 5. Update order status
-        order.setStatus(OrderStatus.COMPLETED);
-        order.setZpTransId(data.getZpTransId());
-        order.setPaymentConfirmedAt(LocalDateTime.now());
-        order.setCompletedAt(LocalDateTime.now());
-        orderRepository.save(order);
-
-        // 6. Update ticket statuses
-        ticketRepository.findByOrderId(order.getId()).forEach(ticket -> {
-            ticket.setStatus(TicketStatus.ACTIVE);
-            ticket.setPurchaseDate(LocalDateTime.now());
-        });
-
-        // 7. Save transaction record
-        PaymentTransaction tx = PaymentTransaction.builder()
-                .order(order)
-                .appTransId(appTransId)
-                .zpTransId(data.getZpTransId())
-                .type(PaymentTransactionType.CALLBACK)
-                .status(PaymentTransactionStatus.SUCCESS)
-                .amount(data.getAmount().intValue())
-                .returnCode(1)
-                .returnMessage("Payment confirmed")
-                .responsePayload(toJson(data))
-                .build();
-        transactionRepository.save(tx);
-
-        log.info("Payment confirmed: orderId={}, zpTransId={}",
-                order.getId(), data.getZpTransId());
-    }
 
     @Transactional
     public void processRefundCallback(String data, String clientIp) {
@@ -137,6 +77,130 @@ public class PaymentCallbackService {
                 .payload(payload)
                 .build();
         auditLogRepository.save(log);
+    }
+
+    /**
+     * Process VNPay payment callback (IPN)
+     */
+    @Transactional
+    public void processVNPayPaymentCallback(VNPayCallbackData data, String clientIp) {
+        String txnRef = data.getVnpTxnRef();
+
+        log.info("Processing VNPay payment callback: txnRef={}, amount={}, transactionNo={}",
+                txnRef, data.getVnpAmount(), data.getVnpTransactionNo());
+
+        // 1. Log audit
+        logAudit(null, txnRef, "VNPAY_CALLBACK_RECEIVED", clientIp, toJson(data));
+
+        // 2. Find order by txnRef (appTransId)
+        Order order = orderRepository.findByAppTransId(txnRef)
+                .orElseThrow(() -> {
+                    log.error("Order not found for txnRef: {}", txnRef);
+                    return new RuntimeException("Order not found: " + txnRef);
+                });
+
+        // 3. Idempotency check: skip if already completed
+        if (order.getStatus() == OrderStatus.COMPLETED) {
+            log.info("Order already completed, skipping: orderId={}", order.getId());
+            return;
+        }
+
+        // 4. Verify amount matches (VNPay amount is * 100)
+        long vnpAmount = Long.parseLong(data.getVnpAmount());
+        if (vnpAmount != order.getTotal() * 100L) {
+            log.error("Amount mismatch: expected={}, received={}",
+                    order.getTotal() * 100L, vnpAmount);
+            throw new RuntimeException("Amount mismatch");
+        }
+
+        // 5. Update order status
+        order.setStatus(OrderStatus.COMPLETED);
+        order.setZpTransId(data.getVnpTransactionNo());  // Store VNPay transaction ID
+        order.setPaymentConfirmedAt(LocalDateTime.now());
+        order.setCompletedAt(LocalDateTime.now());
+        orderRepository.save(order);
+
+        // 6. Update ticket statuses
+        ticketRepository.findByOrderId(order.getId()).forEach(ticket -> {
+            ticket.setStatus(TicketStatus.ACTIVE);
+            ticket.setPurchaseDate(LocalDateTime.now());
+        });
+
+        // 7. Save transaction record
+        PaymentTransaction tx = PaymentTransaction.builder()
+                .order(order)
+                .appTransId(txnRef)
+                .zpTransId(data.getVnpTransactionNo())
+                .type(PaymentTransactionType.CALLBACK)
+                .status(PaymentTransactionStatus.SUCCESS)
+                .amount((int) (vnpAmount / 100))
+                .returnCode(0)  // VNPay uses 00 for success
+                .returnMessage("Payment confirmed")
+                .responsePayload(toJson(data))
+                .build();
+        transactionRepository.save(tx);
+
+        log.info("VNPay payment confirmed: orderId={}, transactionNo={}",
+                order.getId(), data.getVnpTransactionNo());
+    }
+
+    /**
+     * Process VNPay payment failure
+     */
+    @Transactional
+    public void processVNPayPaymentFailure(VNPayCallbackData data, String clientIp) {
+        String txnRef = data.getVnpTxnRef();
+
+        log.info("Processing VNPay payment failure: txnRef={}, responseCode={}",
+                txnRef, data.getVnpResponseCode());
+
+        // Find order
+        Order order = orderRepository.findByAppTransId(txnRef)
+                .orElseThrow(() -> new RuntimeException("Order not found: " + txnRef));
+
+        // Update order status to CANCELLED (if still pending)
+        if (order.getStatus() == OrderStatus.PENDING) {
+            order.setStatus(OrderStatus.CANCELLED);
+            orderRepository.save(order);
+        }
+
+        // Log transaction
+        PaymentTransaction tx = PaymentTransaction.builder()
+                .order(order)
+                .appTransId(txnRef)
+                .type(PaymentTransactionType.CALLBACK)
+                .status(PaymentTransactionStatus.FAILED)
+                .amount(order.getTotal())
+                .returnCode(Integer.parseInt(data.getVnpResponseCode()))
+                .returnMessage("Payment failed: " + data.getVnpResponseCode())
+                .responsePayload(toJson(data))
+                .build();
+        transactionRepository.save(tx);
+    }
+
+    /**
+     * Check if order exists
+     */
+    public boolean orderExists(String txnRef) {
+        return orderRepository.findByAppTransId(txnRef).isPresent();
+    }
+
+    /**
+     * Verify amount matches
+     */
+    public boolean verifyAmount(String txnRef, long amount) {
+        return orderRepository.findByAppTransId(txnRef)
+                .map(order -> order.getTotal() == amount)
+                .orElse(false);
+    }
+
+    /**
+     * Check if order is pending
+     */
+    public boolean isOrderPending(String txnRef) {
+        return orderRepository.findByAppTransId(txnRef)
+                .map(order -> order.getStatus() == OrderStatus.PENDING)
+                .orElse(false);
     }
 
     private String toJson(Object obj) {

@@ -23,7 +23,7 @@ public interface OrderRepository extends JpaRepository<Order, String>, JpaSpecif
     @Query("SELECT o FROM Order o WHERE o.status = 'PENDING' AND o.expiresAt < :now")
     List<Order> findExpiredPendingOrders(@Param("now") LocalDateTime now);
 
-    // ZaloPay-specific queries
+    // Payment gateway queries
     Optional<Order> findByAppTransId(String appTransId);
 
     // For reconciliation: find PENDING orders older than X minutes

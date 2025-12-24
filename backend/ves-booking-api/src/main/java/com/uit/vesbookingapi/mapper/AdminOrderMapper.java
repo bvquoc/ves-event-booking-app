@@ -18,7 +18,7 @@ public interface AdminOrderMapper {
     @Mapping(target = "ticketType", source = "order", qualifiedByName = "mapTicketTypeInfo")
     @Mapping(target = "tickets", source = "order.tickets", qualifiedByName = "mapTicketSummaries")
     @Mapping(target = "voucherCode", source = "voucher.code")
-    @Mapping(target = "zalopayTransactionId", ignore = true)
+    @Mapping(target = "paymentTransactionId", ignore = true)
         // Will be set manually if exists
     AdminOrderResponse toAdminOrderResponse(Order order);
 

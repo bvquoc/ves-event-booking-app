@@ -47,7 +47,7 @@ public class PaymentTransaction {
     PaymentTransactionStatus status;  // PENDING, SUCCESS, FAILED
 
     @Column(name = "return_code")
-    Integer returnCode;  // ZaloPay return code
+    Integer returnCode;  // Payment gateway return code
 
     @Column(length = 500, name = "return_message")
     String returnMessage;

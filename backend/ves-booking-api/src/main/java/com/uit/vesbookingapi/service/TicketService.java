@@ -4,7 +4,6 @@ import com.uit.vesbookingapi.dto.request.CancelTicketRequest;
 import com.uit.vesbookingapi.dto.response.CancellationResponse;
 import com.uit.vesbookingapi.dto.response.TicketDetailResponse;
 import com.uit.vesbookingapi.dto.response.TicketResponse;
-import com.uit.vesbookingapi.dto.zalopay.ZaloPayRefundResponse;
 import com.uit.vesbookingapi.entity.Order;
 import com.uit.vesbookingapi.entity.Refund;
 import com.uit.vesbookingapi.entity.Ticket;
@@ -39,7 +38,6 @@ public class TicketService {
     UserRepository userRepository;
     RefundRepository refundRepository;
     OrderRepository orderRepository;
-    ZaloPayService zaloPayService;
 
     /**
      * Get user tickets with optional event and status filters
@@ -130,13 +128,14 @@ public class TicketService {
             ticket.setCancellationReason(request.getReason());
         }
 
-        // 5. Check if payment was made via ZaloPay
+        // 5. Create refund record if payment gateway supports refunds
+        // TODO: Implement VNPay refund integration when needed
         Order order = ticket.getOrder();
-        if ("ZALOPAY".equals(order.getPaymentGateway()) &&
+        if (order.getPaymentGateway() != null && 
                 order.getZpTransId() != null &&
                 refundResult.getRefundAmount() > 0) {
 
-            // Create refund record
+            // Create refund record for future processing
             String mRefundId = generateMRefundId(ticket.getId());
             Refund refund = Refund.builder()
                     .ticket(ticket)
@@ -146,35 +145,9 @@ public class TicketService {
                     .amount(refundResult.getRefundAmount())
                     .status(RefundStatus.PENDING)
                     .build();
-            refund = refundRepository.save(refund);
+            refundRepository.save(refund);
 
-            // Call ZaloPay refund API
-            try {
-                ZaloPayRefundResponse zpResponse = zaloPayService.refund(refund);
-
-                if (zpResponse.getReturnCode() == 1) {
-                    refund.setStatus(RefundStatus.COMPLETED);
-                    refund.setZpRefundId(String.valueOf(zpResponse.getRefundId()));
-                    ticket.setRefundStatus(RefundStatus.COMPLETED);
-                } else if (zpResponse.getReturnCode() == 2) {
-                    refund.setStatus(RefundStatus.PROCESSING);
-                    ticket.setRefundStatus(RefundStatus.PROCESSING);
-                } else {
-                    refund.setStatus(RefundStatus.FAILED);
-                    refund.setReturnCode(zpResponse.getReturnCode());
-                    refund.setReturnMessage(zpResponse.getReturnMessage());
-                    ticket.setRefundStatus(RefundStatus.FAILED);
-                }
-
-                refundRepository.save(refund);
-
-            } catch (Exception e) {
-                log.error("ZaloPay refund failed: {}", e.getMessage());
-                refund.setStatus(RefundStatus.FAILED);
-                refund.setReturnMessage(e.getMessage());
-                refundRepository.save(refund);
-                ticket.setRefundStatus(RefundStatus.PENDING);  // Will retry
-            }
+            log.info("Refund record created: mRefundId={}, amount={}", mRefundId, refundResult.getRefundAmount());
         }
 
         // 6. Increment ticketType.available atomically

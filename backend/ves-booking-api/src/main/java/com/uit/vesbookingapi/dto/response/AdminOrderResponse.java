@@ -19,7 +19,7 @@ public class AdminOrderResponse {
     OrderStatus status;
     PaymentMethod paymentMethod;
     String paymentUrl;
-    String zalopayTransactionId; // ZaloPay transaction ID if applicable
+    String paymentTransactionId; // Payment gateway transaction ID if applicable
     LocalDateTime expiresAt;
     LocalDateTime createdAt;
     LocalDateTime completedAt;

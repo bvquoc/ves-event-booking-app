@@ -71,18 +71,18 @@ public class Order {
     @Column(name = "expires_at")
     LocalDateTime expiresAt; // Payment timeout
 
-    // ZaloPay-specific fields
+    // Payment gateway fields
     @Column(name = "app_trans_id", unique = true)
-    String appTransId;  // Unique transaction ID: YYMMDD_orderId
+    String appTransId;  // Transaction reference (orderId for VNPay)
 
     @Column(name = "zp_trans_id")
-    String zpTransId;   // ZaloPay transaction ID (from callback)
+    String zpTransId;   // Payment gateway transaction ID (from callback)
 
     @Column(name = "payment_confirmed_at")
     LocalDateTime paymentConfirmedAt;  // When payment was confirmed
 
     @Column(name = "payment_gateway")
-    String paymentGateway;  // "ZALOPAY" | "MOCK" (for backward compatibility)
+    String paymentGateway;  // "VNPAY" | "MOCK" (for backward compatibility)
 
     @Column(name = "created_at", nullable = false)
     LocalDateTime createdAt;

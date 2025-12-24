@@ -52,7 +52,7 @@ public class Refund {
     String returnMessage;
 
     @Column(name = "zp_refund_id")
-    String zpRefundId;  // ZaloPay refund transaction ID
+    String zpRefundId;  // Payment gateway refund transaction ID
 
     @Column(name = "created_at", nullable = false)
     LocalDateTime createdAt;

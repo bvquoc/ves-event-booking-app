@@ -23,7 +23,7 @@ import org.springframework.web.filter.CorsFilter;
 public class SecurityConfig {
     private final String[] PUBLIC_ENDPOINTS = {
             "/users", "/auth/register", "/auth/login", "/auth/token", "/auth/introspect", "/auth/logout", "/auth/refresh",
-            "/payments/zalopay/callback", "/payments/zalopay/refund-callback"  // ZaloPay callbacks
+            "/payments/vnpay/ipn", "/payments/vnpay/return"  // VNPay callbacks
     };
 
     private final String[] PUBLIC_GET_ENDPOINTS = {

@@ -45,7 +45,7 @@ public class AdminOrderService {
 
         return orderPage.map(order -> {
             AdminOrderResponse response = adminOrderMapper.toAdminOrderResponse(order);
-            // Set zalopayTransactionId if exists (check for appTransId or zpTransId)
+            // Set paymentTransactionId if exists (check for appTransId or zpTransId)
             // Note: This field may not exist in Order entity yet, so it will be null
             return response;
         });
@@ -61,7 +61,7 @@ public class AdminOrderService {
                 .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND));
 
         AdminOrderResponse response = adminOrderMapper.toAdminOrderResponse(order);
-        // Set zalopayTransactionId if exists
+        // Set paymentTransactionId if exists
         // Note: This field may not exist in Order entity yet, so it will be null
         return response;
     }

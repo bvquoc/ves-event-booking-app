@@ -2,7 +2,7 @@ package com.uit.vesbookingapi.service;
 
 import com.uit.vesbookingapi.dto.request.PurchaseRequest;
 import com.uit.vesbookingapi.dto.response.PurchaseResponse;
-import com.uit.vesbookingapi.dto.zalopay.ZaloPayCreateResponse;
+import com.uit.vesbookingapi.dto.vnpay.VNPayPaymentResponse;
 import com.uit.vesbookingapi.entity.*;
 import com.uit.vesbookingapi.enums.OrderStatus;
 import com.uit.vesbookingapi.enums.TicketStatus;
@@ -38,10 +38,10 @@ public class BookingService {
     UserRepository userRepository;
     VoucherRepository voucherRepository;
     OrderMapper orderMapper;
-    ZaloPayService zaloPayService;
+    VNPayService vnPayService;
 
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public PurchaseResponse purchaseTickets(PurchaseRequest request) {
+    @Transactional(isolation = Isolation.REPEATABLE_READ)
+    public PurchaseResponse purchaseTickets(PurchaseRequest request, String clientIp) {
         log.info("Processing ticket purchase request: eventId={}, ticketTypeId={}, quantity={}",
                 request.getEventId(), request.getTicketTypeId(), request.getQuantity());
 
@@ -129,39 +129,28 @@ public class BookingService {
                 .voucher(voucher)
                 .status(OrderStatus.PENDING)
                 .paymentMethod(request.getPaymentMethod())
-                .paymentGateway("ZALOPAY")
+                .paymentGateway("VNPAY")
                 .expiresAt(LocalDateTime.now().plusMinutes(15))
                 .build();
 
         order = orderRepository.save(order);
         log.info("Order created: orderId={}, total={}", order.getId(), order.getTotal());
 
-        // 10. Call ZaloPay Create Order API
+        // 10. Generate VNPay payment URL
         try {
-            // Generate appTransId before calling ZaloPay (must match what ZaloPayService generates)
-            String appTransId = zaloPayService.generateAppTransId(order.getId());
-            ZaloPayCreateResponse zpResponse = zaloPayService.createOrder(order);
+            // Generate VNPay payment URL (clientIp passed from controller)
+            VNPayPaymentResponse vnPayResponse = vnPayService.createPaymentUrl(order, clientIp);
 
-            if (zpResponse.getReturnCode() != 1) {
-                log.error("ZaloPay order creation failed: code={}, msg={}",
-                        zpResponse.getReturnCode(), zpResponse.getReturnMessage());
-                // Rollback: release tickets
-                ticketType.setAvailable(ticketType.getAvailable() + request.getQuantity());
-                ticketTypeRepository.save(ticketType);
-                order.setStatus(OrderStatus.CANCELLED);
-                orderRepository.save(order);
-                throw new AppException(ErrorCode.PAYMENT_GATEWAY_ERROR);
-            }
-
-            // Update order with ZaloPay data
-            order.setAppTransId(appTransId);
-            order.setPaymentUrl(zpResponse.getOrderUrl());
+            // Update order with payment URL
+            order.setPaymentUrl(vnPayResponse.getPaymentUrl());
+            order.setAppTransId(order.getId());  // Use orderId as transaction reference
             orderRepository.save(order);
 
-        } catch (AppException e) {
-            throw e;
+            log.info("VNPay payment URL generated: orderId={}, paymentUrl={}",
+                    order.getId(), order.getPaymentUrl());
+
         } catch (Exception e) {
-            log.error("Payment gateway error: {}", e.getMessage());
+            log.error("Payment gateway error: {}", e.getMessage(), e);
             // Rollback
             ticketType.setAvailable(ticketType.getAvailable() + request.getQuantity());
             ticketTypeRepository.save(ticketType);
@@ -279,4 +268,5 @@ public class BookingService {
     private String generateQrCode() {
         return "VES" + UUID.randomUUID().toString().replace("-", "").substring(0, 12).toUpperCase();
     }
+
 }
