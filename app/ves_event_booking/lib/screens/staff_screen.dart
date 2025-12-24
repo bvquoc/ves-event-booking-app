@@ -32,10 +32,10 @@ class StaffScreenState extends State<StaffScreen> {
       context: context,
       barrierDismissible: false,
       builder: (context) {
+        bool isLoading = false;
+        bool isChecked = false;
         return StatefulBuilder(
           builder: (context, setStateDialog) {
-            bool isLoading = false;
-            bool isChecked = false;
             String displayContent = "Mã vé: $qrCodeValue";
             Color statusColor = Colors.black;
 
