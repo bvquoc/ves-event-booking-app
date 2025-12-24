@@ -116,6 +116,19 @@ class _EventContent extends StatelessWidget {
 
   const _EventContent({required this.event});
 
+  String formatPrice(num price) {
+    if (price >= 1000000) {
+      final million = price / 1000000;
+      // Nếu là số tròn → không hiển thị .0
+      if (million == million.roundToDouble()) {
+        return '${million.toInt()} Triệu';
+      }
+      return '${million.toStringAsFixed(1)} Triệu';
+    }
+
+    return '${formatter.format(price.toInt())}đ';
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -133,14 +146,14 @@ class _EventContent extends StatelessWidget {
         Row(
           children: [
             const Icon(Icons.access_time_filled, size: 14),
-            const SizedBox(width: 4),
+            const SizedBox(width: 2),
             Text(
               _formatDate(event.startDate),
               style: const TextStyle(fontSize: 12, fontStyle: FontStyle.italic),
             ),
             const Spacer(),
             Text(
-              'Từ ${formatter.format(event.minPrice != null ? event.minPrice!.toInt() : 0)}đ',
+              'Từ ${formatPrice(event.minPrice ?? 0)}',
               style: const TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w900,

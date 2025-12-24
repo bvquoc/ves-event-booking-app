@@ -92,7 +92,7 @@ class FilteredEventsScreenState extends State<FilteredEventsScreen> {
                 padding: const EdgeInsets.all(16).copyWith(bottom: 100),
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 2,
-                  childAspectRatio: 0.8,
+                  childAspectRatio: 0.75,
                   crossAxisSpacing: 12,
                   mainAxisSpacing: 12,
                 ),
