@@ -54,17 +54,37 @@ mkdir -p /var/www/certbot
 
 # Copy nginx configuration (use initial config without SSL first)
 echo "📝 Copying Nginx configuration..."
-if [ -f "${SCRIPT_DIR}/ves-booking.io.vn.conf.initial" ]; then
-    cp "${SCRIPT_DIR}/ves-booking.io.vn.conf.initial" "${NGINX_CONF}"
-    echo "✅ Initial configuration (HTTP only) copied to ${NGINX_CONF}"
-    echo "   Note: Certbot will automatically update this with SSL configuration"
-elif [ -f "${SCRIPT_DIR}/ves-booking.io.vn.conf" ]; then
-    cp "${SCRIPT_DIR}/ves-booking.io.vn.conf" "${NGINX_CONF}"
-    echo "✅ Configuration copied to ${NGINX_CONF}"
-    echo "⚠️  Warning: If SSL certificates don't exist, nginx may fail to start"
+
+# Check if SSL certificates already exist
+if [ -f "/etc/letsencrypt/live/${DOMAIN}/fullchain.pem" ]; then
+    echo "✅ SSL certificates found, using full SSL configuration"
+    if [ -f "${SCRIPT_DIR}/ves-booking.io.vn.conf" ]; then
+        cp "${SCRIPT_DIR}/ves-booking.io.vn.conf" "${NGINX_CONF}"
+        echo "✅ SSL configuration copied to ${NGINX_CONF}"
+    else
+        echo "❌ SSL config file not found: ${SCRIPT_DIR}/ves-booking.io.vn.conf"
+        exit 1
+    fi
 else
-    echo "❌ Configuration file not found: ${SCRIPT_DIR}/ves-booking.io.vn.conf.initial or ves-booking.io.vn.conf"
-    exit 1
+    echo "📋 SSL certificates not found, using initial HTTP-only configuration"
+    echo "   Certbot will automatically add SSL configuration later"
+    
+    # Always use initial config if certificates don't exist - this is critical!
+    if [ -f "${SCRIPT_DIR}/ves-booking.io.vn.conf.initial" ]; then
+        cp "${SCRIPT_DIR}/ves-booking.io.vn.conf.initial" "${NGINX_CONF}"
+        echo "✅ Initial configuration (HTTP only) copied to ${NGINX_CONF}"
+        echo "   This config works without SSL certificates"
+    else
+        echo "❌ ERROR: Initial config file not found: ${SCRIPT_DIR}/ves-booking.io.vn.conf.initial"
+        echo ""
+        echo "   The initial config file is required when SSL certificates don't exist."
+        echo "   Please ensure the file exists at: ${SCRIPT_DIR}/ves-booking.io.vn.conf.initial"
+        echo ""
+        echo "   Current script directory: ${SCRIPT_DIR}"
+        echo "   Files in directory:"
+        ls -la "${SCRIPT_DIR}"/*.conf* 2>/dev/null || echo "   (cannot list files)"
+        exit 1
+    fi
 fi
 
 # Create symbolic link

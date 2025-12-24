@@ -1,0 +1,96 @@
+# Nginx configuration for ves-booking.io.vn (INITIAL - Before SSL setup)
+# This configuration works without SSL certificates
+# After running certbot, use the main ves-booking.io.vn.conf file
+
+# HTTP server (serves content until SSL is configured)
+server {
+    listen 80;
+    listen [::]:80;
+    server_name ves-booking.io.vn www.ves-booking.io.vn;
+
+    # Let's Encrypt challenge
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+    # Logging
+    access_log /var/log/nginx/ves-booking-access.log;
+    error_log /var/log/nginx/ves-booking-error.log;
+
+    # Max upload size
+    client_max_body_size 10M;
+
+    # Admin portal route (port 3000)
+    location /admin {
+        proxy_pass http://localhost:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
+        
+        # Timeouts
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 60s;
+    }
+
+    # API route (port 8080/api)
+    location /api {
+        proxy_pass http://localhost:8080/api;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        
+        # Timeouts
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 60s;
+        
+        # CORS headers (if needed)
+        add_header Access-Control-Allow-Origin * always;
+        add_header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS" always;
+        add_header Access-Control-Allow-Headers "Authorization, Content-Type" always;
+        
+        # Handle preflight requests
+        if ($request_method = OPTIONS) {
+            return 204;
+        }
+    }
+
+    # Root location - return API endpoints info
+    location = / {
+        default_type application/json;
+        return 200 '{"admin":"/admin","api":"/api"}\n';
+        add_header Content-Type application/json;
+    }
+
+    # Health check endpoint
+    location /health {
+        access_log off;
+        return 200 "healthy\n";
+        add_header Content-Type text/plain;
+    }
+
+    # Health check endpoint (healthz - commonly used in Kubernetes/containers)
+    # Proxies to backend /api/healthz endpoint
+    location /healthz {
+        access_log off;
+        proxy_pass http://localhost:8080/api/healthz;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        
+        # Timeouts
+        proxy_connect_timeout 5s;
+        proxy_send_timeout 5s;
+        proxy_read_timeout 5s;
+    }
+}
