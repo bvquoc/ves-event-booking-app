@@ -1,3 +1,18 @@
 jwt:
   valid-duration: 7200 # in second
   refreshable-duration: 72000 # in seconds
+
+# Server configuration for reverse proxy (HTTPS)
+# This allows Spring Boot to trust X-Forwarded-* headers from the proxy
+server:
+  forward-headers-strategy: native
+  use-forward-headers: true
+
+# SpringDoc OpenAPI (Swagger) Configuration for Production
+springdoc:
+  swagger-ui:
+    use-root-path: true
+    # Disable default servers - let it auto-detect from request
+    urls:
+      - url: /v3/api-docs
+        name: Default
