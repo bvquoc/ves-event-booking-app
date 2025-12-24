@@ -117,18 +117,27 @@ class _LoginFormState extends State<LoginForm> {
             // },
             onPressed: (_isButtonEnabled && !authProvider.isLoading)
                 ? () async {
-                    bool success = await authProvider.login(
+                    String roles = await authProvider.login(
                       _username,
                       _password,
                     );
 
-                    if (success) {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const HomeScreen(),
-                        ),
-                      );
+                    if (roles.isNotEmpty) {
+                      if (roles == "USER") {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const HomeScreen(),
+                          ),
+                        );
+                      } else if (roles == "STAFF") {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const HomeScreen(),
+                          ),
+                        );
+                      }
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
