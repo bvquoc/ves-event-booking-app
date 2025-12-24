@@ -117,20 +117,20 @@ class _LoginFormState extends State<LoginForm> {
             // },
             onPressed: (_isButtonEnabled && !authProvider.isLoading)
                 ? () async {
-                    String roles = await authProvider.login(
+                    final roles = await authProvider.login(
                       _username,
                       _password,
                     );
 
                     if (roles.isNotEmpty) {
-                      if (roles == "USER") {
+                      if (roles.contains("USER")) {
                         Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(
                             builder: (context) => const HomeScreen(),
                           ),
                         );
-                      } else if (roles == "STAFF") {
+                      } else if (roles.contains("STAFF")) {
                         Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(

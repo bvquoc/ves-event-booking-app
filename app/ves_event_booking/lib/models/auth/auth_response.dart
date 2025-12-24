@@ -1,7 +1,7 @@
 class AuthResponse {
   final String token;
   final bool authenticated;
-  final String roles;
+  final List<String> roles;
 
   AuthResponse({
     required this.token,
@@ -13,7 +13,7 @@ class AuthResponse {
     return AuthResponse(
       token: json['token'] as String,
       authenticated: json['authenticated'] as bool,
-      roles: json['roles'] as String,
+      roles: List<String>.from(json['roles'] as List<dynamic>),
     );
   }
 }
