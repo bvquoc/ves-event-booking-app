@@ -37,7 +37,7 @@ class TicketsScreen extends StatelessWidget {
             tabs: [
               Tab(text: 'Sắp diễn ra'),
               Tab(text: 'Đã diễn ra'),
-              Tab(text: 'Đã hủy'),
+              // Tab(text: 'Đã hủy'),
             ],
           ),
         ),
@@ -50,7 +50,7 @@ class TicketsScreen extends StatelessWidget {
                 // Nội dung cho tab "Đã diễn ra"
                 PastTicketsTab(),
                 // Nội dung cho tab "Đã hủy"
-                CancelledTicketsTab(),
+                // CancelledTicketsTab(),
               ],
             ),
             Positioned(

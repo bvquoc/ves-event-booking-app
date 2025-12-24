@@ -3,23 +3,25 @@ class ZalopayResponse {
   final String status; // PENDING, PAID, FAILED
   final String paymentUrl;
   final double total;
-  final DateTime expiresAt;
+  final DateTime? expiresAt;
 
   ZalopayResponse({
     required this.orderId,
     required this.status,
     required this.paymentUrl,
     required this.total,
-    required this.expiresAt,
+    this.expiresAt,
   });
 
   factory ZalopayResponse.fromJson(Map<String, dynamic> json) {
     return ZalopayResponse(
-      orderId: json['orderId'],
-      status: json['status'],
-      paymentUrl: json['paymentUrl'],
+      orderId: json['orderId'] as String,
+      status: json['status'] as String,
+      paymentUrl: json['paymentUrl'] as String,
       total: (json['total'] as num).toDouble(),
-      expiresAt: DateTime.parse(json['expiresAt']),
+      expiresAt: json['expiresAt'] != null
+          ? DateTime.parse(json['expiresAt'] as String)
+          : null,
     );
   }
 }

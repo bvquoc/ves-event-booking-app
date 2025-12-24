@@ -14,7 +14,7 @@ class PaymentModel {
   final String currency;
 
   final String paymentUrl;
-  final DateTime expiresAt;
+  final DateTime? expiresAt;
   final DateTime createdAt;
 
   PaymentModel({
@@ -29,7 +29,7 @@ class PaymentModel {
     required this.total,
     required this.currency,
     required this.paymentUrl,
-    required this.expiresAt,
+    this.expiresAt,
     required this.createdAt,
   });
 
