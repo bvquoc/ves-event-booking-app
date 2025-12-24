@@ -25,6 +25,8 @@ import { Select } from "@/components/ui/select";
 import { eventApi, TicketTypeResponse } from "@/lib/api";
 import { EventResponse } from "@/lib/api";
 import { usePermissions } from "@/hooks/usePermissions";
+import { showError, showWarning } from "@/lib/errorHandler";
+import { Tag, Percent, Calendar, CheckCircle2, XCircle, TrendingUp } from "lucide-react";
 
 export default function Vouchers() {
   const { isAdmin } = usePermissions();
@@ -79,7 +81,7 @@ export default function Vouchers() {
 
   const handleValidate = async () => {
     if (!voucherCode || !selectedEventId || !selectedTicketTypeId) {
-      alert("Please fill in all required fields");
+      showWarning("Please fill in all required fields");
       return;
     }
     try {
@@ -92,7 +94,7 @@ export default function Vouchers() {
       setValidationResult(response.result);
     } catch (error: any) {
       console.error("Failed to validate voucher:", error);
-      alert(error.response?.data?.message || "Failed to validate voucher");
+      showError(error);
     }
   };
 
@@ -116,22 +118,27 @@ export default function Vouchers() {
           </p>
         </div>
         <Button onClick={() => setValidateDialogOpen(true)}>
+          <TrendingUp className="mr-2 h-4 w-4" />
           Validate Voucher
         </Button>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-2 border-b">
+      <div className="flex gap-2 border-b pb-2">
         <Button
           variant={activeTab === "public" ? "default" : "ghost"}
           onClick={() => setActiveTab("public")}
+          className="rounded-b-none"
         >
+          <Tag className="mr-2 h-4 w-4" />
           Public Vouchers
         </Button>
         <Button
           variant={activeTab === "user" ? "default" : "ghost"}
           onClick={() => setActiveTab("user")}
+          className="rounded-b-none"
         >
+          <Tag className="mr-2 h-4 w-4" />
           My Vouchers
         </Button>
       </div>
@@ -162,59 +169,147 @@ export default function Vouchers() {
                 <TableHead>Discount</TableHead>
                 <TableHead>Valid Period</TableHead>
                 {activeTab === "user" && <TableHead>Status</TableHead>}
-                <TableHead>Usage</TableHead>
+                <TableHead>Usage Limit</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {activeTab === "public"
                 ? publicVouchers.map((voucher) => (
                     <TableRow key={voucher.id}>
-                      <TableCell className="font-mono font-medium">
-                        {voucher.code}
-                      </TableCell>
-                      <TableCell>{voucher.title}</TableCell>
                       <TableCell>
-                        {voucher.discountType === "FIXED_AMOUNT"
-                          ? `${voucher.discountValue}`
-                          : `${voucher.discountValue}%`}
-                        {voucher.maxDiscount &&
-                          voucher.discountType === "PERCENTAGE" &&
-                          ` (max ${voucher.maxDiscount})`}
+                        <div className="flex items-center gap-2">
+                          <Tag className="h-4 w-4 text-muted-foreground" />
+                          <span className="font-mono font-semibold text-primary">
+                            {voucher.code}
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        {voucher.title}
+                        {voucher.description && (
+                          <p className="text-sm text-muted-foreground mt-1">
+                            {voucher.description}
+                          </p>
+                        )}
                       </TableCell>
                       <TableCell>
-                        {format(new Date(voucher.startDate), "MMM dd")} -{" "}
-                        {format(new Date(voucher.endDate), "MMM dd, yyyy")}
+                        <div className="flex items-center gap-2">
+                          {voucher.discountType === "FIXED_AMOUNT" ? (
+                            <span className="px-2 py-1 text-xs font-semibold bg-blue-100 text-blue-800 rounded flex items-center gap-1">
+                              <span>{voucher.discountValue}</span>
+                              <span className="text-[10px]">{voucher.currency || "VND"}</span>
+                            </span>
+                          ) : (
+                            <span className="px-2 py-1 text-xs font-semibold bg-purple-100 text-purple-800 rounded flex items-center gap-1">
+                              <Percent className="h-3 w-3" />
+                              <span>{voucher.discountValue}%</span>
+                            </span>
+                          )}
+                          {voucher.maxDiscount &&
+                            voucher.discountType === "PERCENTAGE" && (
+                              <span className="text-xs text-muted-foreground">
+                                (max {voucher.maxDiscount})
+                              </span>
+                            )}
+                        </div>
+                        {voucher.minOrderAmount && (
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Min: {voucher.minOrderAmount}
+                          </p>
+                        )}
                       </TableCell>
                       <TableCell>
-                        {voucher.usedCount || 0} / {voucher.usageLimit || "∞"}
+                        <div className="flex items-center gap-2 text-sm">
+                          <Calendar className="h-4 w-4 text-muted-foreground" />
+                          <div>
+                            <div>
+                              {format(new Date(voucher.startDate), "MMM dd, yyyy")}
+                            </div>
+                            <div className="text-muted-foreground">
+                              to {format(new Date(voucher.endDate), "MMM dd, yyyy")}
+                            </div>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <span className="px-2 py-1 text-xs font-semibold bg-muted text-muted-foreground rounded">
+                            {voucher.usedCount || 0} / {voucher.usageLimit || "∞"}
+                          </span>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))
                 : userVouchers.map((uv) => (
                     <TableRow key={uv.id}>
-                      <TableCell className="font-mono font-medium">
-                        {uv.voucher.code}
-                      </TableCell>
-                      <TableCell>{uv.voucher.title}</TableCell>
                       <TableCell>
-                        {uv.voucher.discountType === "FIXED_AMOUNT"
-                          ? `${uv.voucher.discountValue}`
-                          : `${uv.voucher.discountValue}%`}
+                        <div className="flex items-center gap-2">
+                          <Tag className="h-4 w-4 text-muted-foreground" />
+                          <span className="font-mono font-semibold text-primary">
+                            {uv.voucher.code}
+                          </span>
+                        </div>
                       </TableCell>
-                      <TableCell>
-                        {format(new Date(uv.voucher.startDate), "MMM dd")} -{" "}
-                        {format(new Date(uv.voucher.endDate), "MMM dd, yyyy")}
-                      </TableCell>
-                      <TableCell>
-                        {uv.isUsed ? (
-                          <span className="text-red-600">Used</span>
-                        ) : (
-                          <span className="text-green-600">Available</span>
+                      <TableCell className="font-medium">
+                        {uv.voucher.title}
+                        {uv.voucher.description && (
+                          <p className="text-sm text-muted-foreground mt-1">
+                            {uv.voucher.description}
+                          </p>
                         )}
                       </TableCell>
                       <TableCell>
-                        {uv.voucher.usedCount || 0} /{" "}
-                        {uv.voucher.usageLimit || "∞"}
+                        <div className="flex items-center gap-2">
+                          {uv.voucher.discountType === "FIXED_AMOUNT" ? (
+                            <span className="px-2 py-1 text-xs font-semibold bg-blue-100 text-blue-800 rounded flex items-center gap-1">
+                              <span>{uv.voucher.discountValue}</span>
+                              <span className="text-[10px]">{uv.voucher.currency || "VND"}</span>
+                            </span>
+                          ) : (
+                            <span className="px-2 py-1 text-xs font-semibold bg-purple-100 text-purple-800 rounded flex items-center gap-1">
+                              <Percent className="h-3 w-3" />
+                              <span>{uv.voucher.discountValue}%</span>
+                            </span>
+                          )}
+                        </div>
+                        {uv.voucher.minOrderAmount && (
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Min: {uv.voucher.minOrderAmount}
+                          </p>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2 text-sm">
+                          <Calendar className="h-4 w-4 text-muted-foreground" />
+                          <div>
+                            <div>
+                              {format(new Date(uv.voucher.startDate), "MMM dd, yyyy")}
+                            </div>
+                            <div className="text-muted-foreground">
+                              to {format(new Date(uv.voucher.endDate), "MMM dd, yyyy")}
+                            </div>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {uv.isUsed ? (
+                          <span className="px-2 py-1 text-xs font-semibold bg-red-100 text-red-800 rounded flex items-center gap-1 w-fit">
+                            <XCircle className="h-3 w-3" />
+                            Used
+                          </span>
+                        ) : (
+                          <span className="px-2 py-1 text-xs font-semibold bg-green-100 text-green-800 rounded flex items-center gap-1 w-fit">
+                            <CheckCircle2 className="h-3 w-3" />
+                            Available
+                          </span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <span className="px-2 py-1 text-xs font-semibold bg-muted text-muted-foreground rounded">
+                            {uv.voucher.usedCount || 0} / {uv.voucher.usageLimit || "∞"}
+                          </span>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -225,9 +320,12 @@ export default function Vouchers() {
 
       {/* Validate Dialog */}
       <Dialog open={validateDialogOpen} onOpenChange={setValidateDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Validate Voucher</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5" />
+              Validate Voucher
+            </DialogTitle>
             <DialogDescription>
               Check if a voucher is valid for a specific purchase
             </DialogDescription>
@@ -305,29 +403,47 @@ export default function Vouchers() {
             </div>
             {validationResult && (
               <div
-                className={`p-4 rounded ${
+                className={`p-4 rounded-lg border-2 ${
                   validationResult.isValid
-                    ? "bg-green-50 border border-green-200"
-                    : "bg-red-50 border border-red-200"
+                    ? "bg-green-50 border-green-300"
+                    : "bg-red-50 border-red-300"
                 }`}
               >
-                <p className="font-semibold">
-                  {validationResult.isValid ? "Valid" : "Invalid"}
-                </p>
-                <p className="text-sm">{validationResult.message}</p>
+                <div className="flex items-center gap-2 mb-2">
+                  {validationResult.isValid ? (
+                    <CheckCircle2 className="h-5 w-5 text-green-600" />
+                  ) : (
+                    <XCircle className="h-5 w-5 text-red-600" />
+                  )}
+                  <p className="font-semibold text-lg">
+                    {validationResult.isValid ? "Valid Voucher" : "Invalid Voucher"}
+                  </p>
+                </div>
+                <p className="text-sm mb-3">{validationResult.message}</p>
                 {validationResult.isValid && validationResult.voucher && (
-                  <div className="mt-2 space-y-1 text-sm">
-                    <p>
-                      Discount: {validationResult.discountAmount} (
-                      {getDiscountTypeLabel(
-                        validationResult.voucher.discountType
-                      )}
-                      )
-                    </p>
-                    <p>Order Amount: {validationResult.orderAmount}</p>
-                    <p className="font-semibold">
-                      Final Amount: {validationResult.finalAmount}
-                    </p>
+                  <div className="mt-3 pt-3 border-t space-y-2">
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      <div>
+                        <span className="text-muted-foreground">Order Amount:</span>
+                        <p className="font-semibold">{validationResult.orderAmount}</p>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">Discount:</span>
+                        <p className="font-semibold text-green-600">
+                          -{validationResult.discountAmount} (
+                          {getDiscountTypeLabel(
+                            validationResult.voucher.discountType
+                          )}
+                          )
+                        </p>
+                      </div>
+                    </div>
+                    <div className="pt-2 border-t">
+                      <span className="text-muted-foreground text-sm">Final Amount:</span>
+                      <p className="font-bold text-lg text-primary">
+                        {validationResult.finalAmount}
+                      </p>
+                    </div>
                   </div>
                 )}
               </div>

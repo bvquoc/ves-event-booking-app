@@ -23,12 +23,16 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { showError, showSuccess } from "@/lib/errorHandler";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 
 export default function Permissions() {
   const { canManagePermissions } = usePermissions();
   const [permissions, setPermissions] = useState<PermissionResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [permissionToDelete, setPermissionToDelete] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -65,26 +69,29 @@ export default function Permissions() {
         description: formData.description || undefined,
       });
       setDialogOpen(false);
+      showSuccess("Permission created successfully");
       loadPermissions();
     } catch (error: any) {
       console.error("Failed to create permission:", error);
-      alert(error.response?.data?.message || "Failed to create permission");
+      showError(error);
     }
   };
 
-  const handleDelete = async (permissionName: string) => {
-    if (
-      !confirm(
-        `Are you sure you want to delete permission "${permissionName}"?`
-      )
-    )
-      return;
+  const handleDelete = (permissionName: string) => {
+    setPermissionToDelete(permissionName);
+    setConfirmDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!permissionToDelete) return;
     try {
-      await permissionApi.deletePermission(permissionName);
+      await permissionApi.deletePermission(permissionToDelete);
+      showSuccess("Permission deleted successfully");
       loadPermissions();
+      setPermissionToDelete(null);
     } catch (error) {
       console.error("Failed to delete permission:", error);
-      alert("Failed to delete permission");
+      showError(error);
     }
   };
 
@@ -188,6 +195,17 @@ export default function Permissions() {
           </form>
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        open={confirmDialogOpen}
+        onOpenChange={setConfirmDialogOpen}
+        title="Delete Permission"
+        description={`Are you sure you want to delete permission "${permissionToDelete}"? This action cannot be undone.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        onConfirm={confirmDelete}
+        variant="destructive"
+      />
     </div>
   );
 }

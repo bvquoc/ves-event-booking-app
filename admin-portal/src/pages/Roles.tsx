@@ -28,6 +28,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { showError, showSuccess } from "@/lib/errorHandler";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { Checkbox } from "@/components/ui/checkbox";
 
 export default function Roles() {
@@ -36,6 +38,8 @@ export default function Roles() {
   const [permissions, setPermissions] = useState<PermissionResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [roleToDelete, setRoleToDelete] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -85,21 +89,29 @@ export default function Roles() {
         permissions: formData.selectedPermissions,
       });
       setDialogOpen(false);
+      showSuccess("Role created successfully");
       loadRoles();
     } catch (error: any) {
       console.error("Failed to create role:", error);
-      alert(error.response?.data?.message || "Failed to create role");
+      showError(error);
     }
   };
 
-  const handleDelete = async (roleName: string) => {
-    if (!confirm(`Are you sure you want to delete role "${roleName}"?`)) return;
+  const handleDelete = (roleName: string) => {
+    setRoleToDelete(roleName);
+    setConfirmDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!roleToDelete) return;
     try {
-      await roleApi.deleteRole(roleName);
+      await roleApi.deleteRole(roleToDelete);
+      showSuccess("Role deleted successfully");
       loadRoles();
+      setRoleToDelete(null);
     } catch (error) {
       console.error("Failed to delete role:", error);
-      alert("Failed to delete role");
+      showError(error);
     }
   };
 

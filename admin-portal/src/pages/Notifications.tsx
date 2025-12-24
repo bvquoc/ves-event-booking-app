@@ -15,6 +15,7 @@ import { CheckCheck, Check } from "lucide-react";
 import { format } from "date-fns";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { showError, showSuccess } from "@/lib/errorHandler";
 
 export default function Notifications() {
   const { isAdmin } = usePermissions();
@@ -54,17 +55,18 @@ export default function Notifications() {
       loadNotifications();
     } catch (error) {
       console.error("Failed to mark notification as read:", error);
-      alert("Failed to mark notification as read");
+      showError(error);
     }
   };
 
   const handleMarkAllAsRead = async () => {
     try {
       await notificationApi.markAllAsRead();
+      showSuccess("All notifications marked as read");
       loadNotifications();
     } catch (error) {
       console.error("Failed to mark all as read:", error);
-      alert("Failed to mark all as read");
+      showError(error);
     }
   };
 

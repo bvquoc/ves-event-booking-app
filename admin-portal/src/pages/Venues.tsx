@@ -28,6 +28,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Select } from "@/components/ui/select";
+import { showError, showSuccess } from "@/lib/errorHandler";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { EventResponse } from "@/lib/api";
@@ -36,10 +38,12 @@ export default function Venues() {
   const { canManageVenues } = usePermissions();
   const [venues, setVenues] = useState<VenueResponse[]>([]);
   const [cities, setCities] = useState<CityResponse[]>([]);
-  const [events, setEvents] = useState<EventResponse[]>([]);
+  const [venueEvents, setVenueEvents] = useState<EventResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [venueToDelete, setVenueToDelete] = useState<string | null>(null);
   const [selectedVenue, setSelectedVenue] = useState<VenueResponse | null>(
     null
   );
@@ -57,7 +61,6 @@ export default function Venues() {
   useEffect(() => {
     loadVenues();
     loadCities();
-    loadEvents();
   }, []);
 
   const loadVenues = async () => {
@@ -80,14 +83,19 @@ export default function Venues() {
     }
   };
 
-  const loadEvents = async () => {
+  const loadEventsForVenue = async (venueId: string) => {
     try {
       const response = await eventApi.getEvents({
         pageable: { page: 0, size: 100 },
       });
-      setEvents(response.result.content);
+      // Filter events that use this venue
+      const filteredEvents = response.result.content.filter(
+        (event) => event.venueId === venueId
+      );
+      setVenueEvents(filteredEvents);
     } catch (error) {
-      console.error("Failed to load events:", error);
+      console.error("Failed to load events for venue:", error);
+      showError(error);
     }
   };
 
@@ -124,21 +132,33 @@ export default function Venues() {
         await venueApi.createVenue(venueData);
       }
       setEditDialogOpen(false);
+      showSuccess(
+        editingVenue
+          ? "Venue updated successfully"
+          : "Venue created successfully"
+      );
       loadVenues();
     } catch (error: any) {
       console.error("Failed to save venue:", error);
-      alert(error.response?.data?.message || "Failed to save venue");
+      showError(error);
     }
   };
 
-  const handleDelete = async (venueId: string) => {
-    if (!confirm("Are you sure you want to delete this venue?")) return;
+  const handleDelete = (venueId: string) => {
+    setVenueToDelete(venueId);
+    setConfirmDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!venueToDelete) return;
     try {
-      await venueApi.deleteVenue(venueId);
+      await venueApi.deleteVenue(venueToDelete);
+      showSuccess("Venue deleted successfully");
       loadVenues();
+      setVenueToDelete(null);
     } catch (error) {
       console.error("Failed to delete venue:", error);
-      alert("Failed to delete venue");
+      showError(error);
     }
   };
 
@@ -146,7 +166,10 @@ export default function Venues() {
     setSelectedVenue(venue);
     setSelectedEventId("");
     setSeating(null);
+    setVenueEvents([]);
     setViewDialogOpen(true);
+    // Load events that use this venue
+    await loadEventsForVenue(venue.id);
   };
 
   const loadSeating = async () => {
@@ -160,7 +183,7 @@ export default function Venues() {
       setSeating(response.result);
     } catch (error) {
       console.error("Failed to load seating:", error);
-      alert("Failed to load seating chart");
+      showError(error);
     } finally {
       setLoadingSeating(false);
     }
@@ -179,6 +202,39 @@ export default function Venues() {
       default:
         return "bg-gray-100 text-gray-800 border-gray-300";
     }
+  };
+
+  // Natural sort function for alphanumeric strings (handles ABC 123 properly)
+  const naturalSort = (a: string, b: string): number => {
+    // Split strings into parts (text and numbers)
+    const aParts = a.match(/(\d+|\D+)/g) || [];
+    const bParts = b.match(/(\d+|\D+)/g) || [];
+
+    const minLength = Math.min(aParts.length, bParts.length);
+
+    for (let i = 0; i < minLength; i++) {
+      const aPart = aParts[i];
+      const bPart = bParts[i];
+
+      // If both are numbers, compare numerically
+      if (/^\d+$/.test(aPart) && /^\d+$/.test(bPart)) {
+        const numA = parseInt(aPart, 10);
+        const numB = parseInt(bPart, 10);
+        if (numA !== numB) {
+          return numA - numB;
+        }
+      } else {
+        // Compare as strings (case-insensitive)
+        const strA = aPart.toLowerCase();
+        const strB = bPart.toLowerCase();
+        if (strA !== strB) {
+          return strA < strB ? -1 : 1;
+        }
+      }
+    }
+
+    // If all parts are equal, shorter string comes first
+    return aParts.length - bParts.length;
   };
 
   if (loading) {
@@ -378,11 +434,17 @@ export default function Venues() {
                         className="flex-1"
                       >
                         <option value="">Select an event</option>
-                        {events.map((event) => (
-                          <option key={event.id} value={event.id}>
-                            {event.name}
+                        {venueEvents.length > 0 ? (
+                          venueEvents.map((event) => (
+                            <option key={event.id} value={event.id}>
+                              {event.name}
+                            </option>
+                          ))
+                        ) : (
+                          <option value="" disabled>
+                            No events found for this venue
                           </option>
-                        ))}
+                        )}
                       </Select>
                       <Button
                         onClick={loadSeating}
@@ -401,7 +463,8 @@ export default function Venues() {
                         </Label>
                         <p className="text-sm text-muted-foreground">
                           {seating.venueName} - Event:{" "}
-                          {events.find((e) => e.id === seating.eventId)?.name}
+                          {venueEvents.find((e) => e.id === seating.eventId)
+                            ?.name || "Unknown Event"}
                         </p>
                       </div>
                       {seating.sections && seating.sections.length > 0 ? (
@@ -417,8 +480,14 @@ export default function Venues() {
                                 </h3>
                                 {section.rows && section.rows.length > 0 ? (
                                   <div className="space-y-3">
-                                    {section.rows.map(
-                                      (row: any, rowIndex: number) => (
+                                    {[...section.rows]
+                                      .sort((a: any, b: any) =>
+                                        naturalSort(
+                                          a.rowName || "",
+                                          b.rowName || ""
+                                        )
+                                      )
+                                      .map((row: any, rowIndex: number) => (
                                         <div
                                           key={rowIndex}
                                           className="space-y-1"
@@ -428,22 +497,28 @@ export default function Venues() {
                                           </div>
                                           <div className="flex flex-wrap gap-1">
                                             {row.seats &&
-                                              row.seats.map((seat: any) => (
-                                                <div
-                                                  key={seat.id}
-                                                  className={`
+                                              [...row.seats]
+                                                .sort((a: any, b: any) =>
+                                                  naturalSort(
+                                                    a.seatNumber || "",
+                                                    b.seatNumber || ""
+                                                  )
+                                                )
+                                                .map((seat: any) => (
+                                                  <div
+                                                    key={seat.id}
+                                                    className={`
                                               px-2 py-1 text-xs border rounded
                                               ${getSeatStatusColor(seat.status)}
                                             `}
-                                                  title={`${seat.seatNumber} - ${seat.status}`}
-                                                >
-                                                  {seat.seatNumber}
-                                                </div>
-                                              ))}
+                                                    title={`${seat.seatNumber} - ${seat.status}`}
+                                                  >
+                                                    {seat.seatNumber}
+                                                  </div>
+                                                ))}
                                           </div>
                                         </div>
-                                      )
-                                    )}
+                                      ))}
                                   </div>
                                 ) : (
                                   <p className="text-sm text-muted-foreground">
@@ -486,6 +561,17 @@ export default function Venues() {
           )}
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        open={confirmDialogOpen}
+        onOpenChange={setConfirmDialogOpen}
+        title="Delete Venue"
+        description="Are you sure you want to delete this venue? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        onConfirm={confirmDelete}
+        variant="destructive"
+      />
     </div>
   );
 }
