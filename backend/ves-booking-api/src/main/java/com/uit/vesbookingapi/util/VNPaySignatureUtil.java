@@ -2,7 +2,6 @@ package com.uit.vesbookingapi.util;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
-import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
@@ -49,11 +48,14 @@ public class VNPaySignatureUtil {
     }
 
     /**
-     * Build hash data string from parameters (sorted alphabetically, URL-encoded values)
-     * Used for signature generation - matches VNPay example pattern
+     * Build hash data string from parameters (sorted alphabetically, RAW values - NO URL encoding)
+     * Used for signature generation - VNPay requires RAW values (not URL-encoded) for hashing
+     *
+     * - Hash data: Use RAW values (fieldName=rawValue)
+     * - URL query: Use URL-encoded values (URLEncoder.encode(fieldName)=URLEncoder.encode(fieldValue))
      *
      * @param params Map of parameters
-     * @return Sorted hash data string (fieldName=URLEncoded(fieldValue)&fieldName2=URLEncoded(fieldValue2)...)
+     * @return Sorted hash data string (fieldName=rawValue&fieldName2=rawValue2...) - NO encoding
      */
     public static String buildHashData(Map<String, String> params) {
         // Sort parameters alphabetically (matching VNPay example)
@@ -66,10 +68,10 @@ public class VNPaySignatureUtil {
             String fieldName = itr.next();
             String fieldValue = params.get(fieldName);
             if (fieldValue != null && !fieldValue.isEmpty()) {
-                // Build hash data: fieldName=URLEncoded(fieldValue)
+                // Build hash data: fieldName=rawValue (NO URL encoding for signature!)
                 hashData.append(fieldName);
                 hashData.append('=');
-                hashData.append(URLEncoder.encode(fieldValue, StandardCharsets.US_ASCII));
+                hashData.append(fieldValue); // RAW value, NOT encoded
                 // Add & only if there are more fields (matching VNPay example pattern)
                 if (itr.hasNext()) {
                     hashData.append('&');

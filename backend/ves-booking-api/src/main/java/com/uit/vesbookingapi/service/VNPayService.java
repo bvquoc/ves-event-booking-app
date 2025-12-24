@@ -79,8 +79,8 @@ public class VNPayService {
                 vnpTxnRef, vnpOrderInfo, config.getLocale(), config.getReturnUrl(),
                 clientIp, vnpCreateDate, vnpExpireDate);
 
-        // Build hash data (sorted alphabetically, URL-encoded values) for signature
-        // IMPORTANT: Hash data must use URL-encoded values (as per VNPay example)
+        // Build hash data (sorted alphabetically, RAW values - NO URL encoding) for signature
+        // Hash data must use RAW values (fieldName=rawValue), NOT URL-encoded
         String hashData = VNPaySignatureUtil.buildHashData(vnpParams);
         log.info("VNPay hash data (for signature): {}", hashData);
         log.debug("Hash data length: {}", hashData.length());
