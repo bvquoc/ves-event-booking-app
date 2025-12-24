@@ -68,7 +68,13 @@ public class VNPayService {
         vnpParams.put("vnp_OrderInfo", vnpOrderInfo);
         vnpParams.put("vnp_OrderType", "other");  // Default order type
         vnpParams.put("vnp_Locale", config.getLocale());
-        vnpParams.put("vnp_ReturnUrl", config.getReturnUrl());
+        // Normalize return URL to prevent signature mismatch (remove trailing slash if present)
+        String returnUrl = config.getReturnUrl();
+        if (returnUrl != null && returnUrl.endsWith("/") && returnUrl.length() > 1) {
+            returnUrl = returnUrl.substring(0, returnUrl.length() - 1);
+            log.debug("Normalized return URL (removed trailing slash): {}", returnUrl);
+        }
+        vnpParams.put("vnp_ReturnUrl", returnUrl);
         vnpParams.put("vnp_IpAddr", clientIp);
         vnpParams.put("vnp_CreateDate", vnpCreateDate);
         vnpParams.put("vnp_ExpireDate", vnpExpireDate);
@@ -85,16 +91,29 @@ public class VNPayService {
         log.info("VNPay hash data (for signature): {}", hashData);
         log.debug("Hash data length: {}", hashData.length());
 
+        // Validate secret key (check for spaces/newlines that might cause issues)
+        String hashSecret = config.getHashSecret();
+        if (hashSecret == null || hashSecret.trim().isEmpty()) {
+            throw new RuntimeException("VNPay hash secret is null or empty");
+        }
+        // Log key info (first/last chars only for security)
+        log.debug("VNPay hash secret length: {}, starts with: {}, ends with: {}",
+                hashSecret.length(),
+                hashSecret.length() > 0 ? hashSecret.substring(0, Math.min(4, hashSecret.length())) : "N/A",
+                hashSecret.length() > 0 ? hashSecret.substring(Math.max(0, hashSecret.length() - 4)) : "N/A");
+        
         // Generate secure hash (key first, data second - matching VNPay example)
-        String vnpSecureHash = VNPaySignatureUtil.hmacSHA512(config.getHashSecret(), hashData);
+        String vnpSecureHash = VNPaySignatureUtil.hmacSHA512(hashSecret.trim(), hashData);
         log.info("VNPay secure hash: {}", vnpSecureHash);
         log.debug("Secure hash length: {}", vnpSecureHash.length());
 
         // Build final payment URL with URL encoding
+        // IMPORTANT: Encode each value separately (NOT the full query string)
+        // IMPORTANT: Do NOT encode vnp_SecureHash
         StringBuilder paymentUrl = new StringBuilder(config.getPayUrl());
         StringBuilder queryUrl = new StringBuilder();
 
-        // Add all parameters with URL encoding
+        // Add all parameters with URL encoding (encode each key and value separately)
         TreeMap<String, String> sortedParams = new TreeMap<>(vnpParams);
         log.debug("Building query URL with {} parameters", sortedParams.size());
         
@@ -103,6 +122,7 @@ public class VNPayService {
                 if (queryUrl.length() > 0) {
                     queryUrl.append("&");
                 }
+                // Encode key and value separately (matching VNPay example)
                 String encodedKey = URLEncoder.encode(entry.getKey(), StandardCharsets.US_ASCII);
                 String encodedValue = URLEncoder.encode(entry.getValue(), StandardCharsets.US_ASCII);
                 queryUrl.append(encodedKey).append("=").append(encodedValue);
@@ -110,6 +130,7 @@ public class VNPayService {
                         entry.getKey(), entry.getValue(), encodedKey, encodedValue);
             }
         }
+        // Append vnp_SecureHash WITHOUT encoding (critical - must not encode the hash)
         queryUrl.append("&vnp_SecureHash=").append(vnpSecureHash);
 
         paymentUrl.append("?").append(queryUrl);
@@ -118,6 +139,27 @@ public class VNPayService {
         log.info("VNPay payment URL generated: orderId={}, txnRef={}, amount={}, urlLength={}",
                 order.getId(), vnpTxnRef, vnpAmount, finalUrl.length());
         log.debug("Full payment URL: {}", finalUrl);
+
+        // Verify data consistency: ensure values in URL match values used for hash
+        // This is critical - any difference (trailing slash, encoding, etc.) will cause signature mismatch
+        log.info("Data consistency check - Hash data used: {}", hashData);
+        log.debug("Return URL in params (used for hash): {}", vnpParams.get("vnp_ReturnUrl"));
+
+        // Validate that return URL matches exactly (no trailing slash differences)
+        String returnUrlInParams = vnpParams.get("vnp_ReturnUrl");
+        String returnUrlInConfig = config.getReturnUrl();
+        if (returnUrlInParams != null && returnUrlInConfig != null) {
+            // Normalize both for comparison (remove trailing slash)
+            String normalizedParams = returnUrlInParams.endsWith("/") && returnUrlInParams.length() > 1
+                    ? returnUrlInParams.substring(0, returnUrlInParams.length() - 1) : returnUrlInParams;
+            String normalizedConfig = returnUrlInConfig.endsWith("/") && returnUrlInConfig.length() > 1
+                    ? returnUrlInConfig.substring(0, returnUrlInConfig.length() - 1) : returnUrlInConfig;
+
+            if (!normalizedParams.equals(normalizedConfig)) {
+                log.warn("WARNING: Return URL mismatch detected! Params: {}, Config: {}",
+                        returnUrlInParams, returnUrlInConfig);
+            }
+        }
 
         return VNPayPaymentResponse.builder()
                 .paymentUrl(paymentUrl.toString())
