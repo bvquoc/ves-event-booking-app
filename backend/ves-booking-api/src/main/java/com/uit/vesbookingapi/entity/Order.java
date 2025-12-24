@@ -65,7 +65,7 @@ public class Order {
     @Column(name = "payment_method")
     PaymentMethod paymentMethod;
 
-    @Column(name = "payment_url")
+    @Column(name = "payment_url", length = 2000)
     String paymentUrl;
 
     @Column(name = "expires_at")
