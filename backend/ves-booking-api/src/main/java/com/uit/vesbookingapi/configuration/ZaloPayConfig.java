@@ -20,6 +20,17 @@ public class ZaloPayConfig {
     String callbackUrl;
     int paymentTimeoutMinutes = 15;
 
+    /**
+     * Get app_id as Integer (ZaloPay expects Int type)
+     */
+    public Integer getAppIdAsInt() {
+        try {
+            return Integer.parseInt(appId);
+        } catch (NumberFormatException e) {
+            throw new RuntimeException("ZaloPay app_id must be a valid integer: " + appId, e);
+        }
+    }
+
     // Ensure key1 and key2 are trimmed (no whitespace)
     public void setKey1(String key1) {
         this.key1 = key1 != null ? key1.trim() : null;

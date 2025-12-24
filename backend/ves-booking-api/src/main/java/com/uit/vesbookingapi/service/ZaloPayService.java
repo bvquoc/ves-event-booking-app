@@ -82,10 +82,21 @@ public class ZaloPayService {
         // CRITICAL: Build signature data using EXACT values that will be sent in request
         // Format: app_id|app_trans_id|app_user|amount|app_time|embed_data|item
         // All values must match EXACTLY what's in the request params (same strings, same format)
-        // IMPORTANT: Use the exact same string representations as will be sent in the form data
-        String appIdStr = String.valueOf(config.getAppId()); // Ensure string format
-        String amountStr = String.valueOf(order.getTotal());  // Amount as string (no decimals)
-        String appTimeStr = String.valueOf(appTime);          // Timestamp as string
+        // IMPORTANT: ZaloPay expects:
+        //   - app_id: Int (convert to string for form data and signature)
+        //   - amount: Long (convert to string for form data and signature)
+        //   - app_time: Long (convert to string for form data and signature)
+
+        // Parse app_id as Integer to ensure it's valid, then convert to string
+        Integer appIdInt = config.getAppIdAsInt();
+        String appIdStr = String.valueOf(appIdInt);  // Int -> String (no leading zeros)
+
+        // Convert amount and app_time to Long, then to string
+        Long amountLong = Long.valueOf(order.getTotal());
+        String amountStr = String.valueOf(amountLong);  // Long -> String
+
+        Long appTimeLong = Long.valueOf(appTime);
+        String appTimeStr = String.valueOf(appTimeLong);  // Long -> String
         
         // Build signature data - use exact same string values as request
         // Note: embed_data and item are JSON strings - use them as-is (raw, not URL-encoded)
@@ -94,8 +105,8 @@ public class ZaloPayService {
                 appIdStr,
                 appTransId,
                 appUser,
-                order.getTotal(),
-                appTime,
+                amountLong,
+                appTimeLong,
                 embedData,
                 item
         );
@@ -103,15 +114,20 @@ public class ZaloPayService {
         // Generate MAC using key1
         // CRITICAL: The signature data string must match EXACTLY what ZaloPay receives
         // ZaloPay will URL-decode the form parameters before verifying the signature
+        // Verify key1 is not null/empty
+        if (config.getKey1() == null || config.getKey1().trim().isEmpty()) {
+            log.error("ZaloPay key1 is null or empty! Check your configuration.");
+            throw new RuntimeException("ZaloPay key1 is not configured");
+        }
         String mac = ZaloPaySignatureUtil.generateSignature(signatureData, config.getKey1());
 
         // Log signature components for debugging
         log.info("=== Signature Components ===");
-        log.info("AppId: '{}' (length: {})", appIdStr, appIdStr.length());
+        log.info("AppId: '{}' (Int: {}, length: {})", appIdStr, appIdInt, appIdStr.length());
         log.info("AppTransId: '{}' (length: {})", appTransId, appTransId.length());
         log.info("AppUser: '{}' (length: {})", appUser, appUser.length());
-        log.info("Amount: '{}' (value: {}, length: {})", amountStr, order.getTotal(), amountStr.length());
-        log.info("AppTime: '{}' (value: {}, length: {})", appTimeStr, appTime, appTimeStr.length());
+        log.info("Amount: '{}' (Long: {}, length: {})", amountStr, amountLong, amountStr.length());
+        log.info("AppTime: '{}' (Long: {}, length: {})", appTimeStr, appTimeLong, appTimeStr.length());
         log.info("EmbedData: '{}' (length: {})", embedData, embedData.length());
         log.info("Item: '{}' (length: {})", item, item.length());
         log.info("Full Signature Data: '{}' (length: {})", signatureData, signatureData.length());
@@ -121,13 +137,14 @@ public class ZaloPayService {
                 config.getKey1() != null ? config.getKey1().length() : 0);
         log.info("Generated MAC: '{}' (length: {})", mac, mac.length());
 
-        // Build request
+        // Build request - ensure data types match ZaloPay expectations
+        // Form data is always sent as strings, but values must represent correct types
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-        params.add("app_id", config.getAppId());
+        params.add("app_id", appIdStr);  // Int as string
         params.add("app_trans_id", appTransId);
         params.add("app_user", appUser);  // Use username instead of UUID
-        params.add("amount", String.valueOf(order.getTotal()));
-        params.add("app_time", String.valueOf(appTime));
+        params.add("amount", amountStr);  // Long as string
+        params.add("app_time", appTimeStr);  // Long as string
         params.add("embed_data", embedData);
         params.add("item", item);
         params.add("description", "VES Booking - Order #" + order.getId());
@@ -150,17 +167,28 @@ public class ZaloPayService {
             headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
             HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(params, headers);
 
-            // Log the actual form data that will be sent (for debugging)
+            // Log the actual form data that will be sent (for debugging MAC issues)
+            // Note: RestTemplate will URL-encode special characters in the values
             StringBuilder formData = new StringBuilder();
             params.forEach((key, values) -> {
                 if (formData.length() > 0) formData.append("&");
                 formData.append(key).append("=");
                 if (values != null && !values.isEmpty()) {
-                    // Show first value (URL-encoded by RestTemplate)
-                    formData.append(values.get(0));
+                    // Show first value (will be URL-encoded by RestTemplate when sent)
+                    String value = values.get(0);
+                    // For JSON values, show both raw and what it will look like URL-encoded
+                    if (key.equals("embed_data") || key.equals("item")) {
+                        try {
+                            String urlEncoded = java.net.URLEncoder.encode(value, java.nio.charset.StandardCharsets.UTF_8);
+                            log.info("Form param {}: raw='{}', urlEncoded='{}'", key, value, urlEncoded);
+                        } catch (Exception e) {
+                            // Ignore
+                        }
+                    }
+                    formData.append(value);
                 }
             });
-            log.debug("Form data to be sent: {}", formData.toString());
+            log.info("Complete form data (before URL encoding): {}", formData.toString());
 
             log.info("Sending request to ZaloPay API...");
             ResponseEntity<ZaloPayCreateResponse> response = restTemplate.postForEntity(
@@ -350,19 +378,21 @@ public class ZaloPayService {
         try {
             // Build item array as per ZaloPay format
             // Format: [{"name":"...", "quantity":..., "price":...}]
-            // Use LinkedHashMap to ensure consistent field order for signature
+            // CRITICAL: Field order matters for signature - use LinkedHashMap
             java.util.LinkedHashMap<String, Object> itemObj = new java.util.LinkedHashMap<>();
             itemObj.put("name", order.getTicketType().getName());
             itemObj.put("quantity", order.getQuantity());
             itemObj.put("price", order.getTicketType().getPrice());
 
             Object[] itemArray = new Object[]{itemObj};
-            // Use compact JSON (no pretty printing) to match ZaloPay expectations
+            // Use compact JSON (no pretty printing, no spaces) to match ZaloPay expectations
+            // ObjectMapper by default produces compact JSON without spaces
             String json = objectMapper.writer().writeValueAsString(itemArray);
             log.debug("Item JSON: {}", json);
             return json;
         } catch (JsonProcessingException e) {
             log.error("Failed to build item JSON: {}", e.getMessage());
+            // Fallback: return empty array
             return "[]";
         }
     }
@@ -371,18 +401,19 @@ public class ZaloPayService {
         try {
             // Build embed_data as per ZaloPay format
             // Format: {"orderId":"...", "eventId":"...", "redirecturl":"..."}
-            // Use LinkedHashMap to ensure consistent field order for signature
+            // CRITICAL: Field order matters for signature - use LinkedHashMap
             java.util.LinkedHashMap<String, Object> embedDataObj = new java.util.LinkedHashMap<>();
             embedDataObj.put("orderId", order.getId());
             embedDataObj.put("eventId", order.getEvent().getId());
             embedDataObj.put("redirecturl", "https://ves-booking.io.vn/orders/" + order.getId());
 
-            // Use compact JSON (no pretty printing) to match ZaloPay expectations
+            // Use compact JSON (no pretty printing, no spaces) to match ZaloPay expectations
             String json = objectMapper.writer().writeValueAsString(embedDataObj);
             log.debug("EmbedData JSON: {}", json);
             return json;
         } catch (JsonProcessingException e) {
             log.error("Failed to build embed_data JSON: {}", e.getMessage());
+            // Fallback: return empty object
             return "{}";
         }
     }
