@@ -224,28 +224,28 @@ export default function Orders() {
               <Label className="text-xs text-muted-foreground mb-1 block">
                 Status
               </Label>
-              <Select
-                value={statusFilter}
-                onChange={(e) => {
-                  setStatusFilter(
-                    e.target.value as
-                      | "PENDING"
-                      | "COMPLETED"
-                      | "CANCELLED"
-                      | "EXPIRED"
-                      | "REFUNDED"
-                      | ""
-                  );
-                  setPage(0);
-                }}
-              >
-                <option value="">All Statuses</option>
-                <option value="PENDING">Pending</option>
-                <option value="COMPLETED">Completed</option>
-                <option value="CANCELLED">Cancelled</option>
-                <option value="EXPIRED">Expired</option>
-                <option value="REFUNDED">Refunded</option>
-              </Select>
+            <Select
+              value={statusFilter}
+              onChange={(e) => {
+                setStatusFilter(
+                  e.target.value as
+                    | "PENDING"
+                    | "COMPLETED"
+                    | "CANCELLED"
+                    | "EXPIRED"
+                    | "REFUNDED"
+                    | ""
+                );
+                setPage(0);
+              }}
+            >
+              <option value="">All Statuses</option>
+              <option value="PENDING">Pending</option>
+              <option value="COMPLETED">Completed</option>
+              <option value="CANCELLED">Cancelled</option>
+              <option value="EXPIRED">Expired</option>
+              <option value="REFUNDED">Refunded</option>
+            </Select>
             </div>
             <div>
               <Label className="text-xs text-muted-foreground mb-1 block">
@@ -253,13 +253,13 @@ export default function Orders() {
               </Label>
               <div className="relative">
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Filter by User ID"
-                  value={userIdFilter}
-                  onChange={(e) => {
-                    setUserIdFilter(e.target.value);
-                    setPage(0);
-                  }}
+            <Input
+              placeholder="Filter by User ID"
+              value={userIdFilter}
+              onChange={(e) => {
+                setUserIdFilter(e.target.value);
+                setPage(0);
+              }}
                   className="pl-8"
                 />
               </div>
@@ -270,15 +270,15 @@ export default function Orders() {
               </Label>
               <div className="relative">
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Filter by Event ID"
-                  value={eventIdFilter}
-                  onChange={(e) => {
-                    setEventIdFilter(e.target.value);
-                    setPage(0);
-                  }}
+            <Input
+              placeholder="Filter by Event ID"
+              value={eventIdFilter}
+              onChange={(e) => {
+                setEventIdFilter(e.target.value);
+                setPage(0);
+              }}
                   className="pl-8"
-                />
+            />
               </div>
             </div>
           </div>
@@ -289,8 +289,8 @@ export default function Orders() {
         <CardContent className="p-0">
           <div className="overflow-x-auto w-full">
             <Table className="w-full">
-              <TableHeader>
-                <TableRow>
+            <TableHeader>
+              <TableRow>
                   <TableHead className="min-w-[120px]">Order ID</TableHead>
                   <TableHead className="min-w-[200px]">User</TableHead>
                   <TableHead className="min-w-[180px]">Event</TableHead>
@@ -303,20 +303,20 @@ export default function Orders() {
                   <TableHead className="text-right min-w-[80px]">
                     Actions
                   </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {orders.map((order) => (
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {orders.map((order) => (
                   <TableRow key={order.id} className="hover:bg-muted/50">
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <Package className="h-4 w-4 text-muted-foreground" />
                         <span className="font-mono text-xs font-semibold">
-                          {order.id.substring(0, 8)}...
+                    {order.id.substring(0, 8)}...
                         </span>
                       </div>
-                    </TableCell>
-                    <TableCell>
+                  </TableCell>
+                  <TableCell>
                       <div className="flex items-center gap-3">
                         <Avatar className="h-8 w-8">
                           <AvatarImage
@@ -331,31 +331,31 @@ export default function Orders() {
                               .toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
-                        <div>
-                          <div className="font-medium">
-                            {order.user.fullName || order.user.username}
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            {order.user.email}
-                          </div>
-                        </div>
+                    <div>
+                      <div className="font-medium">
+                        {order.user.fullName || order.user.username}
                       </div>
-                    </TableCell>
-                    <TableCell className="font-medium">
-                      {order.event.name}
-                    </TableCell>
+                      <div className="text-xs text-muted-foreground">
+                        {order.user.email}
+                          </div>
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell className="font-medium">
+                    {order.event.name}
+                  </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <Tag className="h-3 w-3 text-muted-foreground" />
                         <span>{order.ticketType.name}</span>
                       </div>
                     </TableCell>
-                    <TableCell>
+                  <TableCell>
                       <Badge variant="secondary" className="font-semibold">
                         {order.quantity}
                       </Badge>
-                    </TableCell>
-                    <TableCell>
+                  </TableCell>
+                  <TableCell>
                       <div className="font-semibold text-primary">
                         {formatCurrency(order.total)}
                       </div>
@@ -366,29 +366,29 @@ export default function Orders() {
                         <CreditCard className="h-4 w-4 text-muted-foreground" />
                         <span className="text-sm">{order.paymentMethod}</span>
                       </div>
-                    </TableCell>
-                    <TableCell>
+                  </TableCell>
+                  <TableCell>
                       <div className="flex items-center gap-2 text-sm">
                         <Calendar className="h-4 w-4 text-muted-foreground" />
                         <span>
-                          {format(new Date(order.createdAt), "MMM dd, yyyy")}
+                    {format(new Date(order.createdAt), "MMM dd, yyyy")}
                         </span>
                       </div>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleView(order.id)}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleView(order.id)}
                         title="View Details"
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
           </div>
         </CardContent>
       </Card>
@@ -577,7 +577,7 @@ export default function Orders() {
                 </h3>
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
+                <div>
                       <Label className="text-xs text-muted-foreground">
                         Ticket Type
                       </Label>
@@ -585,24 +585,24 @@ export default function Orders() {
                         <Tag className="h-4 w-4 text-muted-foreground" />
                         <p className="font-medium break-words">
                           {selectedOrder.ticketType.name}
-                        </p>
-                      </div>
-                    </div>
-                    <div>
+                  </p>
+                </div>
+                </div>
+                <div>
                       <Label className="text-xs text-muted-foreground">
                         Quantity
                       </Label>
                       <p className="font-semibold">{selectedOrder.quantity}</p>
                     </div>
-                  </div>
+                </div>
 
                   <div className="border-t pt-4 space-y-2">
                     <div className="flex justify-between items-center">
                       <Label className="text-sm">Subtotal</Label>
                       <p className="font-medium">
                         {formatCurrency(selectedOrder.subtotal)}
-                      </p>
-                    </div>
+                  </p>
+                </div>
                     {selectedOrder.discount > 0 && (
                       <div className="flex justify-between items-center text-green-600">
                         <Label className="text-sm flex items-center gap-1">
@@ -616,18 +616,18 @@ export default function Orders() {
                         </Label>
                         <p className="font-medium">
                           -{formatCurrency(selectedOrder.discount)}
-                        </p>
-                      </div>
+                  </p>
+                </div>
                     )}
                     <div className="flex justify-between items-center pt-2 border-t">
                       <Label className="text-base font-semibold">Total</Label>
                       <p className="text-lg font-bold text-primary">
                         {formatCurrency(selectedOrder.total)}
-                      </p>
-                    </div>
-                  </div>
+                  </p>
                 </div>
-              </div>
+                </div>
+                </div>
+                </div>
 
               {/* Timestamps */}
               <div className="border rounded-lg p-4">
@@ -644,9 +644,9 @@ export default function Orders() {
                       <Calendar className="h-3 w-3 text-muted-foreground" />
                       {format(new Date(selectedOrder.createdAt), "PPpp")}
                     </p>
-                  </div>
-                  {selectedOrder.expiresAt && (
-                    <div>
+                </div>
+                {selectedOrder.expiresAt && (
+                  <div>
                       <Label className="text-xs text-muted-foreground">
                         Expires At
                       </Label>
@@ -654,19 +654,19 @@ export default function Orders() {
                         <Clock className="h-3 w-3 text-muted-foreground" />
                         {format(new Date(selectedOrder.expiresAt), "PPpp")}
                       </p>
-                    </div>
-                  )}
-                  {selectedOrder.completedAt && (
-                    <div>
+                  </div>
+                )}
+                {selectedOrder.completedAt && (
+                  <div>
                       <Label className="text-xs text-muted-foreground">
-                        Completed At
-                      </Label>
+                      Completed At
+                    </Label>
                       <p className="flex items-center gap-1">
                         <CheckCircle2 className="h-3 w-3 text-green-600" />
                         {format(new Date(selectedOrder.completedAt), "PPpp")}
                       </p>
-                    </div>
-                  )}
+                  </div>
+                )}
                 </div>
                 {selectedOrder.paymentUrl && (
                   <div className="mt-4 pt-4 border-t">

@@ -20,7 +20,19 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus, Edit, Trash2, Eye, Search, X, Heart } from "lucide-react";
+import {
+  Plus,
+  Edit,
+  Trash2,
+  Eye,
+  Search,
+  X,
+  Heart,
+  Clock,
+  CheckCircle2,
+  XCircle,
+  AlertCircle,
+} from "lucide-react";
 import { format } from "date-fns";
 import {
   Dialog,
@@ -39,6 +51,7 @@ import { venueApi, VenueSeatingResponse, favoriteApi } from "@/lib/api";
 import { usePermissions } from "@/hooks/usePermissions";
 import { showError, showSuccess, showWarning } from "@/lib/errorHandler";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { Badge } from "@/components/ui/badge";
 
 export default function Events() {
   const { canManageEvents, isAdmin } = usePermissions();
@@ -55,6 +68,7 @@ export default function Events() {
   const [trendingFilter, setTrendingFilter] = useState<boolean | undefined>(
     undefined
   );
+  const [statusFilter, setStatusFilter] = useState<string>("");
 
   // Reference data
   const [categories, setCategories] = useState<CategoryResponse[]>([]);
@@ -125,7 +139,14 @@ export default function Events() {
   useEffect(() => {
     loadEvents();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, categoryFilter, cityFilter, trendingFilter, searchQuery]);
+  }, [
+    page,
+    categoryFilter,
+    cityFilter,
+    trendingFilter,
+    searchQuery,
+    statusFilter,
+  ]);
 
   const loadReferenceData = async () => {
     try {
@@ -167,6 +188,7 @@ export default function Events() {
       if (categoryFilter) params.category = categoryFilter;
       if (cityFilter) params.city = cityFilter;
       if (trendingFilter !== undefined) params.trending = trendingFilter;
+      if (statusFilter) params.status = statusFilter;
 
       const response = await eventApi.getEvents(params);
 
@@ -368,6 +390,62 @@ export default function Events() {
 
     // Future event: hasn't started yet
     return "future";
+  };
+
+  const getStatusBadge = (status?: string) => {
+    if (!status) return null;
+
+    switch (status) {
+      case "UPCOMING":
+        return (
+          <Badge
+            variant="outline"
+            className="bg-blue-50 text-blue-700 border-blue-200"
+          >
+            <Clock className="h-3 w-3 mr-1" />
+            Upcoming
+          </Badge>
+        );
+      case "ONGOING":
+        return (
+          <Badge
+            variant="outline"
+            className="bg-green-50 text-green-700 border-green-200"
+          >
+            <CheckCircle2 className="h-3 w-3 mr-1" />
+            Ongoing
+          </Badge>
+        );
+      case "COMPLETED":
+        return (
+          <Badge
+            variant="outline"
+            className="bg-gray-50 text-gray-700 border-gray-200"
+          >
+            <CheckCircle2 className="h-3 w-3 mr-1" />
+            Completed
+          </Badge>
+        );
+      case "CANCELLED":
+        return (
+          <Badge
+            variant="outline"
+            className="bg-red-50 text-red-700 border-red-200"
+          >
+            <XCircle className="h-3 w-3 mr-1" />
+            Cancelled
+          </Badge>
+        );
+      default:
+        return (
+          <Badge
+            variant="outline"
+            className="bg-gray-50 text-gray-700 border-gray-200"
+          >
+            {status}
+          </Badge>
+        );
+    }
   };
 
   const getEventRowColor = (event: EventResponse): string => {
@@ -605,6 +683,19 @@ export default function Events() {
               <option value="true">Trending Only</option>
               <option value="false">Non-Trending</option>
             </Select>
+            <Select
+              value={statusFilter}
+              onChange={(e) => {
+                setStatusFilter(e.target.value);
+                setPage(0);
+              }}
+            >
+              <option value="">All Statuses</option>
+              <option value="UPCOMING">Upcoming</option>
+              <option value="ONGOING">Ongoing</option>
+              <option value="COMPLETED">Completed</option>
+              <option value="CANCELLED">Cancelled</option>
+            </Select>
           </div>
         </CardContent>
       </Card>
@@ -619,6 +710,7 @@ export default function Events() {
                 <TableHead>Category</TableHead>
                 <TableHead>City</TableHead>
                 <TableHead>Start Date</TableHead>
+                <TableHead>Status</TableHead>
                 <TableHead>Price Range</TableHead>
                 <TableHead>Available</TableHead>
                 {!isAdmin() && <TableHead className="w-16">Favorite</TableHead>}
@@ -663,6 +755,7 @@ export default function Events() {
                       ? format(new Date(event.startDate), "MMM dd, yyyy")
                       : "-"}
                   </TableCell>
+                  <TableCell>{getStatusBadge(event.status)}</TableCell>
                   <TableCell>
                     {event.minPrice && event.maxPrice
                       ? `${event.minPrice} - ${event.maxPrice} ${

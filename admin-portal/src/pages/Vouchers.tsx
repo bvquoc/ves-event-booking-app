@@ -180,7 +180,7 @@ export default function Vouchers() {
                         <div className="flex items-center gap-2">
                           <Tag className="h-4 w-4 text-muted-foreground" />
                           <span className="font-mono font-semibold text-primary">
-                            {voucher.code}
+                        {voucher.code}
                           </span>
                         </div>
                       </TableCell>
@@ -204,7 +204,7 @@ export default function Vouchers() {
                               <span>{voucher.discountValue}%</span>
                             </span>
                           )}
-                          {voucher.maxDiscount &&
+                        {voucher.maxDiscount &&
                             voucher.discountType === "PERCENTAGE" && (
                               <span className="text-xs text-muted-foreground">
                                 (max {voucher.maxDiscount})
@@ -233,7 +233,7 @@ export default function Vouchers() {
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <span className="px-2 py-1 text-xs font-semibold bg-muted text-muted-foreground rounded">
-                            {voucher.usedCount || 0} / {voucher.usageLimit || "∞"}
+                        {voucher.usedCount || 0} / {voucher.usageLimit || "∞"}
                           </span>
                         </div>
                       </TableCell>
@@ -245,7 +245,7 @@ export default function Vouchers() {
                         <div className="flex items-center gap-2">
                           <Tag className="h-4 w-4 text-muted-foreground" />
                           <span className="font-mono font-semibold text-primary">
-                            {uv.voucher.code}
+                        {uv.voucher.code}
                           </span>
                         </div>
                       </TableCell>
@@ -415,7 +415,7 @@ export default function Vouchers() {
                   )}
                   <p className="font-semibold text-lg">
                     {validationResult.isValid ? "Valid Voucher" : "Invalid Voucher"}
-                  </p>
+                </p>
                 </div>
                 <p className="text-sm mb-3">{validationResult.message}</p>
                 {validationResult.isValid && validationResult.voucher && (
@@ -429,18 +429,18 @@ export default function Vouchers() {
                         <span className="text-muted-foreground">Discount:</span>
                         <p className="font-semibold text-green-600">
                           -{validationResult.discountAmount} (
-                          {getDiscountTypeLabel(
-                            validationResult.voucher.discountType
-                          )}
-                          )
-                        </p>
+                      {getDiscountTypeLabel(
+                        validationResult.voucher.discountType
+                      )}
+                      )
+                    </p>
                       </div>
                     </div>
                     <div className="pt-2 border-t">
                       <span className="text-muted-foreground text-sm">Final Amount:</span>
                       <p className="font-bold text-lg text-primary">
                         {validationResult.finalAmount}
-                      </p>
+                    </p>
                     </div>
                   </div>
                 )}
