@@ -30,7 +30,6 @@ import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
 
 @Service
 @RequiredArgsConstructor
@@ -80,10 +79,16 @@ public class ZaloPayService {
         // Use username instead of UUID for app_user (ZaloPay requirement)
         String appUser = order.getUser().getUsername();
 
-        // Build signature data - MUST match exactly what's sent in request
+        // CRITICAL: Build signature data using EXACT values that will be sent in request
         // Format: app_id|app_trans_id|app_user|amount|app_time|embed_data|item
+        // All values must match EXACTLY what's in the request params (same strings, same format)
+        String appIdStr = config.getAppId();
+        String amountStr = String.valueOf(order.getTotal());
+        String appTimeStr = String.valueOf(appTime);
+
+        // Build signature data - use exact same string values as request
         String signatureData = ZaloPaySignatureUtil.buildCreateOrderData(
-                config.getAppId(),
+                appIdStr,
                 appTransId,
                 appUser,
                 order.getTotal(),
@@ -93,11 +98,25 @@ public class ZaloPayService {
         );
 
         // Generate MAC using key1
+        // CRITICAL: The signature data string must match EXACTLY what ZaloPay receives
+        // ZaloPay will URL-decode the form parameters before verifying the signature
         String mac = ZaloPaySignatureUtil.generateSignature(signatureData, config.getKey1());
 
-        // Verify signature data format matches request params exactly
-        log.debug("Signature verification - AppId: {} (from config), AppTransId: {}, AppUser: {}, Amount: {}, AppTime: {}",
-                config.getAppId(), appTransId, appUser, order.getTotal(), appTime);
+        // Log signature components for debugging
+        log.info("=== Signature Components ===");
+        log.info("AppId: '{}' (length: {})", appIdStr, appIdStr.length());
+        log.info("AppTransId: '{}' (length: {})", appTransId, appTransId.length());
+        log.info("AppUser: '{}' (length: {})", appUser, appUser.length());
+        log.info("Amount: '{}' (value: {}, length: {})", amountStr, order.getTotal(), amountStr.length());
+        log.info("AppTime: '{}' (value: {}, length: {})", appTimeStr, appTime, appTimeStr.length());
+        log.info("EmbedData: '{}' (length: {})", embedData, embedData.length());
+        log.info("Item: '{}' (length: {})", item, item.length());
+        log.info("Full Signature Data: '{}' (length: {})", signatureData, signatureData.length());
+        log.info("Key1 (first 10 chars): '{}...' (length: {})",
+                config.getKey1() != null && config.getKey1().length() > 10
+                        ? config.getKey1().substring(0, 10) : config.getKey1(),
+                config.getKey1() != null ? config.getKey1().length() : 0);
+        log.info("Generated MAC: '{}' (length: {})", mac, mac.length());
 
         // Build request
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
@@ -316,13 +335,15 @@ public class ZaloPayService {
         try {
             // Build item array as per ZaloPay format
             // Format: [{"name":"...", "quantity":..., "price":...}]
-            HashMap<String, Object> itemObj = new HashMap<>();
+            // Use LinkedHashMap to ensure consistent field order for signature
+            java.util.LinkedHashMap<String, Object> itemObj = new java.util.LinkedHashMap<>();
             itemObj.put("name", order.getTicketType().getName());
             itemObj.put("quantity", order.getQuantity());
             itemObj.put("price", order.getTicketType().getPrice());
 
             Object[] itemArray = new Object[]{itemObj};
-            String json = objectMapper.writeValueAsString(itemArray);
+            // Use compact JSON (no pretty printing) to match ZaloPay expectations
+            String json = objectMapper.writer().writeValueAsString(itemArray);
             log.debug("Item JSON: {}", json);
             return json;
         } catch (JsonProcessingException e) {
@@ -335,12 +356,14 @@ public class ZaloPayService {
         try {
             // Build embed_data as per ZaloPay format
             // Format: {"orderId":"...", "eventId":"...", "redirecturl":"..."}
-            HashMap<String, Object> embedDataObj = new HashMap<>();
+            // Use LinkedHashMap to ensure consistent field order for signature
+            java.util.LinkedHashMap<String, Object> embedDataObj = new java.util.LinkedHashMap<>();
             embedDataObj.put("orderId", order.getId());
             embedDataObj.put("eventId", order.getEvent().getId());
             embedDataObj.put("redirecturl", "https://ves-booking.io.vn/orders/" + order.getId());
 
-            String json = objectMapper.writeValueAsString(embedDataObj);
+            // Use compact JSON (no pretty printing) to match ZaloPay expectations
+            String json = objectMapper.writer().writeValueAsString(embedDataObj);
             log.debug("EmbedData JSON: {}", json);
             return json;
         } catch (JsonProcessingException e) {
