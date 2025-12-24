@@ -56,8 +56,20 @@ public class ZaloPayService {
      * Create ZaloPay order and return payment URL
      */
     public ZaloPayCreateResponse createOrder(Order order) {
+        long startTime = System.currentTimeMillis();
         String appTransId = generateAppTransId(order.getId());
         long appTime = System.currentTimeMillis();
+
+        log.info("=== ZaloPay Create Order Request ===");
+        log.info("OrderId={}, AppTransId={}, UserId={}, EventId={}, EventName={}",
+                order.getId(), appTransId, order.getUser().getId(),
+                order.getEvent().getId(), order.getEvent().getName());
+        log.info("TicketType={}, Quantity={}, Subtotal={}, Discount={}, Total={}, Currency={}",
+                order.getTicketType().getName(), order.getQuantity(),
+                order.getSubtotal(), order.getDiscount(), order.getTotal(), order.getCurrency());
+        if (order.getVoucher() != null) {
+            log.info("Voucher={}, VoucherCode={}", order.getVoucher().getId(), order.getVoucher().getCode());
+        }
 
         // Build item JSON (simplified)
         String item = buildItemJson(order);
@@ -92,7 +104,10 @@ public class ZaloPayService {
         params.add("callback_url", config.getCallbackUrl());
         params.add("mac", mac);
 
-        log.info("Creating ZaloPay order: appTransId={}, amount={}", appTransId, order.getTotal());
+        log.info("ZaloPay Request Details: URL={}, AppId={}, AppTime={}, CallbackUrl={}",
+                config.getCreateOrderUrl(), config.getAppId(), appTime, config.getCallbackUrl());
+        log.debug("ZaloPay Request Params: {}", params);
+        log.debug("SignatureData={}, MAC={}", signatureData, mac);
 
         // Log request
         logAudit(order.getId(), appTransId, "CREATE_ORDER", null, params.toString());
@@ -102,15 +117,27 @@ public class ZaloPayService {
             headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
             HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(params, headers);
 
+            log.info("Sending request to ZaloPay API...");
             ResponseEntity<ZaloPayCreateResponse> response = restTemplate.postForEntity(
                     config.getCreateOrderUrl(),
                     request,
                     ZaloPayCreateResponse.class
             );
 
+            long duration = System.currentTimeMillis() - startTime;
             ZaloPayCreateResponse result = response.getBody();
-            log.info("ZaloPay response: returnCode={}, orderUrl={}",
-                    result.getReturnCode(), result.getOrderUrl());
+
+            log.info("=== ZaloPay Create Order Response ===");
+            log.info("OrderId={}, AppTransId={}, Duration={}ms", order.getId(), appTransId, duration);
+            log.info("ReturnCode={}, ReturnMessage={}, SubReturnCode={}, SubReturnMessage={}",
+                    result.getReturnCode(), result.getReturnMessage(),
+                    result.getSubReturnCode(), result.getSubReturnMessage());
+            log.info("OrderUrl={}, ZpTransToken={}, OrderToken={}",
+                    result.getOrderUrl(), result.getZpTransToken(), result.getOrderToken());
+            if (result.getQrCode() != null) {
+                log.info("QrCode={}", result.getQrCode());
+            }
+            log.info("HTTP Status: {}", response.getStatusCode());
 
             // Save transaction record
             saveTransaction(order, appTransId, PaymentTransactionType.CREATE,
@@ -118,10 +145,21 @@ public class ZaloPayService {
                     result.getReturnCode(), result.getReturnMessage(),
                     params.toString(), toJson(result));
 
+            if (result.getReturnCode() != 1) {
+                log.warn("ZaloPay returned non-success code: OrderId={}, AppTransId={}, ReturnCode={}, Message={}",
+                        order.getId(), appTransId, result.getReturnCode(), result.getReturnMessage());
+            }
+
             return result;
 
         } catch (Exception e) {
-            log.error("ZaloPay create order failed: {}", e.getMessage(), e);
+            long duration = System.currentTimeMillis() - startTime;
+            log.error("=== ZaloPay Create Order Failed ===");
+            log.error("OrderId={}, AppTransId={}, Duration={}ms", order.getId(), appTransId, duration);
+            log.error("ErrorType={}, ErrorMessage={}", e.getClass().getSimpleName(), e.getMessage());
+            log.error("Request URL={}, Request Params={}", config.getCreateOrderUrl(), params);
+            log.error("Stack trace:", e);
+            
             saveTransaction(order, appTransId, PaymentTransactionType.CREATE,
                     PaymentTransactionStatus.FAILED, -1, e.getMessage(),
                     params.toString(), null);
@@ -133,6 +171,7 @@ public class ZaloPayService {
      * Query order status
      */
     public ZaloPayQueryResponse queryOrder(String appTransId) {
+        long startTime = System.currentTimeMillis();
         String signatureData = config.getAppId() + "|" + appTransId + "|" + config.getKey1();
         String mac = ZaloPaySignatureUtil.generateSignature(signatureData, config.getKey1());
 
@@ -141,7 +180,10 @@ public class ZaloPayService {
         params.add("app_trans_id", appTransId);
         params.add("mac", mac);
 
-        log.info("Querying ZaloPay order: appTransId={}", appTransId);
+        log.info("=== ZaloPay Query Order Request ===");
+        log.info("AppTransId={}, AppId={}, URL={}", appTransId, config.getAppId(), config.getQueryUrl());
+        log.debug("SignatureData={}, MAC={}", signatureData, mac);
+        log.debug("Request Params: {}", params);
 
         try {
             HttpHeaders headers = new HttpHeaders();
@@ -154,10 +196,31 @@ public class ZaloPayService {
                     ZaloPayQueryResponse.class
             );
 
-            return response.getBody();
+            long duration = System.currentTimeMillis() - startTime;
+            ZaloPayQueryResponse result = response.getBody();
+
+            log.info("=== ZaloPay Query Order Response ===");
+            log.info("AppTransId={}, Duration={}ms, HTTP Status={}", appTransId, duration, response.getStatusCode());
+            if (result != null) {
+                log.info("ReturnCode={}, ReturnMessage={}, IsProcessing={}, Amount={}",
+                        result.getReturnCode(), result.getReturnMessage(),
+                        result.getIsProcessing(), result.getAmount());
+                if (result.getZpTransId() != null) {
+                    log.info("ZpTransId={}", result.getZpTransId());
+                }
+            } else {
+                log.warn("ZaloPay query returned null response for AppTransId={}", appTransId);
+            }
+
+            return result;
 
         } catch (Exception e) {
-            log.error("ZaloPay query failed: appTransId={}, error={}", appTransId, e.getMessage());
+            long duration = System.currentTimeMillis() - startTime;
+            log.error("=== ZaloPay Query Order Failed ===");
+            log.error("AppTransId={}, Duration={}ms", appTransId, duration);
+            log.error("ErrorType={}, ErrorMessage={}", e.getClass().getSimpleName(), e.getMessage());
+            log.error("Request URL={}, Request Params={}", config.getQueryUrl(), params);
+            log.error("Stack trace:", e);
             throw new RuntimeException("Payment gateway query error", e);
         }
     }
@@ -166,7 +229,15 @@ public class ZaloPayService {
      * Request refund
      */
     public ZaloPayRefundResponse refund(Refund refund) {
+        long startTime = System.currentTimeMillis();
         long timestamp = System.currentTimeMillis();
+
+        log.info("=== ZaloPay Refund Request ===");
+        log.info("RefundId={}, MRefundId={}, TicketId={}, OrderId={}",
+                refund.getId(), refund.getMRefundId(), refund.getTicket().getId(),
+                refund.getTicket().getOrder().getId());
+        log.info("ZpTransId={}, Amount={}, RefundStatus={}",
+                refund.getZpTransId(), refund.getAmount(), refund.getStatus());
 
         String signatureData = String.join("|",
                 config.getAppId(),
@@ -186,8 +257,10 @@ public class ZaloPayService {
         params.add("timestamp", String.valueOf(timestamp));
         params.add("mac", mac);
 
-        log.info("Requesting ZaloPay refund: mRefundId={}, amount={}",
-                refund.getMRefundId(), refund.getAmount());
+        log.info("ZaloPay Refund Details: URL={}, AppId={}, Timestamp={}",
+                config.getRefundUrl(), config.getAppId(), timestamp);
+        log.debug("SignatureData={}, MAC={}", signatureData, mac);
+        log.debug("Request Params: {}", params);
 
         try {
             HttpHeaders headers = new HttpHeaders();
@@ -200,11 +273,29 @@ public class ZaloPayService {
                     ZaloPayRefundResponse.class
             );
 
-            return response.getBody();
+            long duration = System.currentTimeMillis() - startTime;
+            ZaloPayRefundResponse result = response.getBody();
+
+            log.info("=== ZaloPay Refund Response ===");
+            log.info("RefundId={}, MRefundId={}, Duration={}ms, HTTP Status={}",
+                    refund.getId(), refund.getMRefundId(), duration, response.getStatusCode());
+            if (result != null) {
+                log.info("ReturnCode={}, ReturnMessage={}, RefundId={}",
+                        result.getReturnCode(), result.getReturnMessage(), result.getRefundId());
+            } else {
+                log.warn("ZaloPay refund returned null response for MRefundId={}", refund.getMRefundId());
+            }
+
+            return result;
 
         } catch (Exception e) {
-            log.error("ZaloPay refund failed: mRefundId={}, error={}",
-                    refund.getMRefundId(), e.getMessage());
+            long duration = System.currentTimeMillis() - startTime;
+            log.error("=== ZaloPay Refund Failed ===");
+            log.error("RefundId={}, MRefundId={}, TicketId={}, Duration={}ms",
+                    refund.getId(), refund.getMRefundId(), refund.getTicket().getId(), duration);
+            log.error("ErrorType={}, ErrorMessage={}", e.getClass().getSimpleName(), e.getMessage());
+            log.error("Request URL={}, Request Params={}", config.getRefundUrl(), params);
+            log.error("Stack trace:", e);
             throw new RuntimeException("Payment gateway refund error", e);
         }
     }
