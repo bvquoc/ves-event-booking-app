@@ -85,8 +85,8 @@ public class VNPayService {
         log.info("VNPay hash data (for signature): {}", hashData);
         log.debug("Hash data length: {}", hashData.length());
 
-        // Generate secure hash
-        String vnpSecureHash = VNPaySignatureUtil.hmacSHA512(hashData, config.getHashSecret());
+        // Generate secure hash (key first, data second - matching VNPay example)
+        String vnpSecureHash = VNPaySignatureUtil.hmacSHA512(config.getHashSecret(), hashData);
         log.info("VNPay secure hash: {}", vnpSecureHash);
         log.debug("Secure hash length: {}", vnpSecureHash.length());
 

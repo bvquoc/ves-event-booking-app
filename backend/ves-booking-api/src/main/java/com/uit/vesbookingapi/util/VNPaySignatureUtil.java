@@ -17,20 +17,31 @@ public class VNPaySignatureUtil {
 
     /**
      * Generate HMAC-SHA512 signature for VNPay
+     * Following VNPay example: hmacSHA512(key, data)
      *
+     * @param secretKey Secret key (vnp_HashSecret) - comes first as per VNPay example
      * @param data      Data string to sign (sorted query string with URL-encoded values)
-     * @param secretKey Secret key (vnp_HashSecret)
-     * @return Hex-encoded signature
+     * @return Hex-encoded signature (lowercase)
      */
-    public static String hmacSHA512(String data, String secretKey) {
+    public static String hmacSHA512(String secretKey, String data) {
         try {
+            if (secretKey == null || data == null) {
+                throw new NullPointerException("Secret key and data cannot be null");
+            }
+            
             Mac mac = Mac.getInstance(ALGORITHM);
-            SecretKeySpec secretKeySpec = new SecretKeySpec(
-                    secretKey.getBytes(StandardCharsets.UTF_8), ALGORITHM
-            );
+            byte[] hmacKeyBytes = secretKey.getBytes(StandardCharsets.UTF_8);
+            SecretKeySpec secretKeySpec = new SecretKeySpec(hmacKeyBytes, ALGORITHM);
             mac.init(secretKeySpec);
-            byte[] hash = mac.doFinal(data.getBytes(StandardCharsets.UTF_8));
-            return bytesToHex(hash);
+            byte[] dataBytes = data.getBytes(StandardCharsets.UTF_8);
+            byte[] result = mac.doFinal(dataBytes);
+
+            // Convert to lowercase hex string (matching VNPay example format)
+            StringBuilder sb = new StringBuilder(2 * result.length);
+            for (byte b : result) {
+                sb.append(String.format("%02x", b & 0xff));
+            }
+            return sb.toString();
         } catch (Exception e) {
             throw new RuntimeException("Failed to generate VNPay signature", e);
         }
@@ -84,20 +95,6 @@ public class VNPaySignatureUtil {
         return query.toString();
     }
 
-    /**
-     * Convert byte array to hex string (lowercase)
-     */
-    private static String bytesToHex(byte[] bytes) {
-        StringBuilder hexString = new StringBuilder();
-        for (byte b : bytes) {
-            String hex = Integer.toHexString(0xff & b);
-            if (hex.length() == 1) {
-                hexString.append('0');
-            }
-            hexString.append(hex);
-        }
-        return hexString.toString();
-    }
 
     /**
      * Verify VNPay signature
@@ -113,8 +110,9 @@ public class VNPaySignatureUtil {
         paramsForHash.remove("vnp_SecureHash");
         paramsForHash.remove("vnp_SecureHashType");
 
-        String queryString = buildQueryString(paramsForHash);
-        String computedHash = hmacSHA512(queryString, secretKey);
+        // Build hash data for verification (same as signature generation)
+        String hashData = buildHashData(paramsForHash);
+        String computedHash = hmacSHA512(secretKey, hashData);
         return computedHash.equals(secureHash);
     }
 }
