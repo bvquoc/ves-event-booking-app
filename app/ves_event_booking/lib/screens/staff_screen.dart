@@ -37,9 +37,12 @@ class StaffScreenState extends State<StaffScreen> {
           ),
           actions: [
             TextButton(
-              onPressed: () {
+              onPressed: () async {
                 Navigator.pop(context);
                 isDialogShowing = false;
+
+                await controller.stop(); // ⭐ stop camera
+                await controller.start(); // ⭐ start lại → cho scan lại cùng QR
               },
               child: const Text('Đóng'),
             ),
