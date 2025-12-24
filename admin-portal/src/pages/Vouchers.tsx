@@ -196,8 +196,7 @@ export default function Vouchers() {
                         <div className="flex items-center gap-2">
                           {voucher.discountType === "FIXED_AMOUNT" ? (
                             <span className="px-2 py-1 text-xs font-semibold bg-blue-100 text-blue-800 rounded flex items-center gap-1">
-                              <span>{voucher.discountValue}</span>
-                              <span className="text-[10px]">{voucher.currency || "VND"}</span>
+                              <span>{voucher.discountValue} đ</span>
                             </span>
                           ) : (
                             <span className="px-2 py-1 text-xs font-semibold bg-purple-100 text-purple-800 rounded flex items-center gap-1">
@@ -262,8 +261,7 @@ export default function Vouchers() {
                         <div className="flex items-center gap-2">
                           {uv.voucher.discountType === "FIXED_AMOUNT" ? (
                             <span className="px-2 py-1 text-xs font-semibold bg-blue-100 text-blue-800 rounded flex items-center gap-1">
-                              <span>{uv.voucher.discountValue}</span>
-                              <span className="text-[10px]">{uv.voucher.currency || "VND"}</span>
+                              <span>{uv.voucher.discountValue} đ</span>
                             </span>
                           ) : (
                             <span className="px-2 py-1 text-xs font-semibold bg-purple-100 text-purple-800 rounded flex items-center gap-1">
