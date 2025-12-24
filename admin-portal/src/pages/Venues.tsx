@@ -20,7 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus, Edit, Trash2, Eye, Settings, X } from "lucide-react";
+import { Plus, Edit, Trash2, Eye, Settings } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -53,7 +53,6 @@ export default function Venues() {
   const [editingVenue, setEditingVenue] = useState<VenueResponse | null>(null);
   const [selectedEventId, setSelectedEventId] = useState("");
   const [seating, setSeating] = useState<VenueSeatingResponse | null>(null);
-  const [loadingSeating, setLoadingSeating] = useState(false);
   const [defaultSeats, setDefaultSeats] = useState<SeatResponse[]>([]);
   const [loadingDefaultSeats, setLoadingDefaultSeats] = useState(false);
   const [formData, setFormData] = useState({
@@ -64,7 +63,8 @@ export default function Venues() {
   });
   // Seat management state
   const [seatManageDialogOpen, setSeatManageDialogOpen] = useState(false);
-  const [venueForSeatManage, setVenueForSeatManage] = useState<VenueResponse | null>(null);
+  const [venueForSeatManage, setVenueForSeatManage] =
+    useState<VenueResponse | null>(null);
   const [seats, setSeats] = useState<SeatResponse[]>([]);
   const [loadingSeats, setLoadingSeats] = useState(false);
   const [seatEditDialogOpen, setSeatEditDialogOpen] = useState(false);
@@ -251,16 +251,19 @@ export default function Venues() {
     if (!venueForSeatManage) return;
 
     try {
-      let response;
       if (editingSeat) {
-        response = await venueApi.updateSeat(venueForSeatManage.id, editingSeat.id, seatFormData);
+        await venueApi.updateSeat(
+          venueForSeatManage.id,
+          editingSeat.id,
+          seatFormData
+        );
         showSuccess("Seat updated successfully");
       } else {
-        response = await venueApi.createSeat(venueForSeatManage.id, seatFormData);
+        await venueApi.createSeat(venueForSeatManage.id, seatFormData);
         showSuccess("Seat created successfully");
       }
       setSeatEditDialogOpen(false);
-      
+
       // Reload seats to get updated list with section/row
       await loadSeats(venueForSeatManage.id);
     } catch (error) {
@@ -289,7 +292,9 @@ export default function Venues() {
       const seatsToCreate: SeatRequest[] = lines.map((line) => {
         const parts = line.split(",").map((p) => p.trim());
         if (parts.length !== 3) {
-          throw new Error(`Invalid format: ${line}. Expected: section,row,seatNumber`);
+          throw new Error(
+            `Invalid format: ${line}. Expected: section,row,seatNumber`
+          );
         }
         return {
           sectionName: parts[0],
@@ -298,18 +303,23 @@ export default function Venues() {
         };
       });
 
-      const response = await venueApi.createBulkSeats(venueForSeatManage.id, seatsToCreate);
+      const response = await venueApi.createBulkSeats(
+        venueForSeatManage.id,
+        seatsToCreate
+      );
       showSuccess(`Created ${seatsToCreate.length} seats successfully`);
       setBulkCreateDialogOpen(false);
       setBulkSeatsData("");
-      
+
       // Use the response data which should include section/row, or reload
       if (response.result && response.result.length > 0) {
         // Check if response includes section/row
-        const hasSectionRow = response.result.some(seat => seat.sectionName || seat.rowName);
+        const hasSectionRow = response.result.some(
+          (seat) => seat.sectionName || seat.rowName
+        );
         if (hasSectionRow) {
           // Merge with existing seats
-          setSeats(prev => [...prev, ...response.result]);
+          setSeats((prev) => [...prev, ...response.result]);
         } else {
           // Reload to get full details
           await loadSeats(venueForSeatManage.id);
@@ -326,7 +336,6 @@ export default function Venues() {
   const loadSeating = async () => {
     if (!selectedVenue || !selectedEventId) return;
     try {
-      setLoadingSeating(true);
       const response = await venueApi.getVenueSeating(
         selectedVenue.id,
         selectedEventId
@@ -335,25 +344,7 @@ export default function Venues() {
     } catch (error) {
       console.error("Failed to load seating:", error);
       showError(error);
-    } finally {
-      setLoadingSeating(false);
     }
-  };
-
-  // Organize default seats by status for display
-  const organizeSeatsByStatus = (seats: SeatResponse[]) => {
-    const organized: Record<string, SeatResponse[]> = {
-      AVAILABLE: [],
-      RESERVED: [],
-      SOLD: [],
-      BLOCKED: [],
-    };
-    seats.forEach((seat) => {
-      if (organized[seat.status]) {
-        organized[seat.status].push(seat);
-      }
-    });
-    return organized;
   };
 
   const getSeatStatusColor = (status: string) => {
@@ -738,10 +729,13 @@ export default function Venues() {
                   {!selectedEventId && (
                     <div className="space-y-4">
                       {loadingDefaultSeats ? (
-                        <div className="text-center py-8">Loading seat map...</div>
+                        <div className="text-center py-8">
+                          Loading seat map...
+                        </div>
                       ) : defaultSeats.length === 0 ? (
                         <div className="text-center py-8 text-muted-foreground">
-                          No seats configured for this venue yet. Use "Manage Seats" to add seats.
+                          No seats configured for this venue yet. Use "Manage
+                          Seats" to add seats.
                         </div>
                       ) : (
                         <>
@@ -750,7 +744,8 @@ export default function Venues() {
                               Default Seat Map ({defaultSeats.length} seats)
                             </Label>
                             <p className="text-sm text-muted-foreground">
-                              Showing all seats. Select an event above to see event-specific availability.
+                              Showing all seats. Select an event above to see
+                              event-specific availability.
                             </p>
                           </div>
                           <div className="space-y-6">
@@ -764,21 +759,29 @@ export default function Venues() {
                                 if (!organizedSeats[seat.sectionName]) {
                                   organizedSeats[seat.sectionName] = {};
                                 }
-                                if (!organizedSeats[seat.sectionName][seat.rowName]) {
-                                  organizedSeats[seat.sectionName][seat.rowName] = [];
+                                if (
+                                  !organizedSeats[seat.sectionName][
+                                    seat.rowName
+                                  ]
+                                ) {
+                                  organizedSeats[seat.sectionName][
+                                    seat.rowName
+                                  ] = [];
                                 }
-                                organizedSeats[seat.sectionName][seat.rowName].push(seat);
+                                organizedSeats[seat.sectionName][
+                                  seat.rowName
+                                ].push(seat);
                               });
 
                               // Sort sections and rows
-                              const sortedSections = Object.keys(organizedSeats).sort(
-                                (a, b) => naturalSort(a, b)
-                              );
+                              const sortedSections = Object.keys(
+                                organizedSeats
+                              ).sort((a, b) => naturalSort(a, b));
 
                               return sortedSections.map((sectionName) => {
                                 const rows = organizedSeats[sectionName];
-                                const sortedRows = Object.keys(rows).sort((a, b) =>
-                                  naturalSort(a, b)
+                                const sortedRows = Object.keys(rows).sort(
+                                  (a, b) => naturalSort(a, b)
                                 );
 
                                 return (
@@ -792,8 +795,12 @@ export default function Venues() {
                                     {sortedRows.length > 0 ? (
                                       <div className="space-y-3">
                                         {sortedRows.map((rowName) => {
-                                          const rowSeats = rows[rowName].sort((a, b) =>
-                                            naturalSort(a.seatNumber, b.seatNumber)
+                                          const rowSeats = rows[rowName].sort(
+                                            (a, b) =>
+                                              naturalSort(
+                                                a.seatNumber,
+                                                b.seatNumber
+                                              )
                                           );
 
                                           return (
@@ -810,7 +817,9 @@ export default function Venues() {
                                                     key={seat.id}
                                                     className={`
                                                       px-2 py-1 text-xs border rounded cursor-default
-                                                      ${getSeatStatusColor(seat.status)}
+                                                      ${getSeatStatusColor(
+                                                        seat.status
+                                                      )}
                                                       hover:opacity-80 transition-opacity
                                                     `}
                                                     title={`Seat ${seat.seatNumber} - ${seat.status}`}
@@ -876,12 +885,13 @@ export default function Venues() {
       />
 
       {/* Seat Management Dialog */}
-      <Dialog open={seatManageDialogOpen} onOpenChange={setSeatManageDialogOpen}>
+      <Dialog
+        open={seatManageDialogOpen}
+        onOpenChange={setSeatManageDialogOpen}
+      >
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>
-              Manage Seats - {venueForSeatManage?.name}
-            </DialogTitle>
+            <DialogTitle>Manage Seats - {venueForSeatManage?.name}</DialogTitle>
             <DialogDescription>
               Create, edit, and delete seats for this venue
             </DialogDescription>
@@ -958,10 +968,7 @@ export default function Venues() {
                               </div>
                               <div className="flex flex-wrap gap-2">
                                 {rowSeats.map((seat) => (
-                                  <div
-                                    key={seat.id}
-                                    className="group relative"
-                                  >
+                                  <div key={seat.id} className="group relative">
                                     <div
                                       className={`
                                         px-3 py-2 text-sm border rounded cursor-pointer
