@@ -75,7 +75,7 @@ class StaffScreenState extends State<StaffScreen> {
         return Scaffold(
           appBar: AppBar(
             leading: IconButton(
-              icon: const Icon(Icons.arrow_back, color: Colors.white),
+              icon: const Icon(Icons.arrow_back, color: Colors.black),
               onPressed: () async {
                 await provider.logout();
                 if (mounted) {
