@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class AuthInterceptor extends Interceptor {
   static const _publicEndpoints = ['/auth/token', '/auth/register'];
   static const _logoutEndpoint = '/auth/logout';
+  static const _businessErrorCode = 9999;
 
   bool _isPublicEndpoint(String path) {
     return _publicEndpoints.any((e) => path.contains(e));
@@ -34,6 +35,19 @@ class AuthInterceptor extends Interceptor {
     if (response.requestOptions.path.contains(_logoutEndpoint)) {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove('accessToken');
+    }
+
+    // ✅ Handle business error (code == 9999)
+    final data = response.data;
+    if (data is Map<String, dynamic> && data['code'] == _businessErrorCode) {
+      return handler.reject(
+        DioException(
+          requestOptions: response.requestOptions,
+          response: response,
+          type: DioExceptionType.badResponse,
+          message: data['message'] ?? 'Vui lòng thử lại sau',
+        ),
+      );
     }
 
     handler.next(response);

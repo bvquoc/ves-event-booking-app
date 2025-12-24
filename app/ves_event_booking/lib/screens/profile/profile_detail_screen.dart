@@ -33,12 +33,10 @@ class _ProfileDetailSceenState extends State<ProfileDetailScreen> {
   }
 
   void setInitialValues(UserModel user) {
-    _nameController.text = user.username;
-    _emailCotroller.text = user.firstName ?? '';
-    _phoneController.text = user.lastName ?? '';
-    _dobController.text = user.dob != null
-        ? '${user.dob!.day}/${user.dob!.month}/${user.dob!.year}'
-        : '';
+    _nameController.text = '${user.firstName} ${user.lastName}';
+    _emailCotroller.text = user.email;
+    _phoneController.text = user.phone;
+    _dobController.text = '${user.dob.day}/${user.dob.month}/${user.dob.year}';
   }
 
   @override
@@ -122,8 +120,8 @@ class _ProfileDetailSceenState extends State<ProfileDetailScreen> {
                       child: Column(
                         children: [
                           const SizedBox(height: 80),
-                          const Text(
-                            'Nguyễn Văn A',
+                          Text(
+                            user!.username,
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,

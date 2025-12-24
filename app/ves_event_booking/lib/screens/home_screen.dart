@@ -26,7 +26,6 @@ class HomeScreenState extends State<HomeScreen> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      context.read<HomeProvider>().fetchMyVouchers();
       context.read<HomeProvider>().fetchEvents(
         pageable: PaginationRequest(page: 0, size: 50),
       );
