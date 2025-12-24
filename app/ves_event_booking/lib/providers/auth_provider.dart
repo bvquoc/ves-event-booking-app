@@ -25,7 +25,7 @@ class AuthProvider extends ChangeNotifier {
   }
 
   // Xử lý Đăng nhập
-  Future<String> login(String email, String password) async {
+  Future<List<String>> login(String email, String password) async {
     _setLoading(true);
     try {
       final authResponse = await _authService.login(
@@ -41,7 +41,7 @@ class AuthProvider extends ChangeNotifier {
     } catch (e) {
       _errorMessage = e.toString();
       notifyListeners();
-      return ""; // Đăng nhập thất bại
+      return []; // Đăng nhập thất bại
     } finally {
       _setLoading(false);
     }
