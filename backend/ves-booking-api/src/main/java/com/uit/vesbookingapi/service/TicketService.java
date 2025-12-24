@@ -37,18 +37,33 @@ public class TicketService {
     UserRepository userRepository;
 
     /**
-     * Get user tickets with optional status filter
+     * Get user tickets with optional event and status filters
+     * Only returns tickets from COMPLETED orders
      */
-    public Page<TicketResponse> getUserTickets(TicketStatus status, Pageable pageable) {
+    public Page<TicketResponse> getUserTickets(String eventId, TicketStatus status, Pageable pageable) {
         // 1. Get current user
         String userId = getCurrentUserId();
 
-        // 2-3. Build query based on status filter and query with pagination
+        // 2-3. Build query based on filters and query with pagination
+        // Only return tickets from COMPLETED orders
         Page<Ticket> ticketPage;
-        if (status == null) {
-            ticketPage = ticketRepository.findByUserIdOrderByPurchaseDateDesc(userId, pageable);
+        if (eventId != null && !eventId.isEmpty()) {
+            // Filter by event
+            if (status == null) {
+                ticketPage = ticketRepository.findByUserIdAndEventIdAndOrderCompletedOrderByPurchaseDateDesc(
+                        userId, eventId, pageable);
+            } else {
+                ticketPage = ticketRepository.findByUserIdAndEventIdAndStatusAndOrderCompletedOrderByPurchaseDateDesc(
+                        userId, eventId, status, pageable);
+            }
         } else {
-            ticketPage = ticketRepository.findByUserIdAndStatusOrderByPurchaseDateDesc(userId, status, pageable);
+            // No event filter
+            if (status == null) {
+                ticketPage = ticketRepository.findByUserIdAndOrderCompletedOrderByPurchaseDateDesc(userId, pageable);
+            } else {
+                ticketPage = ticketRepository.findByUserIdAndStatusAndOrderCompletedOrderByPurchaseDateDesc(
+                        userId, status, pageable);
+            }
         }
 
         // 4. Map to response DTOs
@@ -69,7 +84,12 @@ public class TicketService {
             throw new AppException(ErrorCode.UNAUTHORIZED);
         }
 
-        // 3-4. Populate details and return (mapper handles relationships)
+        // 3. Validate order is COMPLETED (only show tickets from completed orders)
+        if (ticket.getOrder().getStatus() != com.uit.vesbookingapi.enums.OrderStatus.COMPLETED) {
+            throw new AppException(ErrorCode.ORDER_NOT_COMPLETED);
+        }
+
+        // 4. Populate details and return (mapper handles relationships)
         return ticketMapper.toTicketDetailResponse(ticket);
     }
 

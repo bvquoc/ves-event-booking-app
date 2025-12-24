@@ -41,10 +41,25 @@ export function usePermissions() {
     return isAdmin();
   };
 
+  const isStaff = (): boolean => {
+    return hasRole("STAFF");
+  };
+
+  const isOrganizer = (): boolean => {
+    return hasRole("ORGANIZER");
+  };
+
+  const isCheckInUser = (): boolean => {
+    return isStaff() || isOrganizer();
+  };
+
   return {
     hasRole,
     hasAnyRole,
     isAdmin,
+    isStaff,
+    isOrganizer,
+    isCheckInUser,
     canManageUsers,
     canManageEvents,
     canManageRoles,

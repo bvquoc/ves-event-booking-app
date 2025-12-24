@@ -41,10 +41,11 @@ public class TicketController {
     @GetMapping
     @PreAuthorize("isAuthenticated()")
     public ApiResponse<Page<TicketResponse>> getUserTickets(
+            @RequestParam(required = false) String eventId,
             @RequestParam(required = false) TicketStatus status,
             @PageableDefault(size = 10, sort = "purchaseDate", direction = Sort.Direction.DESC) Pageable pageable) {
         return ApiResponse.<Page<TicketResponse>>builder()
-                .result(ticketService.getUserTickets(status, pageable))
+                .result(ticketService.getUserTickets(eventId, status, pageable))
                 .build();
     }
 

@@ -4,6 +4,7 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AdminRoute } from "./components/AdminRoute";
 import Layout from "./components/Layout";
 import Login from "./pages/Login";
+import CheckIn from "./pages/CheckIn";
 import Users from "./pages/Users";
 import Events from "./pages/Events";
 import Tickets from "./pages/Tickets";
@@ -23,6 +24,14 @@ function App() {
       <AuthProvider>
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route
+            path="/check-in"
+            element={
+              <ProtectedRoute>
+                <CheckIn />
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/"
             element={
