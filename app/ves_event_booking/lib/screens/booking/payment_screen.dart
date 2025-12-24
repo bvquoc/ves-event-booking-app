@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:ves_event_booking/models/booking_request.dart';
 import 'package:ves_event_booking/models/payment_model.dart';
@@ -8,6 +7,8 @@ import 'package:ves_event_booking/models/ticket/ticket_type_model.dart';
 import 'package:ves_event_booking/models/user/user_model.dart';
 import 'package:ves_event_booking/models/zalopay/zalopay_model_request.dart';
 import 'package:ves_event_booking/providers/ticket_provider.dart';
+import 'package:ves_event_booking/screens/home_screen.dart';
+import 'package:ves_event_booking/screens/tickets/tickets_screen.dart';
 
 class PaymentScreen extends StatefulWidget {
   final EventDetailsModel event;
@@ -99,9 +100,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 const SizedBox(height: 12),
                 _ticketReceiveInfo(),
                 const SizedBox(height: 12),
-                _ticketDetailCard(),
+                _ticketDetailCard(), // ✅ ĐÃ SỬA
                 const SizedBox(height: 12),
-                _buyerInfoCard(user),
+                _buyerInfoCard(user), // ✅ ĐÃ SỬA
                 const SizedBox(height: 12),
                 _paymentMethodCard(),
                 const SizedBox(height: 80),
@@ -116,11 +117,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
   // ===================== UI SECTIONS =====================
 
   Widget _eventCard() {
-    final rawDate = widget.event.startDate;
-
-    final dateTime = DateTime.parse(rawDate.toString());
-
-    final formatted = DateFormat('HH:mm dd-MM-yyyy').format(dateTime);
     return _card(
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -139,7 +135,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
             Icons.location_on,
             widget.event.venueName ?? 'Địa điểm chưa xác định',
           ),
-          _iconText(Icons.calendar_today, formatted),
+          _iconText(Icons.calendar_today, '${widget.event.startDate}'),
         ],
       ),
     );
@@ -172,12 +168,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
           /// LIST TICKET
           ..._ticketItems.expand((item) {
-            final price = item.price;
-            final total = item.price * item.quantity;
-
-            final formattedPrice = NumberFormat('#,###', 'vi_VN').format(price);
-            final formattedTotal = NumberFormat('#,###', 'vi_VN').format(total);
-
             return [
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -196,7 +186,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        '${formattedPrice} VNĐ',
+                        '${item.price.toStringAsFixed(0)} đ',
                         style: const TextStyle(fontSize: 15),
                       ),
                     ],
@@ -215,7 +205,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        '${formattedTotal} VNĐ',
+                        '${(item.price * item.quantity).toStringAsFixed(0)} đ',
                         style: const TextStyle(fontSize: 15),
                       ),
                     ],
@@ -290,9 +280,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
   // ===================== BOTTOM BAR =====================
 
   Widget _bottomBar(TicketProvider provider) {
-    final total = widget.totalPrice;
-
-    final formattedTotal = NumberFormat('#,###', 'vi_VN').format(total);
     return SafeArea(
       child: Container(
         padding: const EdgeInsets.all(16),
@@ -305,7 +292,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
           children: [
             _row(
               'Tổng thanh toán',
-              '${formattedTotal}VNĐ',
+              '${widget.totalPrice.toStringAsFixed(0)} đ',
               bold: true,
               color: Colors.black,
             ),
@@ -340,7 +327,12 @@ class _PaymentScreenState extends State<PaymentScreen> {
   // ===================== ACTION =====================
 
   void _onPayPressed(TicketProvider provider) async {
-    // Gọi API tạo đơn thanh toán khi đẫ hoàn thành chuyển tiền
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
+    );
+
     List<Future<void>> futures = [];
 
     for (final item in _ticketItems) {
@@ -358,6 +350,118 @@ class _PaymentScreenState extends State<PaymentScreen> {
     }
 
     await Future.wait(futures);
+
+    if (!mounted) return;
+    Navigator.pop(context); // Close loading dialog
+
+    if (provider.errorMessage != null) {
+      _showFailureDialog(provider.errorMessage!);
+    } else {
+      _showSuccessDialog();
+    }
+  }
+
+  void _showSuccessDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false, // Bắt buộc bấm nút để đóng
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Column(
+          children: const [
+            Icon(Icons.check_circle, color: Colors.green, size: 60),
+            SizedBox(height: 12),
+            Text(
+              'Thanh toán thành công!',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+        content: const Text(
+          'Vé của bạn đã được đặt thành công. Bạn có thể kiểm tra vé trong mục "Vé của tôi".',
+          textAlign: TextAlign.center,
+        ),
+        actions: [
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue.shade900,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              onPressed: () {
+                Navigator.pop(ctx);
+
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const TicketsScreen(),
+                  ),
+                  (route) => false, // Xóa hết stack
+                );
+              },
+              child: const Text(
+                'Tới trang Vé của tôi',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showFailureDialog(String error) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Column(
+          children: const [
+            Icon(Icons.error, color: Colors.red, size: 60),
+            SizedBox(height: 12),
+            Text(
+              'Thanh toán thất bại',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+        content: Text(
+          'Đã xảy ra lỗi trong quá trình xử lý: $error',
+          textAlign: TextAlign.center,
+        ),
+        actions: [
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.grey.shade800,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              onPressed: () {
+                Navigator.pop(ctx);
+
+                // Quay về HomeScreen để mua lại từ đầu
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => const HomeScreen()),
+                  (route) => false,
+                );
+              },
+              child: const Text(
+                'Về trang chủ (Mua lại)',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   // ===================== COMMON UI =====================
@@ -374,7 +478,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
       padding: const EdgeInsets.only(top: 4),
       child: Row(
         children: [
-          Icon(icon, size: 16, color: Colors.blue),
+          Icon(icon, size: 16, color: Colors.grey),
           const SizedBox(width: 6),
           Expanded(child: Text(text)),
         ],
@@ -472,7 +576,7 @@ Widget _ticketReceiveInfo() {
         SizedBox(height: 6),
         Text(
           'Vé điện tử sẽ được hiển thị trong mục "Vé của tôi" '
-          'của tài khoản',
+          'của tài khoản abc@gmail.com',
           style: TextStyle(height: 1.4),
         ),
       ],
