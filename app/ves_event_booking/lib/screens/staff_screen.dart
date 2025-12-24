@@ -5,11 +5,10 @@ class StaffScreen extends StatefulWidget {
   const StaffScreen({super.key});
 
   @override
-  State<StaffScreen> createState() => StaffScreenSate();
+  State<StaffScreen> createState() => StaffScreenState();
 }
 
-class StaffScreenSate extends State<StaffScreen> {
-  String? qrResult;
+class StaffScreenState extends State<StaffScreen> {
   bool allowScan = false;
 
   final MobileScannerController controller = MobileScannerController(
@@ -23,13 +22,37 @@ class StaffScreenSate extends State<StaffScreen> {
     super.dispose();
   }
 
+  // Hàm hiển thị Pop-up kết quả
+  void _showResultDialog(String code) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Kết quả quét"),
+          content: Text(code), // Nội dung chuỗi quét được
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Đóng popup
+                // Nếu muốn đóng popup xong quét tiếp luôn thì sử dụng:
+                // setState(() { allowScan = true; });
+              },
+              child: const Text("Đóng"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
         backgroundColor: Colors.white,
-        title: Text('Quét mã QR', style: TextStyle(color: Colors.black)),
+        title: const Text('Quét mã QR', style: TextStyle(color: Colors.black)),
       ),
       body: Stack(
         children: [
@@ -37,21 +60,56 @@ class StaffScreenSate extends State<StaffScreen> {
           MobileScanner(
             controller: controller,
             onDetect: (capture) {
+              // Nếu chưa bấm nút "Bắt đầu" thì không xử lý
               if (!allowScan) return;
 
               final barcode = capture.barcodes.first;
               final String? value = barcode.rawValue;
 
               if (value != null) {
+                // 1. Ngừng cho phép quét ngay lập tức để tránh mở nhiều popup
                 setState(() {
-                  qrResult = value;
                   allowScan = false;
                 });
+
+                // 2. Hiện popup (Kiểm tra mounted để tránh lỗi nếu thoát màn hình nhanh)
+                if (mounted) {
+                  _showResultDialog(value);
+                }
               }
             },
           ),
 
-          /// KHUNG QUÉT
+          /// KHUNG QUÉT (Overlay)
+          // Tạo màn che màu đen mờ xung quanh vùng quét
+          ColorFiltered(
+            colorFilter: ColorFilter.mode(
+              Colors.black.withOpacity(0.5),
+              BlendMode.srcOut,
+            ),
+            child: Stack(
+              children: [
+                Container(
+                  decoration: const BoxDecoration(
+                    color: Colors.transparent,
+                    backgroundBlendMode: BlendMode.dstOut,
+                  ),
+                ),
+                Center(
+                  child: Container(
+                    width: 260,
+                    height: 260,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Viền trắng của khung quét
           Center(
             child: Container(
               width: 260,
@@ -63,41 +121,41 @@ class StaffScreenSate extends State<StaffScreen> {
             ),
           ),
 
-          /// BUTTON SCAN
+          /// BUTTON BẮT ĐẦU QUÉT
           Positioned(
-            bottom: 140,
+            bottom: 100,
             left: 24,
             right: 24,
-            child: ElevatedButton(
-              onPressed: () {
-                setState(() {
-                  qrResult = null;
-                  allowScan = true; // ⭐ bật scan
-                });
-              },
-              child: const Text('Bắt đầu quét'),
+            child: Column(
+              children: [
+                if (!allowScan)
+                  Container(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: const Text(
+                      "Nhấn nút bên dưới để quét",
+                      style: TextStyle(color: Colors.white, fontSize: 16),
+                    ),
+                  ),
+                ElevatedButton(
+                  onPressed: allowScan
+                      ? null // Nếu đang quét thì disable nút
+                      : () {
+                          setState(() {
+                            allowScan = true; // ⭐ Bật chế độ cho phép quét
+                          });
+                        },
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    backgroundColor: allowScan ? Colors.grey : Colors.blue,
+                  ),
+                  child: Text(
+                    allowScan ? 'Đang quét...' : 'Bắt đầu quét',
+                    style: const TextStyle(fontSize: 18, color: Colors.white),
+                  ),
+                ),
+              ],
             ),
           ),
-
-          /// KẾT QUẢ
-          if (qrResult != null)
-            Positioned(
-              bottom: 60,
-              left: 24,
-              right: 24,
-              child: Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.7),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  qrResult!,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(color: Colors.white),
-                ),
-              ),
-            ),
         ],
       ),
     );
