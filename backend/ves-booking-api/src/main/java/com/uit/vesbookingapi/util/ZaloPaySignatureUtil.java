@@ -46,20 +46,28 @@ public class ZaloPaySignatureUtil {
     /**
      * Build create order signature data
      * Format: app_id|app_trans_id|app_user|amount|app_time|embed_data|item
+     *
+     * IMPORTANT: All values must match EXACTLY what's sent in the request.
+     * For form-urlencoded data, RestTemplate will URL-encode special characters,
+     * but ZaloPay decodes them before verifying the signature, so use raw values here.
      */
     public static String buildCreateOrderData(
             String appId, String appTransId, String appUser,
             long amount, long appTime, String embedData, String item
     ) {
-        // Ensure all values are strings and match request format exactly
+        // Build signature data - all values as strings, matching request format
+        // app_id: string (even if numeric)
+        // amount: string representation of number (no decimals)
+        // app_time: string representation of timestamp
+        // embed_data and item: JSON strings as-is (raw, not URL-encoded)
         String signatureData = String.join("|",
-                String.valueOf(appId),  // Ensure app_id is string
-                appTransId,
-                appUser,
-                String.valueOf(amount),  // Amount as string, no decimals
-                String.valueOf(appTime), // Timestamp as string
-                embedData,               // JSON string as-is
-                item                     // JSON string as-is
+                appId,                    // app_id as string
+                appTransId,               // app_trans_id
+                appUser,                  // app_user
+                String.valueOf(amount),   // amount as string (no decimals)
+                String.valueOf(appTime),  // app_time as string
+                embedData,                // embed_data JSON string (raw)
+                item                      // item JSON string (raw)
         );
         return signatureData;
     }

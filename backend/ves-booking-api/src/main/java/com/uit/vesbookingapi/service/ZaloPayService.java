@@ -82,11 +82,14 @@ public class ZaloPayService {
         // CRITICAL: Build signature data using EXACT values that will be sent in request
         // Format: app_id|app_trans_id|app_user|amount|app_time|embed_data|item
         // All values must match EXACTLY what's in the request params (same strings, same format)
-        String appIdStr = config.getAppId();
-        String amountStr = String.valueOf(order.getTotal());
-        String appTimeStr = String.valueOf(appTime);
-
+        // IMPORTANT: Use the exact same string representations as will be sent in the form data
+        String appIdStr = String.valueOf(config.getAppId()); // Ensure string format
+        String amountStr = String.valueOf(order.getTotal());  // Amount as string (no decimals)
+        String appTimeStr = String.valueOf(appTime);          // Timestamp as string
+        
         // Build signature data - use exact same string values as request
+        // Note: embed_data and item are JSON strings - use them as-is (raw, not URL-encoded)
+        // RestTemplate will URL-encode them when sending, but ZaloPay decodes before verifying
         String signatureData = ZaloPaySignatureUtil.buildCreateOrderData(
                 appIdStr,
                 appTransId,
@@ -146,6 +149,18 @@ public class ZaloPayService {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
             HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(params, headers);
+
+            // Log the actual form data that will be sent (for debugging)
+            StringBuilder formData = new StringBuilder();
+            params.forEach((key, values) -> {
+                if (formData.length() > 0) formData.append("&");
+                formData.append(key).append("=");
+                if (values != null && !values.isEmpty()) {
+                    // Show first value (URL-encoded by RestTemplate)
+                    formData.append(values.get(0));
+                }
+            });
+            log.debug("Form data to be sent: {}", formData.toString());
 
             log.info("Sending request to ZaloPay API...");
             ResponseEntity<ZaloPayCreateResponse> response = restTemplate.postForEntity(

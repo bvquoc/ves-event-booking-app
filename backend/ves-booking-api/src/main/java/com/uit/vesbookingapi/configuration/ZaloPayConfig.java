@@ -20,6 +20,15 @@ public class ZaloPayConfig {
     String callbackUrl;
     int paymentTimeoutMinutes = 15;
 
+    // Ensure key1 and key2 are trimmed (no whitespace)
+    public void setKey1(String key1) {
+        this.key1 = key1 != null ? key1.trim() : null;
+    }
+
+    public void setKey2(String key2) {
+        this.key2 = key2 != null ? key2.trim() : null;
+    }
+
     // Derived endpoints
     public String getCreateOrderUrl() {
         return endpoint + "/create";
