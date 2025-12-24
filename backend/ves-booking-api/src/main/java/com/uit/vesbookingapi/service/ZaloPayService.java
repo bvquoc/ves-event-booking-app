@@ -61,8 +61,8 @@ public class ZaloPayService {
         long appTime = System.currentTimeMillis();
 
         log.info("=== ZaloPay Create Order Request ===");
-        log.info("OrderId={}, AppTransId={}, UserId={}, EventId={}, EventName={}",
-                order.getId(), appTransId, order.getUser().getId(),
+        log.info("OrderId={}, AppTransId={}, UserId={}, Username={}, EventId={}, EventName={}",
+                order.getId(), appTransId, order.getUser().getId(), order.getUser().getUsername(),
                 order.getEvent().getId(), order.getEvent().getName());
         log.info("TicketType={}, Quantity={}, Subtotal={}, Discount={}, Total={}, Currency={}",
                 order.getTicketType().getName(), order.getQuantity(),
@@ -77,24 +77,33 @@ public class ZaloPayService {
         // Build embed_data (for redirect after payment)
         String embedData = buildEmbedData(order);
 
-        // Build signature data
+        // Use username instead of UUID for app_user (ZaloPay requirement)
+        String appUser = order.getUser().getUsername();
+
+        // Build signature data - MUST match exactly what's sent in request
+        // Format: app_id|app_trans_id|app_user|amount|app_time|embed_data|item
         String signatureData = ZaloPaySignatureUtil.buildCreateOrderData(
                 config.getAppId(),
                 appTransId,
-                order.getUser().getId(),
+                appUser,
                 order.getTotal(),
                 appTime,
                 embedData,
                 item
         );
 
+        // Generate MAC using key1
         String mac = ZaloPaySignatureUtil.generateSignature(signatureData, config.getKey1());
+
+        // Verify signature data format matches request params exactly
+        log.debug("Signature verification - AppId: {} (from config), AppTransId: {}, AppUser: {}, Amount: {}, AppTime: {}",
+                config.getAppId(), appTransId, appUser, order.getTotal(), appTime);
 
         // Build request
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("app_id", config.getAppId());
         params.add("app_trans_id", appTransId);
-        params.add("app_user", order.getUser().getId());
+        params.add("app_user", appUser);  // Use username instead of UUID
         params.add("amount", String.valueOf(order.getTotal()));
         params.add("app_time", String.valueOf(appTime));
         params.add("embed_data", embedData);
@@ -106,8 +115,10 @@ public class ZaloPayService {
 
         log.info("ZaloPay Request Details: URL={}, AppId={}, AppTime={}, CallbackUrl={}",
                 config.getCreateOrderUrl(), config.getAppId(), appTime, config.getCallbackUrl());
+        log.info("AppUser={}, Amount={}, EmbedData={}, Item={}", appUser, order.getTotal(), embedData, item);
+        log.info("SignatureData={}", signatureData);
+        log.info("MAC={}", mac);
         log.debug("ZaloPay Request Params: {}", params);
-        log.debug("SignatureData={}, MAC={}", signatureData, mac);
 
         // Log request
         logAudit(order.getId(), appTransId, "CREATE_ORDER", null, params.toString());
@@ -303,26 +314,37 @@ public class ZaloPayService {
     // Helper methods
     private String buildItemJson(Order order) {
         try {
-            return objectMapper.writeValueAsString(new Object[]{
-                    new HashMap<String, Object>() {{
-                        put("name", order.getTicketType().getName());
-                        put("quantity", order.getQuantity());
-                        put("price", order.getTicketType().getPrice());
-                    }}
-            });
+            // Build item array as per ZaloPay format
+            // Format: [{"name":"...", "quantity":..., "price":...}]
+            HashMap<String, Object> itemObj = new HashMap<>();
+            itemObj.put("name", order.getTicketType().getName());
+            itemObj.put("quantity", order.getQuantity());
+            itemObj.put("price", order.getTicketType().getPrice());
+
+            Object[] itemArray = new Object[]{itemObj};
+            String json = objectMapper.writeValueAsString(itemArray);
+            log.debug("Item JSON: {}", json);
+            return json;
         } catch (JsonProcessingException e) {
+            log.error("Failed to build item JSON: {}", e.getMessage());
             return "[]";
         }
     }
 
     private String buildEmbedData(Order order) {
         try {
-            return objectMapper.writeValueAsString(new HashMap<String, Object>() {{
-                put("orderId", order.getId());
-                put("eventId", order.getEvent().getId());
-                put("redirecturl", "https://ves-booking.io.vn/orders/" + order.getId());
-            }});
+            // Build embed_data as per ZaloPay format
+            // Format: {"orderId":"...", "eventId":"...", "redirecturl":"..."}
+            HashMap<String, Object> embedDataObj = new HashMap<>();
+            embedDataObj.put("orderId", order.getId());
+            embedDataObj.put("eventId", order.getEvent().getId());
+            embedDataObj.put("redirecturl", "https://ves-booking.io.vn/orders/" + order.getId());
+
+            String json = objectMapper.writeValueAsString(embedDataObj);
+            log.debug("EmbedData JSON: {}", json);
+            return json;
         } catch (JsonProcessingException e) {
+            log.error("Failed to build embed_data JSON: {}", e.getMessage());
             return "{}";
         }
     }

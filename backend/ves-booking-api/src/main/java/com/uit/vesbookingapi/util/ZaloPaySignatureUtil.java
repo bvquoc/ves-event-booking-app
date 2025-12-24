@@ -51,11 +51,17 @@ public class ZaloPaySignatureUtil {
             String appId, String appTransId, String appUser,
             long amount, long appTime, String embedData, String item
     ) {
-        return String.join("|",
-                appId, appTransId, appUser,
-                String.valueOf(amount), String.valueOf(appTime),
-                embedData, item
+        // Ensure all values are strings and match request format exactly
+        String signatureData = String.join("|",
+                String.valueOf(appId),  // Ensure app_id is string
+                appTransId,
+                appUser,
+                String.valueOf(amount),  // Amount as string, no decimals
+                String.valueOf(appTime), // Timestamp as string
+                embedData,               // JSON string as-is
+                item                     // JSON string as-is
         );
+        return signatureData;
     }
 
     /**
