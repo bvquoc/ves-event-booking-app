@@ -49,7 +49,8 @@ public class VNPayService {
         String vnpExpireDate = formatter.format(cal.getTime());
 
         // Build order info (no Vietnamese accents, no special chars)
-        String vnpOrderInfo = buildOrderInfo(order);
+        // Use transaction reference in orderInfo (matching VNPay example pattern)
+        String vnpOrderInfo = "Thanh toan don hang:" + vnpTxnRef;
 
         // Build parameters map
         Map<String, String> vnpParams = new HashMap<>();
@@ -71,9 +72,11 @@ public class VNPayService {
         // Build hash data (sorted alphabetically, URL-encoded values) for signature
         // IMPORTANT: Hash data must use URL-encoded values (as per VNPay example)
         String hashData = VNPaySignatureUtil.buildHashData(vnpParams);
+        log.debug("VNPay hash data: {}", hashData);
 
         // Generate secure hash
         String vnpSecureHash = VNPaySignatureUtil.hmacSHA512(hashData, config.getHashSecret());
+        log.debug("VNPay secure hash: {}", vnpSecureHash);
 
         // Build final payment URL with URL encoding
         StringBuilder paymentUrl = new StringBuilder(config.getPayUrl());
@@ -114,17 +117,6 @@ public class VNPayService {
         return orderId;
     }
 
-    /**
-     * Build order info (no Vietnamese accents, no special chars)
-     */
-    private String buildOrderInfo(Order order) {
-        // Remove Vietnamese accents and special characters
-        String orderInfo = String.format("Thanh toan don hang %s - So tien %d VND",
-                order.getId().substring(0, Math.min(8, order.getId().length())),
-                order.getTotal());
-        // Remove special chars and ensure no accents
-        return orderInfo.replaceAll("[^a-zA-Z0-9\\s]", "").trim();
-    }
 
     /**
      * Verify VNPay callback signature
