@@ -128,7 +128,7 @@ public class BookingService {
                 .status(OrderStatus.COMPLETED)
                 .paymentMethod(request.getPaymentMethod())
                 .paymentUrl(generatePaymentUrl())
-                .expiresAt(null) // No expiration for completed orders
+                .expiresAt(LocalDateTime.now())
                 .completedAt(LocalDateTime.now())
                 .build();
 
