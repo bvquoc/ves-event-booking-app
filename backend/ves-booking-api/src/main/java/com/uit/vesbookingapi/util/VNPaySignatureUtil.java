@@ -2,12 +2,14 @@ package com.uit.vesbookingapi.util;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.TreeMap;
 
 /**
  * VNPay signature utility for HMAC-SHA512 signature generation
+ * Following VNPay official example pattern
  */
 public class VNPaySignatureUtil {
 
@@ -16,7 +18,7 @@ public class VNPaySignatureUtil {
     /**
      * Generate HMAC-SHA512 signature for VNPay
      *
-     * @param data      Data string to sign (sorted query string)
+     * @param data      Data string to sign (sorted query string with URL-encoded values)
      * @param secretKey Secret key (vnp_HashSecret)
      * @return Hex-encoded signature
      */
@@ -35,8 +37,33 @@ public class VNPaySignatureUtil {
     }
 
     /**
+     * Build hash data string from parameters (sorted alphabetically, URL-encoded values)
+     * Used for signature generation - matches VNPay example pattern
+     *
+     * @param params Map of parameters
+     * @return Sorted hash data string (fieldName=URLEncoded(fieldValue)&fieldName2=URLEncoded(fieldValue2)...)
+     */
+    public static String buildHashData(Map<String, String> params) {
+        // Sort parameters alphabetically
+        TreeMap<String, String> sortedParams = new TreeMap<>(params);
+
+        StringBuilder hashData = new StringBuilder();
+        for (Map.Entry<String, String> entry : sortedParams.entrySet()) {
+            if (entry.getValue() != null && !entry.getValue().isEmpty()) {
+                if (hashData.length() > 0) {
+                    hashData.append("&");
+                }
+                hashData.append(entry.getKey())
+                        .append("=")
+                        .append(URLEncoder.encode(entry.getValue(), StandardCharsets.US_ASCII));
+            }
+        }
+        return hashData.toString();
+    }
+
+    /**
      * Build query string from parameters (sorted alphabetically)
-     * Used for signature generation
+     * Used for URL construction
      *
      * @param params Map of parameters
      * @return Sorted query string (fieldName=fieldValue&fieldName2=fieldValue2...)

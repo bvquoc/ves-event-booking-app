@@ -68,11 +68,12 @@ public class VNPayService {
         vnpParams.put("vnp_ExpireDate", vnpExpireDate);
         // vnp_BankCode is optional - omit to let user choose
 
-        // Build query string (sorted alphabetically) for signature
-        String queryString = VNPaySignatureUtil.buildQueryString(vnpParams);
+        // Build hash data (sorted alphabetically, URL-encoded values) for signature
+        // IMPORTANT: Hash data must use URL-encoded values (as per VNPay example)
+        String hashData = VNPaySignatureUtil.buildHashData(vnpParams);
 
         // Generate secure hash
-        String vnpSecureHash = VNPaySignatureUtil.hmacSHA512(queryString, config.getHashSecret());
+        String vnpSecureHash = VNPaySignatureUtil.hmacSHA512(hashData, config.getHashSecret());
 
         // Build final payment URL with URL encoding
         StringBuilder paymentUrl = new StringBuilder(config.getPayUrl());
