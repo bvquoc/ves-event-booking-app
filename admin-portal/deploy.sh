@@ -13,22 +13,42 @@ if ! command -v node &> /dev/null || ! command -v npm &> /dev/null; then
 fi
 
 # Get configuration
-AUTO_IP=$(hostname -I | awk '{print $1}' 2>/dev/null || echo "")
-read -p "VPS IP address [$AUTO_IP]: " VPS_IP
-VPS_IP=${VPS_IP:-$AUTO_IP}
+echo "Deployment type:"
+echo "  1) Using nginx with domain (e.g., https://ves-booking.io.vn) - Recommended"
+echo "  2) Direct access (IP address)"
+read -p "Select [1]: " DEPLOY_TYPE
+DEPLOY_TYPE=${DEPLOY_TYPE:-1}
 
-read -p "Backend port [8080]: " BACKEND_PORT
-BACKEND_PORT=${BACKEND_PORT:-8080}
+if [ "$DEPLOY_TYPE" = "1" ]; then
+    # Using nginx with domain
+    API_URL="/api"
+    echo ""
+    echo "✅ Using nginx with domain - API URL will be: /api"
+    echo "   (API calls will go through nginx proxy)"
+else
+    # Direct access
+    AUTO_IP=$(hostname -I | awk '{print $1}' 2>/dev/null || echo "")
+    read -p "VPS IP address [$AUTO_IP]: " VPS_IP
+    VPS_IP=${VPS_IP:-$AUTO_IP}
+    
+    read -p "Backend port [8080]: " BACKEND_PORT
+    BACKEND_PORT=${BACKEND_PORT:-8080}
+    
+    API_URL="http://$VPS_IP:$BACKEND_PORT/api"
+    echo ""
+    echo "Configuration:"
+    echo "  VPS IP: $VPS_IP"
+    echo "  Backend: $BACKEND_PORT"
+    echo "  API URL: $API_URL"
+fi
 
 read -p "Frontend port [3000]: " FRONTEND_PORT
 FRONTEND_PORT=${FRONTEND_PORT:-3000}
 
 echo ""
-echo "Configuration:"
-echo "  VPS IP: $VPS_IP"
-echo "  Backend: $BACKEND_PORT"
-echo "  Frontend: $FRONTEND_PORT"
-echo "  API URL: http://$VPS_IP:$BACKEND_PORT/api"
+echo "Final configuration:"
+echo "  Frontend port: $FRONTEND_PORT"
+echo "  API URL: $API_URL"
 echo ""
 
 read -p "Continue? (y/n) " -n 1 -r
@@ -41,7 +61,7 @@ npm install
 
 # Create .env
 echo "⚙️  Creating .env..."
-echo "VITE_API_BASE_URL=http://$VPS_IP:$BACKEND_PORT/api" > .env
+echo "VITE_API_BASE_URL=$API_URL" > .env
 
 # Update port if needed
 if [ "$FRONTEND_PORT" != "3000" ]; then
@@ -80,8 +100,14 @@ fi
 
 echo ""
 echo "✅ Setup complete!"
-echo ""
-echo "📍 Access: http://$VPS_IP:$FRONTEND_PORT"
+if [ "$DEPLOY_TYPE" = "1" ]; then
+    echo ""
+    echo "📍 Access via nginx: https://ves-booking.io.vn/admin"
+    echo "📍 Direct access: http://localhost:$FRONTEND_PORT"
+else
+    echo ""
+    echo "📍 Access: http://$VPS_IP:$FRONTEND_PORT"
+fi
 echo ""
 echo "Commands:"
 echo "  pm2 logs ves-admin-portal    # View logs"
