@@ -125,10 +125,11 @@ public class BookingService {
                 .total(total)
                 .currency(ticketType.getCurrency())
                 .voucher(voucher)
-                .status(OrderStatus.PENDING)
+                .status(OrderStatus.COMPLETED)
                 .paymentMethod(request.getPaymentMethod())
                 .paymentUrl(generatePaymentUrl())
-                .expiresAt(LocalDateTime.now().plusMinutes(15))
+                .expiresAt(null) // No expiration for completed orders
+                .completedAt(LocalDateTime.now())
                 .build();
 
         order = orderRepository.save(order);
@@ -154,7 +155,7 @@ public class BookingService {
                     .seat(seat)
                     .qrCode(generateQrCode())
                     .qrCodeImage(null) // Generate image later
-                    .status(TicketStatus.ACTIVE) // Mark as ACTIVE for pending orders
+                    .status(TicketStatus.ACTIVE) // Mark as ACTIVE for completed orders
                     .purchaseDate(LocalDateTime.now())
                     .build();
 
