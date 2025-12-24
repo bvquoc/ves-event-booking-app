@@ -1,7 +1,6 @@
 package com.uit.vesbookingapi.repository;
 
 import com.uit.vesbookingapi.entity.Ticket;
-import com.uit.vesbookingapi.enums.OrderStatus;
 import com.uit.vesbookingapi.enums.TicketStatus;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Page;
@@ -66,7 +65,8 @@ public interface TicketRepository extends JpaRepository<Ticket, String>, JpaSpec
     List<String> findOccupiedSeatIds(@Param("eventId") String eventId, @Param("seatIds") List<String> seatIds);
 
     // Check occupied seats with pessimistic locking to prevent double booking
+    // ORDER BY ensures consistent lock ordering to prevent deadlocks
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("SELECT t.seat.id FROM Ticket t WHERE t.event.id = :eventId AND t.seat.id IN :seatIds AND t.status IN ('ACTIVE', 'USED')")
+    @Query("SELECT t.seat.id FROM Ticket t WHERE t.event.id = :eventId AND t.seat.id IN :seatIds AND t.status IN ('ACTIVE', 'USED') ORDER BY t.seat.id")
     List<String> findOccupiedSeatIdsWithLock(@Param("eventId") String eventId, @Param("seatIds") List<String> seatIds);
 }

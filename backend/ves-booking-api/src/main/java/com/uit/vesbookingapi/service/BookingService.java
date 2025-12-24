@@ -138,6 +138,8 @@ public class BookingService {
 
         // 10. Call ZaloPay Create Order API
         try {
+            // Generate appTransId before calling ZaloPay (must match what ZaloPayService generates)
+            String appTransId = zaloPayService.generateAppTransId(order.getId());
             ZaloPayCreateResponse zpResponse = zaloPayService.createOrder(order);
 
             if (zpResponse.getReturnCode() != 1) {
@@ -152,7 +154,7 @@ public class BookingService {
             }
 
             // Update order with ZaloPay data
-            order.setAppTransId(zaloPayService.generateAppTransId(order.getId()));
+            order.setAppTransId(appTransId);
             order.setPaymentUrl(zpResponse.getOrderUrl());
             orderRepository.save(order);
 
@@ -272,10 +274,6 @@ public class BookingService {
         }
 
         return Math.min(discount, orderAmount); // Discount cannot exceed order amount
-    }
-
-    private String generatePaymentUrl() {
-        return "http://ves-booking.io.vn/payments/order/" + UUID.randomUUID();
     }
 
     private String generateQrCode() {
