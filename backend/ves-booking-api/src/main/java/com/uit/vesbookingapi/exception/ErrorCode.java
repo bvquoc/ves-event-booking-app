@@ -37,6 +37,8 @@ public enum ErrorCode {
     SEAT_NOT_FOUND(4001, "Seat not found", HttpStatus.NOT_FOUND),
     SEAT_ALREADY_TAKEN(4002, "Seat is already taken", HttpStatus.CONFLICT),
     SEAT_SELECTION_REQUIRED(4003, "Seat selection is required for this ticket type", HttpStatus.BAD_REQUEST),
+    SEAT_ALREADY_EXISTS(4004, "Seat already exists in this venue", HttpStatus.CONFLICT),
+    SEAT_HAS_TICKETS(4005, "Cannot delete seat with existing tickets", HttpStatus.BAD_REQUEST),
 
     // Order errors (5xxx)
     ORDER_NOT_FOUND(5001, "Order not found", HttpStatus.NOT_FOUND),

@@ -342,25 +342,27 @@ public class ApplicationInitConfig {
                 event1 = eventRepository.save(event1);
 
                 // Ticket types for event1
+                // VIP: 20 seats available (matches VIP Section)
                 ticketTypeRepository.save(TicketType.builder()
                         .event(event1)
                         .name("Vé VIP")
                         .description("Vé VIP với chỗ ngồi tốt nhất, bao gồm đồ uống miễn phí")
                         .price(500000)
                         .currency("VND")
-                        .available(100)
+                        .available(20) // Matches VIP Section seats
                         .maxPerOrder(4)
                         .benefits(List.of("Chỗ ngồi tốt nhất", "Đồ uống miễn phí", "Parking miễn phí"))
                         .requiresSeatSelection(true)
                         .build());
 
+                // Standard: 80 seats available (matches Standard Section)
                 ticketTypeRepository.save(TicketType.builder()
                         .event(event1)
                         .name("Vé Thường")
                         .description("Vé thường với giá hợp lý")
                         .price(200000)
                         .currency("VND")
-                        .available(500)
+                        .available(80) // Matches Standard Section seats
                         .maxPerOrder(6)
                         .benefits(List.of("Xem trận đấu trực tiếp"))
                         .requiresSeatSelection(true)
@@ -391,25 +393,27 @@ public class ApplicationInitConfig {
                         .build();
                 event2 = eventRepository.save(event2);
 
+                // VIP: 20 seats available (matches VIP Section)
                 ticketTypeRepository.save(TicketType.builder()
                         .event(event2)
                         .name("Vé VIP")
                         .description("Vé VIP với chỗ ngồi gần sân khấu nhất")
                         .price(3000000)
                         .currency("VND")
-                        .available(50)
+                        .available(20) // Matches VIP Section seats
                         .maxPerOrder(2)
                         .benefits(List.of("Chỗ ngồi gần sân khấu", "Meet & Greet", "Áo thun độc quyền"))
                         .requiresSeatSelection(true)
                         .build());
 
+                // Standard: 80 seats available (matches Standard Section)
                 ticketTypeRepository.save(TicketType.builder()
                         .event(event2)
                         .name("Vé Thường")
                         .description("Vé thường")
                         .price(800000)
                         .currency("VND")
-                        .available(300)
+                        .available(80) // Matches Standard Section seats
                         .maxPerOrder(4)
                         .benefits(List.of("Xem concert trực tiếp"))
                         .requiresSeatSelection(true)
@@ -440,25 +444,27 @@ public class ApplicationInitConfig {
                         .build();
                 event3 = eventRepository.save(event3);
 
+                // VIP: 20 seats available (matches VIP Section)
                 ticketTypeRepository.save(TicketType.builder()
                         .event(event3)
                         .name("Vé VIP")
                         .description("Vé VIP với chỗ ngồi tốt nhất")
                         .price(600000)
                         .currency("VND")
-                        .available(80)
+                        .available(20) // Matches VIP Section seats
                         .maxPerOrder(4)
                         .benefits(List.of("Chỗ ngồi tốt nhất", "Tài liệu chương trình"))
                         .requiresSeatSelection(true)
                         .build());
 
+                // Standard: 80 seats available (matches Standard Section)
                 ticketTypeRepository.save(TicketType.builder()
                         .event(event3)
                         .name("Vé Thường")
                         .description("Vé thường")
                         .price(300000)
                         .currency("VND")
-                        .available(200)
+                        .available(80) // Matches Standard Section seats
                         .maxPerOrder(6)
                         .benefits(List.of("Xem vở kịch trực tiếp"))
                         .requiresSeatSelection(true)
@@ -467,32 +473,44 @@ public class ApplicationInitConfig {
                 log.info("Seeded 3 events with ticket types");
             }
 
-            // Seed seats for venues if empty (simple: just a few seats per venue for testing)
+            // Seed seats for venues if empty
+            // VIP Section: 20 seats (4 rows × 5 seats)
+            // Standard Section: 80 seats (8 rows × 10 seats)
+            // Total: 100 seats per venue
             if (seatRepository.count() == 0) {
                 List<Venue> allVenues = venueRepository.findAll();
 
                 for (Venue venue : allVenues) {
                     List<Seat> seats = new ArrayList<>();
 
-                    // Simple: 2 sections, 2 rows each, 5 seats per row = 20 seats per venue
-                    String[] sections = {"VIP Section", "Standard Section"};
-                    for (String section : sections) {
-                        for (int row = 1; row <= 2; row++) {
-                            // Convert row number to letter: 1 -> A, 2 -> B, 3 -> C, etc.
-                            String rowName = String.valueOf((char)('A' + row - 1));
-                            for (int seat = 1; seat <= 5; seat++) {
-                                seats.add(Seat.builder()
-                                        .venue(venue)
-                                        .sectionName(section)
-                                        .rowName(rowName)
-                                        .seatNumber(String.valueOf(seat))
-                                        .build());
-                            }
+                    // VIP Section: 4 rows (A-D), 5 seats per row = 20 seats
+                    for (int row = 1; row <= 4; row++) {
+                        String rowName = String.valueOf((char)('A' + row - 1));
+                        for (int seat = 1; seat <= 5; seat++) {
+                            seats.add(Seat.builder()
+                                    .venue(venue)
+                                    .sectionName("VIP Section")
+                                    .rowName(rowName)
+                                    .seatNumber(String.valueOf(seat))
+                                    .build());
+                        }
+                    }
+
+                    // Standard Section: 8 rows (E-L), 10 seats per row = 80 seats
+                    for (int row = 5; row <= 12; row++) {
+                        String rowName = String.valueOf((char)('A' + row - 1));
+                        for (int seat = 1; seat <= 10; seat++) {
+                            seats.add(Seat.builder()
+                                    .venue(venue)
+                                    .sectionName("Standard Section")
+                                    .rowName(rowName)
+                                    .seatNumber(String.valueOf(seat))
+                                    .build());
                         }
                     }
 
                     seatRepository.saveAll(seats);
-                    log.info("Seeded {} seats for venue: {}", seats.size(), venue.getName());
+                    log.info("Seeded {} seats for venue: {} (VIP: 20, Standard: 80)", seats.size(), venue.getName());
                 }
 
                 log.info("Seat seeding completed");
@@ -731,7 +749,7 @@ public class ApplicationInitConfig {
 
         AtomicInteger qrCounter = new AtomicInteger(1000);
 
-        // ===== COMPLETED ORDER 1: Regular User with Voucher =====
+        // ===== COMPLETED ORDER 1: Regular User with Voucher (Art Exhibition - no seat selection) =====
         if (artExhibition != null) {
             TicketType exhibitTicket = ticketTypeRepository.findAll().stream()
                     .filter(t -> t.getEvent().getId().equals(artExhibition.getId()))
@@ -753,13 +771,14 @@ public class ApplicationInitConfig {
                 .completedAt(now.minusDays(2))
                 .build());
         
+        // Art exhibition doesn't require seat selection, so seat is null
         for (int i = 0; i < 2; i++) {
             ticketRepository.save(Ticket.builder()
                             .order(completedOrder1)
                     .user(regularUser)
                             .event(artExhibition)
                             .ticketType(exhibitTicket)
-                            .seat(null)
+                            .seat(null) // No seat selection required
                             .qrCode("QR-ART-" + qrCounter.incrementAndGet())
                     .status(TicketStatus.ACTIVE)
                     .purchaseDate(now.minusDays(2))
@@ -768,7 +787,7 @@ public class ApplicationInitConfig {
             }
         }
 
-        // ===== COMPLETED ORDER 2: VIP User =====
+        // ===== COMPLETED ORDER 2: VIP User (Music Festival - no seat selection) =====
         if (musicFestival != null) {
             TicketType festivalVIP = ticketTypeRepository.findAll().stream()
                     .filter(t -> t.getEvent().getId().equals(musicFestival.getId()) && t.getName().contains("VIP"))
@@ -790,13 +809,14 @@ public class ApplicationInitConfig {
                         .completedAt(now.minusDays(1))
                 .build());
         
+        // Music festival doesn't require seat selection, so seat is null
         for (int i = 0; i < 2; i++) {
             ticketRepository.save(Ticket.builder()
                             .order(completedOrder2)
                     .user(vipUser)
                             .event(musicFestival)
                             .ticketType(festivalVIP)
-                            .seat(null)
+                            .seat(null) // No seat selection required
                             .qrCode("QR-FESTIVAL-" + qrCounter.incrementAndGet())
                     .status(TicketStatus.ACTIVE)
                             .purchaseDate(now.minusDays(1))
@@ -805,27 +825,91 @@ public class ApplicationInitConfig {
             }
         }
 
-        // ===== PENDING ORDER =====
-        if (footballMatch != null) {
+        // ===== COMPLETED ORDER 3: Football Match with Seat Selection =====
+        if (footballMatch != null && footballMatch.getVenue() != null) {
             TicketType matchTicket = ticketTypeRepository.findAll().stream()
                     .filter(t -> t.getEvent().getId().equals(footballMatch.getId()) && t.getName().contains("Thường"))
                     .findFirst().orElse(null);
             
-            if (matchTicket != null) {
-        orderRepository.save(Order.builder()
-                .user(user1)
-                        .event(footballMatch)
-                        .ticketType(matchTicket)
-                .quantity(2)
-                        .subtotal(400000)
-                .discount(0)
-                        .total(400000)
-                .currency("VND")
-                .status(OrderStatus.PENDING)
-                .paymentMethod(PaymentMethod.BANK_TRANSFER)
-                .paymentUrl("https://payment.example.com/pending-123")
-                .expiresAt(now.plusMinutes(15))
-                .build());
+            if (matchTicket != null && matchTicket.getRequiresSeatSelection()) {
+                // Get available seats from Standard Section for this venue
+                List<Seat> availableSeats = seatRepository.findByVenueId(footballMatch.getVenue().getId()).stream()
+                        .filter(s -> s.getSectionName().equals("Standard Section"))
+                        .limit(2) // Reserve 2 seats
+                        .toList();
+                
+                if (!availableSeats.isEmpty()) {
+                    Order completedOrder3 = orderRepository.save(Order.builder()
+                            .user(user1)
+                            .event(footballMatch)
+                            .ticketType(matchTicket)
+                            .quantity(2)
+                            .subtotal(400000)
+                            .discount(0)
+                            .total(400000)
+                            .currency("VND")
+                            .status(OrderStatus.COMPLETED)
+                            .paymentMethod(PaymentMethod.BANK_TRANSFER)
+                            .completedAt(now.minusHours(3))
+                            .build());
+                    
+                    // Create tickets with assigned seats
+                    for (int i = 0; i < 2 && i < availableSeats.size(); i++) {
+                        ticketRepository.save(Ticket.builder()
+                                .order(completedOrder3)
+                                .user(user1)
+                                .event(footballMatch)
+                                .ticketType(matchTicket)
+                                .seat(availableSeats.get(i)) // Assign seat
+                                .qrCode("QR-FOOTBALL-" + qrCounter.incrementAndGet())
+                                .status(TicketStatus.ACTIVE)
+                                .purchaseDate(now.minusHours(3))
+                                .build());
+                    }
+                }
+            }
+        }
+
+        // ===== COMPLETED ORDER 4: VIP Football Match with Seat Selection =====
+        if (footballMatch != null && footballMatch.getVenue() != null) {
+            TicketType matchVIPTicket = ticketTypeRepository.findAll().stream()
+                    .filter(t -> t.getEvent().getId().equals(footballMatch.getId()) && t.getName().contains("VIP"))
+                    .findFirst().orElse(null);
+            
+            if (matchVIPTicket != null && matchVIPTicket.getRequiresSeatSelection()) {
+                // Get available seats from VIP Section for this venue
+                List<Seat> availableVIPSeats = seatRepository.findByVenueId(footballMatch.getVenue().getId()).stream()
+                        .filter(s -> s.getSectionName().equals("VIP Section"))
+                        .limit(1) // Reserve 1 VIP seat
+                        .toList();
+                
+                if (!availableVIPSeats.isEmpty()) {
+                    Order completedOrder4 = orderRepository.save(Order.builder()
+                            .user(vipUser)
+                            .event(footballMatch)
+                            .ticketType(matchVIPTicket)
+                            .quantity(1)
+                            .subtotal(500000)
+                            .discount(0)
+                            .total(500000)
+                            .currency("VND")
+                            .status(OrderStatus.COMPLETED)
+                            .paymentMethod(PaymentMethod.CREDIT_CARD)
+                            .completedAt(now.minusDays(1))
+                            .build());
+                    
+                    // Create ticket with assigned VIP seat
+                    ticketRepository.save(Ticket.builder()
+                            .order(completedOrder4)
+                            .user(vipUser)
+                            .event(footballMatch)
+                            .ticketType(matchVIPTicket)
+                            .seat(availableVIPSeats.get(0)) // Assign VIP seat
+                            .qrCode("QR-FOOTBALL-VIP-" + qrCounter.incrementAndGet())
+                            .status(TicketStatus.ACTIVE)
+                            .purchaseDate(now.minusDays(1))
+                            .build());
+                }
             }
         }
 

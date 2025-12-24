@@ -6,6 +6,7 @@ import com.uit.vesbookingapi.dto.response.EventResponse;
 import com.uit.vesbookingapi.dto.response.PageResponse;
 import com.uit.vesbookingapi.dto.response.TicketTypeResponse;
 import com.uit.vesbookingapi.entity.*;
+import com.uit.vesbookingapi.enums.EventStatus;
 import com.uit.vesbookingapi.exception.AppException;
 import com.uit.vesbookingapi.exception.ErrorCode;
 import com.uit.vesbookingapi.mapper.EventMapper;
@@ -351,6 +352,10 @@ public class EventService {
             response.setVenueId(event.getVenue().getId());
         }
 
+        // Calculate event status
+        EventStatus status = calculateEventStatus(event);
+        response.setStatus(status);
+
         // Calculate min/max price and available tickets in memory (avoid N+1 queries)
         Integer minPrice = ticketTypes.stream()
                 .map(TicketType::getPrice)
@@ -378,6 +383,10 @@ public class EventService {
             response.setVenueId(event.getVenue().getId());
         }
 
+        // Calculate event status
+        EventStatus status = calculateEventStatus(event);
+        response.setStatus(status);
+
         // Calculate min/max price and available tickets
         Integer minPrice = ticketTypeRepository.findMinPriceByEventId(event.getId());
         Integer maxPrice = ticketTypeRepository.findMaxPriceByEventId(event.getId());
@@ -387,6 +396,20 @@ public class EventService {
         response.setMaxPrice(maxPrice);
         response.setAvailableTickets(availableTickets != null ? availableTickets : 0);
         response.setIsFavorite(isFavorite);
+    }
+
+    private EventStatus calculateEventStatus(Event event) {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime startDate = event.getStartDate();
+        LocalDateTime endDate = event.getEndDate();
+
+        if (endDate != null && now.isAfter(endDate)) {
+            return EventStatus.COMPLETED;
+        } else if (now.isAfter(startDate) || now.isEqual(startDate)) {
+            return EventStatus.ONGOING;
+        } else {
+            return EventStatus.UPCOMING;
+        }
     }
 
     private String getCurrentUserId() {
