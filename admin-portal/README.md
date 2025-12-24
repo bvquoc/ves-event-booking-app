@@ -45,7 +45,11 @@ cp .env.example .env
 3. Update `.env` with your API base URL:
 
 ```
+# For local development
 VITE_API_BASE_URL=http://localhost:8080/api
+
+# For production with nginx (using domain): use relative path
+# VITE_API_BASE_URL=/api
 ```
 
 ### Development
@@ -143,8 +147,11 @@ Stops, rebuilds, and restarts automatically.
 ### Manual Deploy
 
 ```bash
-# 1. Set API URL (use VPS IP, NOT localhost!)
-echo "VITE_API_BASE_URL=http://YOUR_VPS_IP:8080/api" > .env
+# 1. Set API URL
+# If using nginx with domain (recommended): use relative path
+echo "VITE_API_BASE_URL=/api" > .env
+# OR if accessing directly: use full URL
+# echo "VITE_API_BASE_URL=http://YOUR_VPS_IP:8080/api" > .env
 
 # 2. Build
 npm install && npm run build
@@ -153,7 +160,10 @@ npm install && npm run build
 pm2 start ecosystem.config.js && pm2 save
 ```
 
-**Important:** Use your VPS IP address in `.env`, not `localhost` (API calls come from user's browser).
+**Important:**
+
+- When using nginx with domain (e.g., https://ves-booking.io.vn): use relative path `/api` (default)
+- When accessing directly (not through nginx): use full URL with VPS IP address
 
 See [DEPLOY.md](./DEPLOY.md) for details.
 

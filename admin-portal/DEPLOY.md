@@ -31,8 +31,11 @@ This will:
 ## Manual Deploy
 
 ```bash
-# 1. Set API URL (use VPS IP, NOT localhost!)
-echo "VITE_API_BASE_URL=http://YOUR_VPS_IP:8080/api" > .env
+# 1. Set API URL
+# If using nginx with domain (recommended): use relative path /api
+echo "VITE_API_BASE_URL=/api" > .env
+# OR if accessing directly (not through nginx): use full URL
+# echo "VITE_API_BASE_URL=http://YOUR_VPS_IP:8080/api" > .env
 
 # 2. Build
 npm install
@@ -45,7 +48,9 @@ pm2 save
 
 ## Important Notes
 
-- **API URL**: Use your VPS IP address, not `localhost` (API calls come from user's browser)
+- **API URL**:
+  - When using nginx with domain (e.g., https://ves-booking.io.vn): use relative path `/api` (default)
+  - When accessing directly (not through nginx): use full URL `http://YOUR_VPS_IP:8080/api`
 - **Ports**: Default frontend port is 3000, backend is 8080
 - **Firewall**: Make sure port 3000 (or your frontend port) is open
 
@@ -90,6 +95,7 @@ pm2 restart ves-admin-portal
 
 **API calls fail:**
 
-- Check `.env` has correct VPS IP (not localhost)
-- Verify backend is running: `curl http://YOUR_VPS_IP:8080/api/health`
+- If using nginx: ensure `.env` has `VITE_API_BASE_URL=/api` (relative path)
+- If accessing directly: ensure `.env` has full URL `VITE_API_BASE_URL=http://YOUR_VPS_IP:8080/api`
+- Verify backend is running: `curl http://YOUR_VPS_IP:8080/api/health` or `curl https://ves-booking.io.vn/api/health`
 - Rebuild after changing `.env`: `npm run build`

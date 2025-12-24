@@ -1,7 +1,6 @@
 import axios, { AxiosInstance, AxiosError } from "axios";
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "/api";
 
 class ApiClient {
   private client: AxiosInstance;
@@ -32,7 +31,7 @@ class ApiClient {
       (error: AxiosError) => {
         if (error.response?.status === 401) {
           localStorage.removeItem("auth_token");
-          window.location.href = "/login";
+          window.location.href = "/admin/login";
         }
         return Promise.reject(error);
       }
