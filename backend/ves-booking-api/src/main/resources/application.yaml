@@ -4,6 +4,8 @@ server:
     context-path: /api
 
 spring:
+  # Application timezone is set to Asia/Ho_Chi_Minh (GMT+7) in VesBookingApiApplication
+  # Database timezone is configured via serverTimezone=Asia/Ho_Chi_Minh in JDBC URL
   datasource:
     url: ${DBMS_CONNECTION:jdbc:mysql://localhost:3306/ves_booking_api?useUnicode=true&useSSL=false&serverTimezone=Asia/Ho_Chi_Minh&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true}
     driverClassName: "com.mysql.cj.jdbc.Driver"

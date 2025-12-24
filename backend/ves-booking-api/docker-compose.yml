@@ -7,6 +7,7 @@ services:
       MYSQL_DATABASE: ves_booking_api
       MYSQL_USER: vesbooking
       MYSQL_PASSWORD: vesbooking
+      TZ: Asia/Ho_Chi_Minh
     # MySQL port not exposed by default - only accessible within Docker network
     # Use docker-compose.dev.yml or docker-compose.local.yml to expose locally
     volumes:
@@ -56,6 +57,7 @@ services:
       DBMS_USERNAME: root
       DBMS_PASSWORD: root
       SPRING_PROFILES_ACTIVE: prod
+      TZ: Asia/Ho_Chi_Minh
     depends_on:
       mysql:
         condition: service_healthy
