@@ -21,6 +21,7 @@ dependencies:
   dotted_border: ^3.1.0
   qr_flutter: ^4.1.0
   dotted_line: ^3.2.2
+  mobile_scanner: ^5.0.0
 
 dev_dependencies:
   flutter_test:

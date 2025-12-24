@@ -3,6 +3,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:ves_event_booking/screens/home_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:ves_event_booking/providers/auth_provider.dart';
+import 'package:ves_event_booking/screens/staff_screen.dart';
 
 class LoginForm extends StatefulWidget {
   final VoidCallback onSwitch;
@@ -134,7 +135,7 @@ class _LoginFormState extends State<LoginForm> {
                         Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const HomeScreen(),
+                            builder: (context) => const StaffScreen(),
                           ),
                         );
                       }

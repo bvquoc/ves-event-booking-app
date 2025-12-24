@@ -135,41 +135,6 @@ class _ExhibitionBookingScreenState extends State<ExhibitionBookingScreen> {
     return '${formatter.format(price)} VNĐ';
   }
 
-  void _printBookingDebug() {
-    print('========== BOOKING DEBUG ==========');
-
-    // Event info
-    print('Event ID: ${widget.event.id}');
-    print('Event Name: ${widget.event.name}');
-
-    print('--- Tickets ---');
-
-    booking.items.forEach((ticketId, quantity) {
-      final ticket = widget.event.ticketTypes!.firstWhere(
-        (t) => t.id == ticketId,
-      );
-
-      print(
-        'Ticket: ${ticket.name} | '
-        'Price: ${ticket.price} | '
-        'Quantity: $quantity | '
-        'Subtotal: ${ticket.price * quantity}',
-      );
-    });
-
-    // Total price
-    final total = _calculateTotalPrice();
-    print('--- Total Price ---');
-    print('$total VND');
-
-    // User (test)
-    print('--- User Info (TEST) ---');
-    print('User Name: TEST USER');
-    print('User ID: 123');
-
-    print('===================================');
-  }
-
   Widget _buildBottomBar(BuildContext context) {
     final totalPrice = _calculateTotalPrice();
 
@@ -181,7 +146,6 @@ class _ExhibitionBookingScreenState extends State<ExhibitionBookingScreen> {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
             blurRadius: 10,
             offset: const Offset(0, -4),
           ),
@@ -333,13 +297,6 @@ class _ExhibitionBookingScreenState extends State<ExhibitionBookingScreen> {
                           child: Image.asset(
                             'assets/images/exhibition_bg.png',
                             fit: BoxFit.cover,
-                          ),
-                        ),
-
-                        /// OVERLAY (để chữ dễ đọc)
-                        Positioned.fill(
-                          child: Container(
-                            color: Colors.white.withOpacity(0.55),
                           ),
                         ),
 
