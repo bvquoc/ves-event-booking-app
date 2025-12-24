@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ves_event_booking/models/ticket/ticket_model.dart';
+import 'package:ves_event_booking/screens/tickets/ticket_qr_screen.dart';
 
 class TicketCardItem extends StatefulWidget {
   final TicketModel ticket;
@@ -26,12 +27,12 @@ class _EventCardItemState extends State<TicketCardItem> {
 
         // Khi có màn hình chi tiết (mã qr cho vé đã mua), điều hướng ở đây
         //
-        // Navigator.push(
-        //   context,
-        //   MaterialPageRoute(
-        //     builder: (context) => TicketQRScreen(event: widget.event),
-        //   ),
-        // );
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => TicketQRScreen(ticket: widget.ticket),
+          ),
+        );
       },
       child: Container(
         padding: const EdgeInsets.only(bottom: 24.0, left: 10),
