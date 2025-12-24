@@ -301,6 +301,8 @@ export interface TicketResponse {
   venueName?: string;
   ticketTypeName: string;
   seatNumber?: string;
+  seatSectionName?: string;
+  seatRowName?: string;
   status: "ACTIVE" | "USED" | "CANCELLED" | "REFUNDED";
   qrCode?: string;
   purchaseDate: string;
@@ -321,6 +323,8 @@ export interface TicketDetailResponse {
   ticketTypeDescription?: string;
   ticketTypePrice: number;
   seatNumber?: string;
+  seatSectionName?: string;
+  seatRowName?: string;
   qrCode?: string;
   qrCodeImage?: string;
   status: "ACTIVE" | "USED" | "CANCELLED" | "REFUNDED";

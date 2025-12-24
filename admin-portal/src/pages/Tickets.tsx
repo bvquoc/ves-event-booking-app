@@ -364,7 +364,14 @@ export default function Tickets() {
                     }
                     // else: seatDisplay already set to "General admission"
                   } else if (ticket.seatNumber) {
-                    seatDisplay = ticket.seatNumber;
+                    // Use section and row if available
+                    const parts = [
+                      ticket.seatSectionName,
+                      ticket.seatRowName,
+                      ticket.seatNumber,
+                    ].filter(Boolean);
+                    seatDisplay =
+                      parts.length > 1 ? parts.join(" - ") : ticket.seatNumber;
                   }
                   // else: seatDisplay already set to "General admission"
                   const purchaseDate = ticket.purchaseDate;
@@ -676,7 +683,17 @@ export default function Tickets() {
                       </span>
                     ) : "seatNumber" in selectedTicket &&
                       selectedTicket.seatNumber ? (
-                      selectedTicket.seatNumber
+                      (() => {
+                        const ticket = selectedTicket as TicketDetailResponse;
+                        const parts = [
+                          ticket.seatSectionName,
+                          ticket.seatRowName,
+                          ticket.seatNumber,
+                        ].filter(Boolean);
+                        return parts.length > 1
+                          ? parts.join(" - ")
+                          : ticket.seatNumber;
+                      })()
                     ) : (
                       <span className="text-muted-foreground italic">
                         General admission / No seat assigned
