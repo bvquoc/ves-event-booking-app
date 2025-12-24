@@ -57,7 +57,7 @@ class ProfileScreenState extends State<ProfileScreen> {
             children: [
               // === PHẦN CỐ ĐỊNH: HEADER + INFO ===
               _buildScrollableMenu(context, provider),
-              _buildHeader(context, provider.user!),
+              _buildHeader(context, provider.user),
 
               // === PHẦN CUỘN: CHỈ MENU ===
               // Expanded(
@@ -71,7 +71,7 @@ class ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildHeader(BuildContext context, UserModel user) {
+  Widget _buildHeader(BuildContext context, UserModel? user) {
     return Stack(
       clipBehavior: Clip.none,
       children: [
@@ -102,7 +102,6 @@ class ProfileScreenState extends State<ProfileScreen> {
                     textAlign: TextAlign.center,
                   ),
                 ),
-                const SizedBox(width: 48),
               ],
             ),
           ),
@@ -122,7 +121,7 @@ class ProfileScreenState extends State<ProfileScreen> {
             child: Column(
               children: [
                 Text(
-                  user.username,
+                  user == null ? 'Đang tải thông tin...' : user.username,
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),

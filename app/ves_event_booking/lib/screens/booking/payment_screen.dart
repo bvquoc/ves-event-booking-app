@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:ves_event_booking/models/booking_request.dart';
 import 'package:ves_event_booking/models/payment_model.dart';
@@ -98,9 +99,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 const SizedBox(height: 12),
                 _ticketReceiveInfo(),
                 const SizedBox(height: 12),
-                _ticketDetailCard(), // ✅ ĐÃ SỬA
+                _ticketDetailCard(),
                 const SizedBox(height: 12),
-                _buyerInfoCard(user), // ✅ ĐÃ SỬA
+                _buyerInfoCard(user),
                 const SizedBox(height: 12),
                 _paymentMethodCard(),
                 const SizedBox(height: 80),
@@ -115,6 +116,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
   // ===================== UI SECTIONS =====================
 
   Widget _eventCard() {
+    final rawDate = widget.event.startDate;
+
+    final dateTime = DateTime.parse(rawDate.toString());
+
+    final formatted = DateFormat('HH:mm dd-MM-yyyy').format(dateTime);
     return _card(
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -133,7 +139,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
             Icons.location_on,
             widget.event.venueName ?? 'Địa điểm chưa xác định',
           ),
-          _iconText(Icons.calendar_today, '${widget.event.startDate}'),
+          _iconText(Icons.calendar_today, formatted),
         ],
       ),
     );
@@ -166,6 +172,12 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
           /// LIST TICKET
           ..._ticketItems.expand((item) {
+            final price = item.price;
+            final total = item.price * item.quantity;
+
+            final formattedPrice = NumberFormat('#,###', 'vi_VN').format(price);
+            final formattedTotal = NumberFormat('#,###', 'vi_VN').format(total);
+
             return [
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -184,7 +196,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        '${item.price.toStringAsFixed(0)} đ',
+                        '${formattedPrice} VNĐ',
                         style: const TextStyle(fontSize: 15),
                       ),
                     ],
@@ -203,7 +215,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        '${(item.price * item.quantity).toStringAsFixed(0)} đ',
+                        '${formattedTotal} VNĐ',
                         style: const TextStyle(fontSize: 15),
                       ),
                     ],
@@ -278,6 +290,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
   // ===================== BOTTOM BAR =====================
 
   Widget _bottomBar(TicketProvider provider) {
+    final total = widget.totalPrice;
+
+    final formattedTotal = NumberFormat('#,###', 'vi_VN').format(total);
     return SafeArea(
       child: Container(
         padding: const EdgeInsets.all(16),
@@ -290,7 +305,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
           children: [
             _row(
               'Tổng thanh toán',
-              '${widget.totalPrice.toStringAsFixed(0)} đ',
+              '${formattedTotal}VNĐ',
               bold: true,
               color: Colors.black,
             ),
@@ -359,7 +374,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
       padding: const EdgeInsets.only(top: 4),
       child: Row(
         children: [
-          Icon(icon, size: 16, color: Colors.grey),
+          Icon(icon, size: 16, color: Colors.blue),
           const SizedBox(width: 6),
           Expanded(child: Text(text)),
         ],
@@ -457,7 +472,7 @@ Widget _ticketReceiveInfo() {
         SizedBox(height: 6),
         Text(
           'Vé điện tử sẽ được hiển thị trong mục "Vé của tôi" '
-          'của tài khoản abc@gmail.com',
+          'của tài khoản',
           style: TextStyle(height: 1.4),
         ),
       ],
