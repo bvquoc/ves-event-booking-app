@@ -325,6 +325,7 @@ class _ExhibitionBookingScreenState extends State<ExhibitionBookingScreen> {
                     border: Border.all(color: Colors.blue),
                   ),
                   child: ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
                     child: Stack(
                       children: [
                         /// BACKGROUND IMAGE

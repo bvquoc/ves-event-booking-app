@@ -19,15 +19,7 @@ class TicketsScreen extends StatelessWidget {
         appBar: AppBar(
           backgroundColor: Colors.white,
           elevation: 0,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back_rounded, color: Colors.black),
-            onPressed: () {
-              // Có thể dùng Navigator.pop(context) nếu đây là màn hình được push
-              if (Navigator.canPop(context)) {
-                Navigator.pop(context);
-              }
-            },
-          ),
+
           title: const Text(
             'Vé của tôi',
             style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
