@@ -1,5 +1,6 @@
 package com.uit.vesbookingapi.dto.response;
 
+import com.uit.vesbookingapi.enums.EventStatus;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -32,6 +33,7 @@ public class EventResponse {
     List<String> tags;
 
     // Calculated fields
+    EventStatus status;
     Integer minPrice;
     Integer maxPrice;
     Integer availableTickets;

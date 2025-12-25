@@ -16,6 +16,8 @@ public interface TicketMapper {
     @Mapping(source = "event.venueName", target = "venueName")
     @Mapping(source = "ticketType.name", target = "ticketTypeName")
     @Mapping(source = "seat.seatNumber", target = "seatNumber")
+    @Mapping(source = "seat.sectionName", target = "seatSectionName")
+    @Mapping(source = "seat.rowName", target = "seatRowName")
     TicketResponse toTicketResponse(Ticket ticket);
 
     @Mapping(source = "event.id", target = "eventId")
@@ -31,5 +33,7 @@ public interface TicketMapper {
     @Mapping(source = "ticketType.description", target = "ticketTypeDescription")
     @Mapping(source = "ticketType.price", target = "ticketTypePrice")
     @Mapping(source = "seat.seatNumber", target = "seatNumber")
+    @Mapping(source = "seat.sectionName", target = "seatSectionName")
+    @Mapping(source = "seat.rowName", target = "seatRowName")
     TicketDetailResponse toTicketDetailResponse(Ticket ticket);
 }

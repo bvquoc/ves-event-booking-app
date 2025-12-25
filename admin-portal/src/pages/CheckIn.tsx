@@ -21,6 +21,7 @@ import { format } from "date-fns";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { Html5Qrcode } from "html5-qrcode";
+import { QRCodeSVG } from "qrcode.react";
 
 export default function CheckIn() {
   const { logout } = useAuth();
@@ -427,6 +428,27 @@ export default function CheckIn() {
                   </div>
                 )}
               </div>
+
+              {ticket.qrCode && (
+                <div className="border-t pt-4">
+                  <Label className="text-muted-foreground mb-2 block">
+                    QR Code
+                  </Label>
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="border rounded p-4 bg-white">
+                      <QRCodeSVG
+                        value={ticket.qrCode}
+                        size={200}
+                        level="H"
+                        includeMargin={true}
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground font-mono">
+                      {ticket.qrCode}
+                    </p>
+                  </div>
+                </div>
+              )}
 
               {ticket.status === "ACTIVE" && !ticket.checkedInAt && (
                 <div className="pt-4 border-t">

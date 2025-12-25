@@ -20,7 +20,18 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus, Edit, Trash2, Eye, Search, X } from "lucide-react";
+import {
+  Plus,
+  Edit,
+  Trash2,
+  Eye,
+  Search,
+  X,
+  Heart,
+  Clock,
+  CheckCircle2,
+  XCircle,
+} from "lucide-react";
 import { format } from "date-fns";
 import {
   Dialog,
@@ -35,13 +46,14 @@ import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { venueApi, VenueSeatingResponse } from "@/lib/api";
+import { venueApi, VenueSeatingResponse, favoriteApi } from "@/lib/api";
 import { usePermissions } from "@/hooks/usePermissions";
-import { useAuth } from "@/contexts/AuthContext";
+import { showError, showSuccess, showWarning } from "@/lib/errorHandler";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { Badge } from "@/components/ui/badge";
 
 export default function Events() {
   const { canManageEvents, isAdmin } = usePermissions();
-  const { user } = useAuth();
   const [events, setEvents] = useState<EventResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(0);
@@ -55,6 +67,7 @@ export default function Events() {
   const [trendingFilter, setTrendingFilter] = useState<boolean | undefined>(
     undefined
   );
+  const [statusFilter, setStatusFilter] = useState<string>("");
 
   // Reference data
   const [categories, setCategories] = useState<CategoryResponse[]>([]);
@@ -64,6 +77,8 @@ export default function Events() {
   // Dialog state
   const [dialogOpen, setDialogOpen] = useState(false);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [eventToDelete, setEventToDelete] = useState<string | null>(null);
   const [editingEvent, setEditingEvent] = useState<EventDetailResponse | null>(
     null
   );
@@ -72,6 +87,9 @@ export default function Events() {
   );
   const [seating, setSeating] = useState<VenueSeatingResponse | null>(null);
   const [loadingSeating, setLoadingSeating] = useState(false);
+  const [favoriteEventIds, setFavoriteEventIds] = useState<Set<string>>(
+    new Set()
+  );
   const [formData, setFormData] = useState<Partial<EventRequest>>({
     name: "",
     slug: "",
@@ -110,9 +128,24 @@ export default function Events() {
   });
 
   useEffect(() => {
-    loadEvents();
     loadReferenceData();
-  }, [page, categoryFilter, cityFilter, trendingFilter]);
+    if (!isAdmin()) {
+      loadFavorites();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    loadEvents();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    page,
+    categoryFilter,
+    cityFilter,
+    trendingFilter,
+    searchQuery,
+    statusFilter,
+  ]);
 
   const loadReferenceData = async () => {
     try {
@@ -129,6 +162,21 @@ export default function Events() {
     }
   };
 
+  const loadFavorites = async () => {
+    try {
+      const response = await favoriteApi.getFavorites({
+        page: 0,
+        size: 1000, // Load all favorites
+      });
+      const favoriteIds = new Set(
+        response.result.content.map((event) => event.id)
+      );
+      setFavoriteEventIds(favoriteIds);
+    } catch (error) {
+      console.error("Failed to load favorites:", error);
+    }
+  };
+
   const loadEvents = async () => {
     try {
       setLoading(true);
@@ -139,29 +187,13 @@ export default function Events() {
       if (categoryFilter) params.category = categoryFilter;
       if (cityFilter) params.city = cityFilter;
       if (trendingFilter !== undefined) params.trending = trendingFilter;
+      if (statusFilter) params.status = statusFilter;
 
       const response = await eventApi.getEvents(params);
-      let filteredEvents = response.result.content;
-      let filteredTotal = response.result.totalElements;
 
-      // For non-admin users, filter to show only their events
-      // Filter by organizerName matching user's name or username
-      if (!isAdmin() && user) {
-        filteredEvents = response.result.content.filter((event) => {
-          const userFullName = `${user.firstName} ${user.lastName}`.trim();
-          return (
-            event.organizerName === user.username ||
-            event.organizerName === userFullName ||
-            event.organizerName === user.firstName ||
-            event.organizerName === user.lastName
-          );
-        });
-        filteredTotal = filteredEvents.length;
-      }
-
-      setEvents(filteredEvents);
+      setEvents(response.result.content);
       setTotalPages(response.result.totalPages);
-      setTotalElements(filteredTotal);
+      setTotalElements(response.result.totalElements);
     } catch (error) {
       console.error("Failed to load events:", error);
     } finally {
@@ -250,7 +282,7 @@ export default function Events() {
       setDialogOpen(true);
     } catch (error) {
       console.error("Failed to load event details:", error);
-      alert("Failed to load event details");
+      showError(error);
     }
   };
 
@@ -268,7 +300,7 @@ export default function Events() {
       }
     } catch (error) {
       console.error("Failed to load event details:", error);
-      alert("Failed to load event details");
+      showError(error);
     }
   };
 
@@ -297,6 +329,157 @@ export default function Events() {
         return "bg-gray-100 text-gray-800 border-gray-300";
       default:
         return "bg-gray-100 text-gray-800 border-gray-300";
+    }
+  };
+
+  // Natural sort function for alphanumeric strings (handles ABC 123 properly)
+  const naturalSort = (a: string, b: string): number => {
+    // Split strings into parts (text and numbers)
+    const aParts = a.match(/(\d+|\D+)/g) || [];
+    const bParts = b.match(/(\d+|\D+)/g) || [];
+
+    const minLength = Math.min(aParts.length, bParts.length);
+
+    for (let i = 0; i < minLength; i++) {
+      const aPart = aParts[i];
+      const bPart = bParts[i];
+
+      // If both are numbers, compare numerically
+      if (/^\d+$/.test(aPart) && /^\d+$/.test(bPart)) {
+        const numA = parseInt(aPart, 10);
+        const numB = parseInt(bPart, 10);
+        if (numA !== numB) {
+          return numA - numB;
+        }
+      } else {
+        // Compare as strings (case-insensitive)
+        const strA = aPart.toLowerCase();
+        const strB = bPart.toLowerCase();
+        if (strA !== strB) {
+          return strA < strB ? -1 : 1;
+        }
+      }
+    }
+
+    // If all parts are equal, shorter string comes first
+    return aParts.length - bParts.length;
+  };
+
+  const getEventStatus = (
+    event: EventResponse
+  ): "past" | "current" | "future" => {
+    const now = new Date();
+    const startDate = event.startDate ? new Date(event.startDate) : null;
+    const endDate = event.endDate ? new Date(event.endDate) : null;
+
+    if (!startDate) return "future";
+
+    // Past event: end date has passed (or start date passed and no end date)
+    if (endDate && endDate < now) {
+      return "past";
+    }
+    if (!endDate && startDate < now) {
+      return "past";
+    }
+
+    // Current event: started but not ended
+    if (startDate <= now && (endDate ? endDate >= now : true)) {
+      return "current";
+    }
+
+    // Future event: hasn't started yet
+    return "future";
+  };
+
+  const getStatusBadge = (status?: string) => {
+    if (!status) return null;
+
+    switch (status) {
+      case "UPCOMING":
+        return (
+          <Badge
+            variant="outline"
+            className="bg-blue-50 text-blue-700 border-blue-200"
+          >
+            <Clock className="h-3 w-3 mr-1" />
+            Upcoming
+          </Badge>
+        );
+      case "ONGOING":
+        return (
+          <Badge
+            variant="outline"
+            className="bg-green-50 text-green-700 border-green-200"
+          >
+            <CheckCircle2 className="h-3 w-3 mr-1" />
+            Ongoing
+          </Badge>
+        );
+      case "COMPLETED":
+        return (
+          <Badge
+            variant="outline"
+            className="bg-gray-50 text-gray-700 border-gray-200"
+          >
+            <CheckCircle2 className="h-3 w-3 mr-1" />
+            Completed
+          </Badge>
+        );
+      case "CANCELLED":
+        return (
+          <Badge
+            variant="outline"
+            className="bg-red-50 text-red-700 border-red-200"
+          >
+            <XCircle className="h-3 w-3 mr-1" />
+            Cancelled
+          </Badge>
+        );
+      default:
+        return (
+          <Badge
+            variant="outline"
+            className="bg-gray-50 text-gray-700 border-gray-200"
+          >
+            {status}
+          </Badge>
+        );
+    }
+  };
+
+  const getEventRowColor = (event: EventResponse): string => {
+    const status = getEventStatus(event);
+    switch (status) {
+      case "past":
+        return "bg-slate-100 hover:bg-slate-200 border-l-4 border-slate-400";
+      case "current":
+        return "bg-emerald-100 hover:bg-emerald-200 border-l-4 border-emerald-500";
+      case "future":
+        return "bg-sky-100 hover:bg-sky-200 border-l-4 border-sky-500";
+      default:
+        return "";
+    }
+  };
+
+  const toggleFavorite = async (eventId: string) => {
+    try {
+      const isFavorited = favoriteEventIds.has(eventId);
+      if (isFavorited) {
+        await favoriteApi.removeFavorite(eventId);
+        setFavoriteEventIds((prev) => {
+          const newSet = new Set(prev);
+          newSet.delete(eventId);
+          return newSet;
+        });
+        showSuccess("Removed from favorites");
+      } else {
+        await favoriteApi.addFavorite(eventId);
+        setFavoriteEventIds((prev) => new Set(prev).add(eventId));
+        showSuccess("Added to favorites");
+      }
+    } catch (error) {
+      console.error("Failed to toggle favorite:", error);
+      showError(error);
     }
   };
 
@@ -335,34 +518,59 @@ export default function Events() {
         await eventApi.createEvent(eventData);
       }
       setDialogOpen(false);
+      showSuccess(
+        editingEvent
+          ? "Event updated successfully"
+          : "Event created successfully"
+      );
       loadEvents();
     } catch (error: any) {
       console.error("Failed to save event:", error);
-      alert(error.response?.data?.message || "Failed to save event");
+      showError(error);
     }
   };
 
-  const handleDelete = async (eventId: string) => {
-    if (!confirm("Are you sure you want to delete this event?")) return;
+  const handleDelete = (eventId: string) => {
+    setEventToDelete(eventId);
+    setConfirmDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!eventToDelete) return;
     try {
-      await eventApi.deleteEvent(eventId);
+      await eventApi.deleteEvent(eventToDelete);
+      showSuccess("Event deleted successfully");
       loadEvents();
+      setEventToDelete(null);
     } catch (error) {
       console.error("Failed to delete event:", error);
-      alert("Failed to delete event");
+      showError(error);
     }
   };
 
   const addTicketType = () => {
-    if (newTicketType.name && newTicketType.price && newTicketType.available) {
+    const name = newTicketType.name?.trim();
+    const price = newTicketType.price;
+    const available = newTicketType.available;
+
+    if (
+      name &&
+      name !== "" &&
+      typeof price === "number" &&
+      !isNaN(price) &&
+      price > 0 &&
+      typeof available === "number" &&
+      !isNaN(available) &&
+      available > 0
+    ) {
       setTicketTypes([
         ...ticketTypes,
         {
-          name: newTicketType.name!,
+          name: name,
           description: newTicketType.description,
-          price: newTicketType.price!,
+          price: price,
           currency: newTicketType.currency || "VND",
-          available: newTicketType.available!,
+          available: available,
           maxPerOrder: newTicketType.maxPerOrder || 1,
           benefits: newTicketType.benefits || [],
           requiresSeatSelection: newTicketType.requiresSeatSelection || false,
@@ -378,6 +586,11 @@ export default function Events() {
         benefits: [],
         requiresSeatSelection: false,
       });
+    } else {
+      // Show validation error
+      showWarning(
+        "Please fill in all required fields: Ticket name, Price (must be > 0), and Available (must be > 0)"
+      );
     }
   };
 
@@ -393,11 +606,9 @@ export default function Events() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">
-            {isAdmin() ? "Events" : "My Events"}
-          </h1>
+          <h1 className="text-3xl font-bold">Events</h1>
           <p className="text-muted-foreground">
-            {isAdmin() ? "Manage events" : "View your events"} ({totalElements}{" "}
+            {isAdmin() ? "Manage events" : "Browse all events"} ({totalElements}{" "}
             total)
           </p>
         </div>
@@ -471,6 +682,19 @@ export default function Events() {
               <option value="true">Trending Only</option>
               <option value="false">Non-Trending</option>
             </Select>
+            <Select
+              value={statusFilter}
+              onChange={(e) => {
+                setStatusFilter(e.target.value);
+                setPage(0);
+              }}
+            >
+              <option value="">All Statuses</option>
+              <option value="UPCOMING">Upcoming</option>
+              <option value="ONGOING">Ongoing</option>
+              <option value="COMPLETED">Completed</option>
+              <option value="CANCELLED">Cancelled</option>
+            </Select>
           </div>
         </CardContent>
       </Card>
@@ -480,20 +704,49 @@ export default function Events() {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-16">Image</TableHead>
                 <TableHead>Name</TableHead>
                 <TableHead>Category</TableHead>
                 <TableHead>City</TableHead>
                 <TableHead>Start Date</TableHead>
+                <TableHead>Status</TableHead>
                 <TableHead>Price Range</TableHead>
                 <TableHead>Available</TableHead>
-                <TableHead>Trending</TableHead>
+                {!isAdmin() && <TableHead className="w-16">Favorite</TableHead>}
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {events.map((event) => (
-                <TableRow key={event.id}>
-                  <TableCell className="font-medium">{event.name}</TableCell>
+                <TableRow key={event.id} className={getEventRowColor(event)}>
+                  <TableCell>
+                    {event.thumbnail ? (
+                      <img
+                        src={event.thumbnail}
+                        alt={event.name}
+                        className="w-12 h-12 object-cover rounded"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = "none";
+                        }}
+                      />
+                    ) : (
+                      <div className="w-12 h-12 bg-muted rounded flex items-center justify-center">
+                        <span className="text-xs text-muted-foreground">
+                          No img
+                        </span>
+                      </div>
+                    )}
+                  </TableCell>
+                  <TableCell className="font-medium">
+                    <div className="flex items-center gap-2">
+                      {event.name}
+                      {event.isTrending && (
+                        <span className="px-2 py-0.5 text-xs font-semibold bg-primary text-primary-foreground rounded">
+                          Trending
+                        </span>
+                      )}
+                    </div>
+                  </TableCell>
                   <TableCell>{event.category?.name || "-"}</TableCell>
                   <TableCell>{event.city?.name || "-"}</TableCell>
                   <TableCell>
@@ -501,6 +754,7 @@ export default function Events() {
                       ? format(new Date(event.startDate), "MMM dd, yyyy")
                       : "-"}
                   </TableCell>
+                  <TableCell>{getStatusBadge(event.status)}</TableCell>
                   <TableCell>
                     {event.minPrice && event.maxPrice
                       ? `${event.minPrice} - ${event.maxPrice} ${
@@ -508,14 +762,34 @@ export default function Events() {
                         }`
                       : "-"}
                   </TableCell>
-                  <TableCell>{event.availableTickets || 0}</TableCell>
                   <TableCell>
-                    {event.isTrending ? (
-                      <span className="text-primary font-semibold">Yes</span>
-                    ) : (
-                      <span className="text-muted-foreground">No</span>
-                    )}
+                    <span className="px-2 py-1 text-xs font-semibold bg-muted text-muted-foreground rounded">
+                      {event.availableTickets || 0}
+                    </span>
                   </TableCell>
+                  {!isAdmin() && (
+                    <TableCell>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => toggleFavorite(event.id)}
+                        className="h-8 w-8"
+                        title={
+                          favoriteEventIds.has(event.id)
+                            ? "Remove from favorites"
+                            : "Add to favorites"
+                        }
+                      >
+                        <Heart
+                          className={`h-4 w-4 ${
+                            favoriteEventIds.has(event.id)
+                              ? "fill-red-500 text-red-500"
+                              : "text-muted-foreground"
+                          }`}
+                        />
+                      </Button>
+                    </TableCell>
+                  )}
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
                       <Button
@@ -977,6 +1251,43 @@ export default function Events() {
           </DialogHeader>
           {viewingEvent && (
             <div className="space-y-4">
+              {/* Event Images */}
+              {(viewingEvent.thumbnail ||
+                (viewingEvent.images && viewingEvent.images.length > 0)) && (
+                <div>
+                  <Label className="text-muted-foreground mb-2 block">
+                    Images
+                  </Label>
+                  <div className="flex gap-2 flex-wrap">
+                    {viewingEvent.thumbnail && (
+                      <img
+                        src={viewingEvent.thumbnail}
+                        alt={viewingEvent.name}
+                        className="w-32 h-32 object-cover rounded border"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = "none";
+                        }}
+                      />
+                    )}
+                    {viewingEvent.images && viewingEvent.images.length > 0 && (
+                      <>
+                        {viewingEvent.images.map((img, index) => (
+                          <img
+                            key={index}
+                            src={img}
+                            alt={`${viewingEvent.name} - Image ${index + 1}`}
+                            className="w-32 h-32 object-cover rounded border"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).style.display =
+                                "none";
+                            }}
+                          />
+                        ))}
+                      </>
+                    )}
+                  </div>
+                </div>
+              )}
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label className="text-muted-foreground">Category</Label>
@@ -1090,31 +1401,43 @@ export default function Events() {
                             </h3>
                             {section.rows && section.rows.length > 0 ? (
                               <div className="space-y-4">
-                                {section.rows.map(
-                                  (row: any, rowIndex: number) => (
+                                {[...section.rows]
+                                  .sort((a: any, b: any) =>
+                                    naturalSort(
+                                      a.rowName || "",
+                                      b.rowName || ""
+                                    )
+                                  )
+                                  .map((row: any, rowIndex: number) => (
                                     <div key={rowIndex} className="space-y-2">
                                       <div className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                                         <span>Row {row.rowName}</span>
                                       </div>
                                       <div className="flex flex-wrap gap-1">
                                         {row.seats &&
-                                          row.seats.map((seat: any) => (
-                                            <div
-                                              key={seat.id}
-                                              className={`
+                                          [...row.seats]
+                                            .sort((a: any, b: any) =>
+                                              naturalSort(
+                                                a.seatNumber || "",
+                                                b.seatNumber || ""
+                                              )
+                                            )
+                                            .map((seat: any) => (
+                                              <div
+                                                key={seat.id}
+                                                className={`
                                           px-2 py-1 text-xs border rounded cursor-default
                                           ${getSeatStatusColor(seat.status)}
                                           hover:opacity-80 transition-opacity
                                         `}
-                                              title={`Seat ${seat.seatNumber} - ${seat.status}`}
-                                            >
-                                              {seat.seatNumber}
-                                            </div>
-                                          ))}
+                                                title={`Seat ${seat.seatNumber} - ${seat.status}`}
+                                              >
+                                                {seat.seatNumber}
+                                              </div>
+                                            ))}
                                       </div>
                                     </div>
-                                  )
-                                )}
+                                  ))}
                               </div>
                             ) : (
                               <p className="text-sm text-muted-foreground">
@@ -1156,6 +1479,17 @@ export default function Events() {
           )}
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        open={confirmDialogOpen}
+        onOpenChange={setConfirmDialogOpen}
+        title="Delete Event"
+        description="Are you sure you want to delete this event? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        onConfirm={confirmDelete}
+        variant="destructive"
+      />
     </div>
   );
 }

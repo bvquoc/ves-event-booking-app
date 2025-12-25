@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { Toaster } from "react-hot-toast";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AdminRoute } from "./components/AdminRoute";
@@ -22,6 +23,7 @@ function App() {
   return (
     <BrowserRouter basename="/admin">
       <AuthProvider>
+        <Toaster />
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route

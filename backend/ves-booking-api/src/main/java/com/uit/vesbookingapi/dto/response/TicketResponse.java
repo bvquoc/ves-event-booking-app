@@ -20,6 +20,8 @@ public class TicketResponse {
     String venueName;
     String ticketTypeName;
     String seatNumber; // Null if no seat selection
+    String seatSectionName; // Null if no seat selection
+    String seatRowName; // Null if no seat selection
     TicketStatus status;
     String qrCode;
     LocalDateTime purchaseDate;

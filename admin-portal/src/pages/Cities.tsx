@@ -22,12 +22,16 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { showError, showSuccess } from "@/lib/errorHandler";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 
 export default function Cities() {
   const { canManageCities } = usePermissions();
   const [cities, setCities] = useState<CityResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [cityToDelete, setCityToDelete] = useState<string | null>(null);
   const [editingCity, setEditingCity] = useState<CityResponse | null>(null);
   const [formData, setFormData] = useState({
     name: "",
@@ -79,21 +83,31 @@ export default function Cities() {
         });
       }
       setDialogOpen(false);
+      showSuccess(
+        editingCity ? "City updated successfully" : "City created successfully"
+      );
       loadCities();
     } catch (error: any) {
       console.error("Failed to save city:", error);
-      alert(error.response?.data?.message || "Failed to save city");
+      showError(error);
     }
   };
 
-  const handleDelete = async (cityId: string) => {
-    if (!confirm("Are you sure you want to delete this city?")) return;
+  const handleDelete = (cityId: string) => {
+    setCityToDelete(cityId);
+    setConfirmDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!cityToDelete) return;
     try {
-      await cityApi.deleteCity(cityId);
+      await cityApi.deleteCity(cityToDelete);
+      showSuccess("City deleted successfully");
       loadCities();
+      setCityToDelete(null);
     } catch (error) {
       console.error("Failed to delete city:", error);
-      alert("Failed to delete city");
+      showError(error);
     }
   };
 
@@ -211,6 +225,17 @@ export default function Cities() {
           </form>
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        open={confirmDialogOpen}
+        onOpenChange={setConfirmDialogOpen}
+        title="Delete City"
+        description="Are you sure you want to delete this city? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        onConfirm={confirmDelete}
+        variant="destructive"
+      />
     </div>
   );
 }

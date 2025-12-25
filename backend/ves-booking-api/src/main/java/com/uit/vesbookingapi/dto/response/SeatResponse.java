@@ -11,6 +11,8 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class SeatResponse {
     String id;
+    String sectionName;
+    String rowName;
     String seatNumber;
     SeatStatus status;
 }

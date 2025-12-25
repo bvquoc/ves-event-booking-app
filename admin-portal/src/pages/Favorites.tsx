@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/table";
 import { Heart, Trash2 } from "lucide-react";
 import { format } from "date-fns";
+import { showError, showSuccess } from "@/lib/errorHandler";
 
 export default function Favorites() {
   const { isAdmin } = usePermissions();
@@ -46,10 +47,11 @@ export default function Favorites() {
   const handleRemoveFavorite = async (eventId: string) => {
     try {
       await favoriteApi.removeFavorite(eventId);
+      showSuccess("Favorite removed successfully");
       loadFavorites();
     } catch (error) {
       console.error("Failed to remove favorite:", error);
-      alert("Failed to remove favorite");
+      showError(error);
     }
   };
 

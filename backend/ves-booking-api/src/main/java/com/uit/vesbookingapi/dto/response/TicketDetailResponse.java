@@ -27,6 +27,8 @@ public class TicketDetailResponse {
     String ticketTypeDescription;
     Integer ticketTypePrice;
     String seatNumber; // Null if no seat selection
+    String seatSectionName; // Null if no seat selection
+    String seatRowName; // Null if no seat selection
     String qrCode;
     String qrCodeImage;
     TicketStatus status;

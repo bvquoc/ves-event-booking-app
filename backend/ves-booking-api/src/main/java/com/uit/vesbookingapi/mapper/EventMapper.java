@@ -19,12 +19,14 @@ public interface EventMapper {
     @Mapping(target = "updatedAt", ignore = true)
     Event toEvent(EventRequest request);
 
+    @Mapping(target = "status", ignore = true)
     @Mapping(target = "minPrice", ignore = true)
     @Mapping(target = "maxPrice", ignore = true)
     @Mapping(target = "availableTickets", ignore = true)
     @Mapping(target = "isFavorite", ignore = true)
     EventResponse toEventResponse(Event event);
 
+    @Mapping(target = "status", ignore = true)
     @Mapping(target = "minPrice", ignore = true)
     @Mapping(target = "maxPrice", ignore = true)
     @Mapping(target = "availableTickets", ignore = true)

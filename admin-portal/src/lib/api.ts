@@ -1,7 +1,6 @@
 import axios, { AxiosInstance, AxiosError } from "axios";
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "/api";
 
 class ApiClient {
   private client: AxiosInstance;
@@ -32,7 +31,7 @@ class ApiClient {
       (error: AxiosError) => {
         if (error.response?.status === 401) {
           localStorage.removeItem("auth_token");
-          window.location.href = "/login";
+          window.location.href = "/admin/login";
         }
         return Promise.reject(error);
       }
@@ -144,6 +143,7 @@ export interface EventResponse {
   maxPrice?: number;
   availableTickets?: number;
   isFavorite?: boolean;
+  status?: "UPCOMING" | "ONGOING" | "COMPLETED" | "CANCELLED";
 }
 
 export interface EventDetailResponse extends EventResponse {
@@ -233,8 +233,16 @@ export interface RowResponse {
 
 export interface SeatResponse {
   id: string;
+  sectionName: string;
+  rowName: string;
   seatNumber: string;
   status: "AVAILABLE" | "RESERVED" | "SOLD" | "BLOCKED";
+}
+
+export interface SeatRequest {
+  sectionName: string;
+  rowName: string;
+  seatNumber: string;
 }
 
 // Reference data types
@@ -293,6 +301,8 @@ export interface TicketResponse {
   venueName?: string;
   ticketTypeName: string;
   seatNumber?: string;
+  seatSectionName?: string;
+  seatRowName?: string;
   status: "ACTIVE" | "USED" | "CANCELLED" | "REFUNDED";
   qrCode?: string;
   purchaseDate: string;
@@ -313,6 +323,8 @@ export interface TicketDetailResponse {
   ticketTypeDescription?: string;
   ticketTypePrice: number;
   seatNumber?: string;
+  seatSectionName?: string;
+  seatRowName?: string;
   qrCode?: string;
   qrCodeImage?: string;
   status: "ACTIVE" | "USED" | "CANCELLED" | "REFUNDED";
@@ -697,6 +709,46 @@ export const venueApi = {
       {
         params: { eventId },
       }
+    );
+    return response.data;
+  },
+  // Seat management APIs
+  getSeatsByVenue: async (venueId: string) => {
+    const response = await apiClient.get<ApiResponse<SeatResponse[]>>(
+      `/venues/${venueId}/seats/manage`
+    );
+    return response.data;
+  },
+  getSeatById: async (venueId: string, seatId: string) => {
+    const response = await apiClient.get<ApiResponse<SeatResponse>>(
+      `/venues/${venueId}/seats/manage/${seatId}`
+    );
+    return response.data;
+  },
+  createSeat: async (venueId: string, seat: SeatRequest) => {
+    const response = await apiClient.post<ApiResponse<SeatResponse>>(
+      `/venues/${venueId}/seats/manage`,
+      seat
+    );
+    return response.data;
+  },
+  createBulkSeats: async (venueId: string, seats: SeatRequest[]) => {
+    const response = await apiClient.post<ApiResponse<SeatResponse[]>>(
+      `/venues/${venueId}/seats/manage/bulk`,
+      seats
+    );
+    return response.data;
+  },
+  updateSeat: async (venueId: string, seatId: string, seat: SeatRequest) => {
+    const response = await apiClient.put<ApiResponse<SeatResponse>>(
+      `/venues/${venueId}/seats/manage/${seatId}`,
+      seat
+    );
+    return response.data;
+  },
+  deleteSeat: async (venueId: string, seatId: string) => {
+    const response = await apiClient.delete<ApiResponse<void>>(
+      `/venues/${venueId}/seats/manage/${seatId}`
     );
     return response.data;
   },

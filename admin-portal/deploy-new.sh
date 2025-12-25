@@ -14,6 +14,29 @@ if ! command -v pm2 &> /dev/null; then
     exit 1
 fi
 
+# Check and update .env if needed
+if [ -f ".env" ]; then
+    CURRENT_API_URL=$(grep "^VITE_API_BASE_URL=" .env | cut -d '=' -f2 || echo "")
+    if [[ "$CURRENT_API_URL" == http* ]]; then
+        echo "⚠️  Current API URL uses IP address: $CURRENT_API_URL"
+        echo ""
+        echo "Are you using nginx with domain (e.g., https://ves-booking.io.vn)?"
+        read -p "Update to use /api? (y/n) [y]: " -n 1 -r
+        echo ""
+        if [[ $REPLY =~ ^[Yy]$ ]] || [[ -z $REPLY ]]; then
+            echo "⚙️  Updating .env to use /api..."
+            sed -i.bak "s|^VITE_API_BASE_URL=.*|VITE_API_BASE_URL=/api|" .env
+            echo "✅ Updated API URL to: /api"
+        fi
+    else
+        echo "✅ API URL already configured: $CURRENT_API_URL"
+    fi
+else
+    echo "⚠️  No .env file found. Creating with default /api..."
+    echo "VITE_API_BASE_URL=/api" > .env
+    echo "✅ Created .env with API URL: /api"
+fi
+
 # Stop current deployment
 echo "⏹️  Stopping current deployment..."
 pm2 stop ves-admin-portal 2>/dev/null || echo "No running instance found"

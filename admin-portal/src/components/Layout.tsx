@@ -27,7 +27,7 @@ const navigation = [
     href: "/events",
     icon: Calendar,
     adminOnly: false,
-    getLabel: (_isAdmin: boolean) => (_isAdmin ? "Events" : "My Events"),
+    getLabel: (_isAdmin: boolean) => "Events",
   },
   {
     name: "Tickets",
@@ -100,17 +100,17 @@ export default function Layout() {
 
       <div className="flex">
         {/* Desktop sidebar */}
-        <aside className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0">
+        <aside className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0 lg:z-30">
           <div className="flex flex-col flex-grow bg-card border-r pt-5 pb-4 overflow-y-auto">
             <SidebarContent location={location} isAdminUser={isAdmin()} />
           </div>
         </aside>
 
         {/* Main content */}
-        <div className="flex flex-col flex-1 lg:pl-64">
+        <div className="flex flex-col flex-1 lg:pl-64 min-w-0">
           {/* Top bar */}
-          <header className="sticky top-0 z-10 flex-shrink-0 flex h-16 bg-card border-b">
-            <div className="flex-1 px-4 flex justify-between items-center">
+          <header className="sticky top-0 z-20 flex-shrink-0 flex h-16 bg-card border-b">
+            <div className="flex-1 px-4 flex justify-between items-center min-w-0">
               <Button
                 variant="ghost"
                 size="icon"
@@ -132,7 +132,7 @@ export default function Layout() {
           </header>
 
           {/* Page content */}
-          <main className="flex-1 p-6">
+          <main className="flex-1 p-6 min-w-0 overflow-x-auto">
             <Outlet />
           </main>
         </div>
