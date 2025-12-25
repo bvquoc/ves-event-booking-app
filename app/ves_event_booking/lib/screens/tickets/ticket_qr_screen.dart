@@ -8,16 +8,31 @@ class TicketQRScreen extends StatelessWidget {
   const TicketQRScreen({super.key, required this.ticket});
   final TicketModel ticket;
 
+  String _buildSeatInfo() {
+    List<String> parts = [];
+
+    if (ticket.seatSectionName != null && ticket.seatSectionName!.isNotEmpty) {
+      parts.add("Khu: ${ticket.seatSectionName}");
+    }
+    if (ticket.seatRowName != null && ticket.seatRowName!.isNotEmpty) {
+      parts.add("Hàng: ${ticket.seatRowName}");
+    }
+    if (ticket.seatNumber != null && ticket.seatNumber!.isNotEmpty) {
+      parts.add("Ghế: ${ticket.seatNumber}");
+    }
+
+    if (parts.isEmpty) return "Tự do";
+    return parts.join(" - ");
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('QR Code', style: TextStyle(color: Colors.white)),
+        title: const Text('QR Code', style: TextStyle(color: Colors.white)),
         centerTitle: true,
         backgroundColor: Colors.blue,
-        iconTheme: const IconThemeData(
-          color: Colors.white, // ⭐ đổi màu nút back
-        ),
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: Stack(
         fit: StackFit.expand,
@@ -36,40 +51,14 @@ class TicketQRScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Row(
-        children: [
-          IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
-            onPressed: () => Navigator.pop(context),
-          ),
-          const Spacer(),
-          const Text(
-            "Vé của tôi",
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const Spacer(flex: 2),
-        ],
-      ),
-    );
-  }
-
   Widget _buildTicketCard() {
     final rawDate = ticket.eventStartDate.toString();
-
     final dateTime = DateTime.parse(rawDate);
-
     final date = DateFormat('dd/MM/yyyy').format(dateTime);
     final time = DateFormat('HH:mm').format(dateTime);
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 64),
+      padding: const EdgeInsets.symmetric(horizontal: 40),
       child: Stack(
         alignment: Alignment.topCenter,
         children: [
@@ -79,6 +68,13 @@ class TicketQRScreen extends StatelessWidget {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black26,
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -86,32 +82,46 @@ class TicketQRScreen extends StatelessWidget {
                 const SizedBox(height: 40),
 
                 /// QR CODE
-                QrImageView(data: ticket.qrCode, size: 240),
+                QrImageView(data: ticket.qrCode, size: 220),
 
                 const SizedBox(height: 20),
-                const DottedLine(),
-
+                const DottedLine(dashColor: Colors.grey),
                 const SizedBox(height: 16),
+
                 Text(
                   ticket.eventName,
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
 
-                const SizedBox(height: 12),
-                _infoRow(Icons.calendar_today, date),
+                const SizedBox(height: 16),
 
+                // Ngày giờ
+                _infoRow(Icons.calendar_today, date),
                 _infoRow(Icons.access_time, time),
+
+                // Loại vé
                 _infoRow(Icons.confirmation_number, ticket.ticketTypeName),
+
+                // Thông tin ghế
+                _infoRow(Icons.event_seat, _buildSeatInfo()),
+
+                // Địa điểm
                 _infoRow(Icons.location_on, ticket.venueName),
               ],
             ),
           ),
 
-          /// LOGO TRÒN
           CircleAvatar(
             radius: 28,
             backgroundColor: Colors.white,
-            child: Image.asset('assets/images/logo.png', width: 32),
+            child: Padding(
+              padding: const EdgeInsets.all(4.0),
+              child: Image.asset('assets/images/logo.png'),
+            ),
           ),
         ],
       ),
@@ -120,40 +130,21 @@ class TicketQRScreen extends StatelessWidget {
 
   Widget _infoRow(IconData icon, String text) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 16, color: Colors.blue),
-          const SizedBox(width: 8),
+          Icon(icon, size: 20, color: Colors.blue),
+          const SizedBox(width: 10),
           Expanded(
             child: Text(
               text,
-              style: const TextStyle(fontSize: 14),
+              style: const TextStyle(fontSize: 15, color: Colors.black87),
               overflow: TextOverflow.visible,
-              softWrap: true,
             ),
           ),
         ],
       ),
     );
   }
-
-  // @override
-  // Widget build(BuildContext context) {
-  //   print(ticket.qrCode);
-  //   return Scaffold(
-  //     backgroundColor: Colors.white,
-  //     appBar: AppBar(
-  //       title: Text('QR Code'),
-  //       centerTitle: true,
-  //       backgroundColor: Colors.white,
-  //     ),
-  //     body: Column(
-  //       children: [
-  //         QrImageView(data: ticket.qrCode, size: 300),
-  //         Center(child: Text(ticket.eventName)),
-  //       ],
-  //     ),
-  //   );
-  // }
 }

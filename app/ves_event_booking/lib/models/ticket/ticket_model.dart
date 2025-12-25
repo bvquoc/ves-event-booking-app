@@ -20,6 +20,8 @@ class TicketModel {
   final double? ticketTypePrice;
 
   // Seat & QR
+  final String? seatSectionName;
+  final String? seatRowName;
   final String? seatNumber;
   final String qrCode;
   final String? qrCodeImage;
@@ -49,6 +51,8 @@ class TicketModel {
     required this.ticketTypeName,
     this.ticketTypeDescription,
     this.ticketTypePrice,
+    this.seatSectionName,
+    this.seatRowName,
     this.seatNumber,
     required this.qrCode,
     this.qrCodeImage,
@@ -79,6 +83,8 @@ class TicketModel {
       ticketTypeDescription: json['ticketTypeDescription'],
       ticketTypePrice: (json['ticketTypePrice'] as num?)?.toDouble(),
       seatNumber: json['seatNumber'],
+      seatSectionName: json['seatSectionName'],
+      seatRowName: json['seatRowName'],
       qrCode: json['qrCode'],
       qrCodeImage: json['qrCodeImage'],
       status: json['status'],

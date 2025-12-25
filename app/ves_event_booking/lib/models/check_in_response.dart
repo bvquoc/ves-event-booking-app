@@ -81,11 +81,17 @@ class EventInfo {
 
 class SeatInfo {
   final String seatNumber;
+  final String? section;
+  final String? row;
 
-  SeatInfo({required this.seatNumber});
+  SeatInfo({required this.seatNumber, this.section, this.row});
 
   factory SeatInfo.fromJson(Map<String, dynamic> json) {
-    return SeatInfo(seatNumber: json['seatNumber'] ?? '');
+    return SeatInfo(
+      seatNumber: json['seatNumber'] ?? '',
+      section: json['section'],
+      row: json['row'],
+    );
   }
 }
 

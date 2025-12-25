@@ -3,7 +3,7 @@ import 'package:ves_event_booking/models/ticket/ticket_model.dart';
 import 'package:ves_event_booking/screens/tickets/ticket_qr_screen.dart';
 
 class GroupedTicketCard extends StatefulWidget {
-  final List<TicketModel> tickets; // Nhận vào danh sách vé cùng event
+  final List<TicketModel> tickets;
 
   const GroupedTicketCard({super.key, required this.tickets});
 
@@ -12,13 +12,32 @@ class GroupedTicketCard extends StatefulWidget {
 }
 
 class _GroupedTicketCardState extends State<GroupedTicketCard> {
-  bool _isExpanded = true; // Mặc định mở rộng để thấy vé
+  bool _isExpanded = true;
+
+  // Hàm helper để tạo chuỗi hiển thị vị trí ghế
+  String _buildSeatInfo(TicketModel ticket) {
+    List<String> parts = [];
+
+    if (ticket.seatSectionName != null && ticket.seatSectionName!.isNotEmpty) {
+      parts.add("Khu: ${ticket.seatSectionName}");
+    }
+    if (ticket.seatRowName != null && ticket.seatRowName!.isNotEmpty) {
+      parts.add("Hàng: ${ticket.seatRowName}");
+    }
+    if (ticket.seatNumber != null && ticket.seatNumber!.isNotEmpty) {
+      parts.add("Ghế: ${ticket.seatNumber}");
+    }
+
+    if (parts.isEmpty)
+      return "Tự do"; // Hoặc chuỗi mặc định nếu không có thông tin ghế
+
+    return parts.join(" - "); // Ví dụ: Khu: A - Hàng: B - Ghế: 10
+  }
 
   @override
   Widget build(BuildContext context) {
     if (widget.tickets.isEmpty) return const SizedBox.shrink();
 
-    // Lấy thông tin chung từ vé đầu tiên (vì cùng eventId nên thông tin event giống nhau)
     final eventInfo = widget.tickets.first;
 
     return Container(
@@ -38,7 +57,7 @@ class _GroupedTicketCardState extends State<GroupedTicketCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 1. PHẦN HEADER SỰ KIỆN (ẢNH + TÊN)
+          // 1. HEADER
           ClipRRect(
             borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
             child: Stack(
@@ -51,22 +70,9 @@ class _GroupedTicketCardState extends State<GroupedTicketCard> {
                   errorBuilder: (_, __, ___) => Container(
                     height: 150,
                     width: double.infinity,
-                    color: Colors.grey[300], // Màu nền xám nhạt
+                    color: Colors.grey[300],
                     alignment: Alignment.center,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: const [
-                        Icon(Icons.broken_image, color: Colors.grey, size: 24),
-                        SizedBox(height: 4),
-                        Text(
-                          "img not found",
-                          style: TextStyle(
-                            color: Colors.grey, // Chữ màu xám đậm
-                            fontSize: 10,
-                          ),
-                        ),
-                      ],
-                    ),
+                    child: const Icon(Icons.broken_image, color: Colors.grey),
                   ),
                 ),
                 Positioned.fill(
@@ -129,7 +135,7 @@ class _GroupedTicketCardState extends State<GroupedTicketCard> {
             ),
           ),
 
-          // 2. PHẦN DANH SÁCH VÉ (LIST SEATS)
+          // 2. DANH SÁCH VÉ
           Padding(
             padding: const EdgeInsets.all(12.0),
             child: Column(
@@ -160,11 +166,10 @@ class _GroupedTicketCardState extends State<GroupedTicketCard> {
                   const SizedBox(height: 8),
                   const Divider(height: 1),
                   const SizedBox(height: 8),
-                  // Duyệt qua từng vé để hiển thị
+                  // Duyệt qua từng vé
                   ...widget.tickets.map((ticket) {
                     return InkWell(
                       onTap: () {
-                        // Chuyển sang màn hình QR của vé cụ thể này
                         Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -200,14 +205,16 @@ class _GroupedTicketCardState extends State<GroupedTicketCard> {
                                       fontSize: 14,
                                     ),
                                   ),
-                                  if (ticket.seatNumber != null)
-                                    Text(
-                                      "Ghế: ${ticket.seatNumber}",
-                                      style: TextStyle(
-                                        color: Colors.grey.shade700,
-                                        fontSize: 12,
-                                      ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    _buildSeatInfo(ticket),
+                                    style: TextStyle(
+                                      color: Colors.grey.shade700,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
                                     ),
+                                  ),
+                                  // ----------------------------------
                                 ],
                               ),
                             ),

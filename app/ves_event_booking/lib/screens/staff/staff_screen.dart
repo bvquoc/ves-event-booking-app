@@ -184,6 +184,27 @@ class _CheckInDialogState extends State<CheckInDialog> {
     displayContent = "Mã vé: ${widget.qrCode}";
   }
 
+  String _buildSeatInfo(dynamic seat) {
+    if (seat == null) return "Tự do";
+
+    List<String> parts = [];
+
+    if (seat.section != null && seat.section.isNotEmpty) {
+      parts.add("Khu: ${seat.section}");
+    }
+
+    if (seat.row != null && seat.row.isNotEmpty) {
+      parts.add("Hàng: ${seat.row}");
+    }
+
+    if (seat.seatNumber != null && seat.seatNumber.isNotEmpty) {
+      parts.add("Ghế: ${seat.seatNumber}");
+    }
+
+    if (parts.isEmpty) return "Tự do";
+    return parts.join(" - ");
+  }
+
   Future<void> handleCheckIn() async {
     setState(() {
       isLoading = true;
@@ -198,7 +219,7 @@ class _CheckInDialogState extends State<CheckInDialog> {
         isLoading = false;
         isChecked = true;
         statusColor = Colors.green;
-
+        final seatInfoStr = _buildSeatInfo(result.ticketDetails?.seat);
         displayContent =
             """
 ✅ CHECK-IN THÀNH CÔNG!
@@ -206,7 +227,7 @@ class _CheckInDialogState extends State<CheckInDialog> {
 Khách hàng: ${result.ticketDetails?.user?.fullName ?? 'N/A'}
 Sự kiện: ${result.ticketDetails?.event?.name ?? 'N/A'}
 Loại vé: ${result.ticketDetails?.ticketType?.name ?? 'N/A'}
-Ghế: ${result.ticketDetails?.seat?.seatNumber ?? 'Tự do'}
+Vị trí: $seatInfoStr
 
 Thông báo: ${result.message ?? 'Hợp lệ'}
 """;
