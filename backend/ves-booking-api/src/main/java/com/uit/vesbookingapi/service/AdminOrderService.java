@@ -39,7 +39,7 @@ public class AdminOrderService {
             String eventId,
             OrderStatus status,
             Pageable pageable) {
-        
+
         Specification<Order> spec = buildSpecification(userId, eventId, status);
         Page<Order> orderPage = orderRepository.findAll(spec, pageable);
 

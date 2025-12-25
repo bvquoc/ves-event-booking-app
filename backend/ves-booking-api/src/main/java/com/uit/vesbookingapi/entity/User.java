@@ -30,7 +30,7 @@ public class User {
 
     @Column(nullable = false)
     String phone;
-    
+
     String firstName;
     LocalDate dob;
     String lastName;

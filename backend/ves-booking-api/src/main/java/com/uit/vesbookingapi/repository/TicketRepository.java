@@ -1,7 +1,6 @@
 package com.uit.vesbookingapi.repository;
 
 import com.uit.vesbookingapi.entity.Ticket;
-import com.uit.vesbookingapi.enums.OrderStatus;
 import com.uit.vesbookingapi.enums.TicketStatus;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Page;
@@ -32,29 +31,29 @@ public interface TicketRepository extends JpaRepository<Ticket, String>, JpaSpec
     // Find tickets by user and event (only from COMPLETED orders)
     @Query("SELECT t FROM Ticket t JOIN t.order o WHERE t.user.id = :userId AND t.event.id = :eventId AND o.status = 'COMPLETED' ORDER BY t.purchaseDate DESC")
     Page<Ticket> findByUserIdAndEventIdAndOrderCompletedOrderByPurchaseDateDesc(
-            @Param("userId") String userId, 
-            @Param("eventId") String eventId, 
+            @Param("userId") String userId,
+            @Param("eventId") String eventId,
             Pageable pageable);
 
     // Find tickets by user, event, and status (only from COMPLETED orders)
     @Query("SELECT t FROM Ticket t JOIN t.order o WHERE t.user.id = :userId AND t.event.id = :eventId AND t.status = :status AND o.status = 'COMPLETED' ORDER BY t.purchaseDate DESC")
     Page<Ticket> findByUserIdAndEventIdAndStatusAndOrderCompletedOrderByPurchaseDateDesc(
-            @Param("userId") String userId, 
-            @Param("eventId") String eventId, 
-            @Param("status") TicketStatus status, 
+            @Param("userId") String userId,
+            @Param("eventId") String eventId,
+            @Param("status") TicketStatus status,
             Pageable pageable);
 
     // Find tickets by user (only from COMPLETED orders)
     @Query("SELECT t FROM Ticket t JOIN t.order o WHERE t.user.id = :userId AND o.status = 'COMPLETED' ORDER BY t.purchaseDate DESC")
     Page<Ticket> findByUserIdAndOrderCompletedOrderByPurchaseDateDesc(
-            @Param("userId") String userId, 
+            @Param("userId") String userId,
             Pageable pageable);
 
     // Find tickets by user and status (only from COMPLETED orders)
     @Query("SELECT t FROM Ticket t JOIN t.order o WHERE t.user.id = :userId AND t.status = :status AND o.status = 'COMPLETED' ORDER BY t.purchaseDate DESC")
     Page<Ticket> findByUserIdAndStatusAndOrderCompletedOrderByPurchaseDateDesc(
-            @Param("userId") String userId, 
-            @Param("status") TicketStatus status, 
+            @Param("userId") String userId,
+            @Param("status") TicketStatus status,
             Pageable pageable);
 
     // Find ticket by QR code

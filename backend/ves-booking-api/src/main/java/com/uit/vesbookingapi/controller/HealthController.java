@@ -25,7 +25,7 @@ public class HealthController {
         healthStatus.put("status", "healthy");
         healthStatus.put("timestamp", LocalDateTime.now().toString());
         healthStatus.put("service", "ves-booking-api");
-        
+
         return ResponseEntity.status(HttpStatus.OK).body(healthStatus);
     }
 }

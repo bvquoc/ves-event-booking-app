@@ -33,9 +33,9 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.StringJoiner;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -81,11 +81,11 @@ public class AuthenticationService {
         if (!authenticated) throw new AppException(ErrorCode.UNAUTHENTICATED);
 
         var token = generateToken(user);
-        
+
         List<String> roles = user.getRoles() != null
                 ? user.getRoles().stream()
-                        .map(role -> role.getName())
-                        .collect(Collectors.toList())
+                .map(role -> role.getName())
+                .collect(Collectors.toList())
                 : List.of();
 
         return AuthenticationResponse.builder()
@@ -128,11 +128,11 @@ public class AuthenticationService {
                 userRepository.findByUsernameWithRoles(username).orElseThrow(() -> new AppException(ErrorCode.UNAUTHENTICATED));
 
         var token = generateToken(user);
-        
+
         List<String> roles = user.getRoles() != null
                 ? user.getRoles().stream()
-                        .map(role -> role.getName())
-                        .collect(Collectors.toList())
+                .map(role -> role.getName())
+                .collect(Collectors.toList())
                 : List.of();
 
         return AuthenticationResponse.builder()

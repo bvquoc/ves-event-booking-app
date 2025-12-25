@@ -1,7 +1,10 @@
 package com.uit.vesbookingapi.dto.response;
 
 import com.uit.vesbookingapi.enums.TicketStatus;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDateTime;

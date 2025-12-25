@@ -4,11 +4,11 @@ import com.nimbusds.jose.JOSEException;
 import com.uit.vesbookingapi.dto.request.*;
 import com.uit.vesbookingapi.dto.response.AuthenticationResponse;
 import com.uit.vesbookingapi.dto.response.IntrospectResponse;
+import com.uit.vesbookingapi.exception.AppException;
+import com.uit.vesbookingapi.exception.ErrorCode;
 import com.uit.vesbookingapi.repository.UserRepository;
 import com.uit.vesbookingapi.service.AuthenticationService;
 import com.uit.vesbookingapi.service.UserService;
-import com.uit.vesbookingapi.exception.AppException;
-import com.uit.vesbookingapi.exception.ErrorCode;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -35,25 +35,25 @@ public class AuthenticationController {
     ApiResponse<AuthenticationResponse> register(@RequestBody @Valid UserCreationRequest request) {
         // Create user
         var userResponse = userService.createUser(request);
-        
+
         // Auto login after registration - get user and generate token
         var user = userRepository.findByUsernameWithRoles(request.getUsername())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
-        
+
         var token = authenticationService.generateTokenForUser(user);
-        
+
         List<String> roles = user.getRoles() != null
                 ? user.getRoles().stream()
-                        .map(role -> role.getName())
-                        .collect(Collectors.toList())
+                .map(role -> role.getName())
+                .collect(Collectors.toList())
                 : List.of();
-        
+
         var result = AuthenticationResponse.builder()
                 .token(token)
                 .authenticated(true)
                 .roles(roles)
                 .build();
-        
+
         return ApiResponse.<AuthenticationResponse>builder().result(result).build();
     }
 

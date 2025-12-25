@@ -23,7 +23,7 @@ public class UserUpdateRequest {
 
     @NotBlank(message = "Phone number is required")
     String phone;
-    
+
     String firstName;
     String lastName;
 

@@ -19,7 +19,7 @@ import java.util.Objects;
 public class GlobalExceptionHandler {
 
     private static final String MIN_ATTRIBUTE = "min";
-    
+
     /**
      * Extract a short, simple error message from exception or throwable
      */
@@ -42,10 +42,10 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(value = Exception.class)
     ResponseEntity<ApiResponse> handlingException(Exception exception) {
         log.error("Unhandled exception: ", exception);
-        
+
         String errorMessage = ErrorCode.UNCATEGORIZED_EXCEPTION.getMessage();
         String errorDetails = extractShortError(exception);
-        
+
         ApiResponse apiResponse = ApiResponse.builder()
                 .code(ErrorCode.UNCATEGORIZED_EXCEPTION.getCode())
                 .message(errorMessage)
@@ -55,14 +55,14 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(ErrorCode.UNCATEGORIZED_EXCEPTION.getStatusCode())
                 .body(apiResponse);
     }
-    
+
     @ExceptionHandler(value = DataIntegrityViolationException.class)
     ResponseEntity<ApiResponse> handlingDataIntegrityViolation(DataIntegrityViolationException exception) {
         log.error("Data integrity violation: ", exception);
-        
+
         String errorMessage = "Data integrity violation";
         String errorDetails = extractShortError(exception);
-        
+
         // Check for common constraint violations
         if (exception.getMessage() != null) {
             String msg = exception.getMessage();
@@ -81,7 +81,7 @@ public class GlobalExceptionHandler {
                 errorMessage = "Unique constraint violation. This value already exists.";
             }
         }
-        
+
         ApiResponse apiResponse = ApiResponse.builder()
                 .code(ErrorCode.UNCATEGORIZED_EXCEPTION.getCode())
                 .message(errorMessage)
@@ -90,21 +90,21 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.badRequest().body(apiResponse);
     }
-    
+
     @ExceptionHandler(value = SQLException.class)
     ResponseEntity<ApiResponse> handlingSQLException(SQLException exception) {
         log.error("SQL exception: ", exception);
-        
+
         String errorMessage = "Database error occurred";
         String errorDetails = extractShortError(exception);
-        
+
         // Extract SQL state if available
         if (exception.getSQLState() != null) {
-            errorDetails = String.format("SQL Error [%s]: %s", 
-                exception.getSQLState(), 
-                extractShortError(exception));
+            errorDetails = String.format("SQL Error [%s]: %s",
+                    exception.getSQLState(),
+                    extractShortError(exception));
         }
-        
+
         ApiResponse apiResponse = ApiResponse.builder()
                 .code(ErrorCode.UNCATEGORIZED_EXCEPTION.getCode())
                 .message(errorMessage)
@@ -114,15 +114,15 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(ErrorCode.UNCATEGORIZED_EXCEPTION.getStatusCode())
                 .body(apiResponse);
     }
-    
+
     @ExceptionHandler(value = IllegalArgumentException.class)
     ResponseEntity<ApiResponse> handlingIllegalArgument(IllegalArgumentException exception) {
         log.error("Illegal argument: ", exception);
-        
-        String errorMessage = exception.getMessage() != null 
-            ? exception.getMessage() 
-            : "Invalid argument";
-        
+
+        String errorMessage = exception.getMessage() != null
+                ? exception.getMessage()
+                : "Invalid argument";
+
         ApiResponse apiResponse = ApiResponse.builder()
                 .code(ErrorCode.UNCATEGORIZED_EXCEPTION.getCode())
                 .message(errorMessage)
@@ -135,17 +135,17 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(value = AppException.class)
     ResponseEntity<ApiResponse> handlingAppException(AppException exception) {
         ErrorCode errorCode = exception.getErrorCode();
-        
+
         log.warn("AppException: {} - {}", errorCode.getCode(), errorCode.getMessage());
         if (exception.getCause() != null) {
             log.debug("AppException cause: ", exception.getCause());
         }
-        
+
         String errorDetails = null;
         if (exception.getCause() != null) {
             errorDetails = extractShortError(exception.getCause());
         }
-        
+
         ApiResponse apiResponse = ApiResponse.builder()
                 .code(errorCode.getCode())
                 .message(errorCode.getMessage())
@@ -168,15 +168,15 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(value = MethodArgumentNotValidException.class)
     ResponseEntity<ApiResponse> handlingValidation(MethodArgumentNotValidException exception) {
-        String enumKey = exception.getFieldError() != null 
-            ? exception.getFieldError().getDefaultMessage() 
-            : null;
+        String enumKey = exception.getFieldError() != null
+                ? exception.getFieldError().getDefaultMessage()
+                : null;
 
         ErrorCode errorCode = ErrorCode.INVALID_KEY;
         Map<String, Object> attributes = null;
         String fieldName = null;
         String validationMessage = null;
-        
+
         try {
             if (enumKey != null) {
                 errorCode = ErrorCode.valueOf(enumKey);
@@ -207,11 +207,11 @@ public class GlobalExceptionHandler {
         String finalMessage = Objects.nonNull(attributes)
                 ? mapAttribute(errorCode.getMessage(), attributes)
                 : (validationMessage != null ? validationMessage : errorCode.getMessage());
-        
+
         String errorDetails = null;
         if (fieldName != null) {
-            errorDetails = String.format("Field '%s': %s", fieldName, 
-                validationMessage != null ? validationMessage : "validation failed");
+            errorDetails = String.format("Field '%s': %s", fieldName,
+                    validationMessage != null ? validationMessage : "validation failed");
         } else if (validationMessage != null) {
             errorDetails = validationMessage;
         }

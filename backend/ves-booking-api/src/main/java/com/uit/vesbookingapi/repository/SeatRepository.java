@@ -19,13 +19,13 @@ public interface SeatRepository extends JpaRepository<Seat, String> {
     // Note: USED tickets are always sold regardless of order status (event already happened)
     //       ACTIVE tickets are sold only if order is COMPLETED (payment completed)
     @Query("SELECT DISTINCT t.seat.id FROM Ticket t JOIN t.order o WHERE t.event.id = :eventId " +
-           "AND t.seat.id IS NOT NULL " +
-           "AND (t.status = 'USED' OR (t.status = 'ACTIVE' AND o.status = 'COMPLETED'))")
+            "AND t.seat.id IS NOT NULL " +
+            "AND (t.status = 'USED' OR (t.status = 'ACTIVE' AND o.status = 'COMPLETED'))")
     List<String> findSoldSeatIdsByEvent(@Param("eventId") String eventId);
 
     // Find seats that are reserved (order PENDING and not expired)
     // RESERVED: Tickets with ACTIVE status AND order is PENDING (payment not completed yet)
     @Query("SELECT t.seat.id FROM Ticket t JOIN t.order o WHERE t.event.id = :eventId " +
-           "AND o.status = 'PENDING' AND o.expiresAt > :now")
+            "AND o.status = 'PENDING' AND o.expiresAt > :now")
     List<String> findReservedSeatIdsByEvent(@Param("eventId") String eventId, @Param("now") LocalDateTime now);
 }

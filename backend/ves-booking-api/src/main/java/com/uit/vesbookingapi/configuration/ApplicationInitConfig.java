@@ -485,7 +485,7 @@ public class ApplicationInitConfig {
 
                     // VIP Section: 4 rows (A-D), 5 seats per row = 20 seats
                     for (int row = 1; row <= 4; row++) {
-                        String rowName = String.valueOf((char)('A' + row - 1));
+                        String rowName = String.valueOf((char) ('A' + row - 1));
                         for (int seat = 1; seat <= 5; seat++) {
                             seats.add(Seat.builder()
                                     .venue(venue)
@@ -498,7 +498,7 @@ public class ApplicationInitConfig {
 
                     // Standard Section: 8 rows (E-L), 10 seats per row = 80 seats
                     for (int row = 5; row <= 12; row++) {
-                        String rowName = String.valueOf((char)('A' + row - 1));
+                        String rowName = String.valueOf((char) ('A' + row - 1));
                         for (int seat = 1; seat <= 10; seat++) {
                             seats.add(Seat.builder()
                                     .venue(venue)
@@ -754,36 +754,36 @@ public class ApplicationInitConfig {
             TicketType exhibitTicket = ticketTypeRepository.findAll().stream()
                     .filter(t -> t.getEvent().getId().equals(artExhibition.getId()))
                     .findFirst().orElse(null);
-            
+
             if (exhibitTicket != null) {
                 Order completedOrder1 = orderRepository.save(Order.builder()
-                .user(regularUser)
+                        .user(regularUser)
                         .event(artExhibition)
                         .ticketType(exhibitTicket)
-                .quantity(2)
-                .subtotal(300000)
-                .discount(60000)
-                .total(240000)
-                .currency("VND")
-                .voucher(percentVoucher)
-                .status(OrderStatus.COMPLETED)
-                .paymentMethod(PaymentMethod.E_WALLET)
-                .completedAt(now.minusDays(2))
-                .build());
-        
-        // Art exhibition doesn't require seat selection, so seat is null
-        for (int i = 0; i < 2; i++) {
-            ticketRepository.save(Ticket.builder()
+                        .quantity(2)
+                        .subtotal(300000)
+                        .discount(60000)
+                        .total(240000)
+                        .currency("VND")
+                        .voucher(percentVoucher)
+                        .status(OrderStatus.COMPLETED)
+                        .paymentMethod(PaymentMethod.E_WALLET)
+                        .completedAt(now.minusDays(2))
+                        .build());
+
+                // Art exhibition doesn't require seat selection, so seat is null
+                for (int i = 0; i < 2; i++) {
+                    ticketRepository.save(Ticket.builder()
                             .order(completedOrder1)
-                    .user(regularUser)
+                            .user(regularUser)
                             .event(artExhibition)
                             .ticketType(exhibitTicket)
                             .seat(null) // No seat selection required
                             .qrCode("QR-ART-" + qrCounter.incrementAndGet())
-                    .status(TicketStatus.ACTIVE)
-                    .purchaseDate(now.minusDays(2))
-                    .build());
-        }
+                            .status(TicketStatus.ACTIVE)
+                            .purchaseDate(now.minusDays(2))
+                            .build());
+                }
             }
         }
 
@@ -792,35 +792,35 @@ public class ApplicationInitConfig {
             TicketType festivalVIP = ticketTypeRepository.findAll().stream()
                     .filter(t -> t.getEvent().getId().equals(musicFestival.getId()) && t.getName().contains("VIP"))
                     .findFirst().orElse(null);
-            
+
             if (festivalVIP != null) {
                 Order completedOrder2 = orderRepository.save(Order.builder()
-                .user(vipUser)
+                        .user(vipUser)
                         .event(musicFestival)
                         .ticketType(festivalVIP)
-                .quantity(2)
-                .subtotal(5000000)
+                        .quantity(2)
+                        .subtotal(5000000)
                         .discount(100000)
                         .total(4900000)
-                .currency("VND")
+                        .currency("VND")
                         .voucher(fixedVoucher)
-                .status(OrderStatus.COMPLETED)
+                        .status(OrderStatus.COMPLETED)
                         .paymentMethod(PaymentMethod.CREDIT_CARD)
                         .completedAt(now.minusDays(1))
-                .build());
-        
-        // Music festival doesn't require seat selection, so seat is null
-        for (int i = 0; i < 2; i++) {
-            ticketRepository.save(Ticket.builder()
+                        .build());
+
+                // Music festival doesn't require seat selection, so seat is null
+                for (int i = 0; i < 2; i++) {
+                    ticketRepository.save(Ticket.builder()
                             .order(completedOrder2)
-                    .user(vipUser)
+                            .user(vipUser)
                             .event(musicFestival)
                             .ticketType(festivalVIP)
                             .seat(null) // No seat selection required
                             .qrCode("QR-FESTIVAL-" + qrCounter.incrementAndGet())
-                    .status(TicketStatus.ACTIVE)
+                            .status(TicketStatus.ACTIVE)
                             .purchaseDate(now.minusDays(1))
-                    .build());
+                            .build());
                 }
             }
         }
@@ -830,14 +830,14 @@ public class ApplicationInitConfig {
             TicketType matchTicket = ticketTypeRepository.findAll().stream()
                     .filter(t -> t.getEvent().getId().equals(footballMatch.getId()) && t.getName().contains("Thường"))
                     .findFirst().orElse(null);
-            
+
             if (matchTicket != null && matchTicket.getRequiresSeatSelection()) {
                 // Get available seats from Standard Section for this venue
                 List<Seat> availableSeats = seatRepository.findByVenueId(footballMatch.getVenue().getId()).stream()
                         .filter(s -> s.getSectionName().equals("Standard Section"))
                         .limit(2) // Reserve 2 seats
                         .toList();
-                
+
                 if (!availableSeats.isEmpty()) {
                     Order completedOrder3 = orderRepository.save(Order.builder()
                             .user(user1)
@@ -852,7 +852,7 @@ public class ApplicationInitConfig {
                             .paymentMethod(PaymentMethod.BANK_TRANSFER)
                             .completedAt(now.minusHours(3))
                             .build());
-                    
+
                     // Create tickets with assigned seats
                     for (int i = 0; i < 2 && i < availableSeats.size(); i++) {
                         ticketRepository.save(Ticket.builder()
@@ -875,14 +875,14 @@ public class ApplicationInitConfig {
             TicketType matchVIPTicket = ticketTypeRepository.findAll().stream()
                     .filter(t -> t.getEvent().getId().equals(footballMatch.getId()) && t.getName().contains("VIP"))
                     .findFirst().orElse(null);
-            
+
             if (matchVIPTicket != null && matchVIPTicket.getRequiresSeatSelection()) {
                 // Get available seats from VIP Section for this venue
                 List<Seat> availableVIPSeats = seatRepository.findByVenueId(footballMatch.getVenue().getId()).stream()
                         .filter(s -> s.getSectionName().equals("VIP Section"))
                         .limit(1) // Reserve 1 VIP seat
                         .toList();
-                
+
                 if (!availableVIPSeats.isEmpty()) {
                     Order completedOrder4 = orderRepository.save(Order.builder()
                             .user(vipUser)
@@ -897,7 +897,7 @@ public class ApplicationInitConfig {
                             .paymentMethod(PaymentMethod.CREDIT_CARD)
                             .completedAt(now.minusDays(1))
                             .build());
-                    
+
                     // Create ticket with assigned VIP seat
                     ticketRepository.save(Ticket.builder()
                             .order(completedOrder4)

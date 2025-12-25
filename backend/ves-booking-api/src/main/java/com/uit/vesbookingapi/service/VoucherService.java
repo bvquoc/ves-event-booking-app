@@ -4,7 +4,10 @@ import com.uit.vesbookingapi.dto.request.ValidateVoucherRequest;
 import com.uit.vesbookingapi.dto.response.UserVoucherResponse;
 import com.uit.vesbookingapi.dto.response.VoucherResponse;
 import com.uit.vesbookingapi.dto.response.VoucherValidationResponse;
-import com.uit.vesbookingapi.entity.*;
+import com.uit.vesbookingapi.entity.Event;
+import com.uit.vesbookingapi.entity.TicketType;
+import com.uit.vesbookingapi.entity.UserVoucher;
+import com.uit.vesbookingapi.entity.Voucher;
 import com.uit.vesbookingapi.enums.VoucherDiscountType;
 import com.uit.vesbookingapi.exception.AppException;
 import com.uit.vesbookingapi.exception.ErrorCode;
@@ -44,6 +47,7 @@ public class VoucherService {
 
     /**
      * Get user's vouchers with optional status filter
+     *
      * @param status: "active", "used", "expired", or null for all
      */
     public List<UserVoucherResponse> getUserVouchers(String status) {

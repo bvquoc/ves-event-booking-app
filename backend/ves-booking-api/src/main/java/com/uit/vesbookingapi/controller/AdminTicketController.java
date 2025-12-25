@@ -26,7 +26,7 @@ public class AdminTicketController {
 
     /**
      * Get all tickets with optional filters (Admin, Staff, Organizer only)
-     * 
+     * <p>
      * Query Parameters:
      * - userId: Filter by user ID
      * - eventId: Filter by event ID
@@ -60,7 +60,7 @@ public class AdminTicketController {
     /**
      * Check in ticket via QR code (Admin, Staff, Organizer only)
      * Validates ticket status and order completion before check-in
-     * 
+     * <p>
      * Request body: { "qrCode": "VES..." }
      * Response: CheckInResponse with ticket details
      */
@@ -76,7 +76,7 @@ public class AdminTicketController {
     /**
      * Look up ticket by QR code (Admin, Staff, Organizer only)
      * Used for checking ticket status before check-in
-     * 
+     * <p>
      * Returns full ticket details including user, order, event, and seat information
      */
     @GetMapping("/qr/{qrCode}")

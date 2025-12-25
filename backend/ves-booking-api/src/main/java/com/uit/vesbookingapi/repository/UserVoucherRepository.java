@@ -17,21 +17,21 @@ public interface UserVoucherRepository extends JpaRepository<UserVoucher, String
 
     // Active vouchers (not used + not expired)
     @Query("SELECT uv FROM UserVoucher uv WHERE uv.user.id = :userId " +
-           "AND uv.isUsed = false " +
-           "AND uv.voucher.endDate > :now " +
-           "ORDER BY uv.addedAt DESC")
+            "AND uv.isUsed = false " +
+            "AND uv.voucher.endDate > :now " +
+            "ORDER BY uv.addedAt DESC")
     List<UserVoucher> findActiveByUserId(@Param("userId") String userId, @Param("now") LocalDateTime now);
 
     // Used vouchers
     @Query("SELECT uv FROM UserVoucher uv WHERE uv.user.id = :userId " +
-           "AND uv.isUsed = true " +
-           "ORDER BY uv.usedAt DESC")
+            "AND uv.isUsed = true " +
+            "ORDER BY uv.usedAt DESC")
     List<UserVoucher> findUsedByUserId(@Param("userId") String userId);
 
     // Expired vouchers (not used + expired)
     @Query("SELECT uv FROM UserVoucher uv WHERE uv.user.id = :userId " +
-           "AND uv.isUsed = false " +
-           "AND uv.voucher.endDate < :now " +
-           "ORDER BY uv.addedAt DESC")
+            "AND uv.isUsed = false " +
+            "AND uv.voucher.endDate < :now " +
+            "ORDER BY uv.addedAt DESC")
     List<UserVoucher> findExpiredByUserId(@Param("userId") String userId, @Param("now") LocalDateTime now);
 }

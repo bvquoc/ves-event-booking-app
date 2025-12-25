@@ -43,7 +43,7 @@ public class AdminTicketService {
             String eventId,
             TicketStatus status,
             Pageable pageable) {
-        
+
         Specification<Ticket> spec = buildSpecification(userId, eventId, status);
         Page<Ticket> ticketPage = ticketRepository.findAll(spec, pageable);
 
@@ -78,12 +78,12 @@ public class AdminTicketService {
                     return new AppException(ErrorCode.QR_CODE_NOT_FOUND);
                 });
 
-        log.info("Found ticket: ticketId={}, status={}, orderStatus={}", 
+        log.info("Found ticket: ticketId={}, status={}, orderStatus={}",
                 ticket.getId(), ticket.getStatus(), ticket.getOrder().getStatus());
 
         // 2. Validate order status is COMPLETED
         if (ticket.getOrder().getStatus() != OrderStatus.COMPLETED) {
-            log.warn("Order not completed for ticket: ticketId={}, orderStatus={}", 
+            log.warn("Order not completed for ticket: ticketId={}, orderStatus={}",
                     ticket.getId(), ticket.getOrder().getStatus());
             throw new AppException(ErrorCode.ORDER_NOT_COMPLETED);
         }
@@ -94,7 +94,7 @@ public class AdminTicketService {
                 log.warn("Ticket already checked in: ticketId={}", ticket.getId());
                 throw new AppException(ErrorCode.TICKET_ALREADY_USED);
             } else {
-                log.warn("Ticket not in ACTIVE status: ticketId={}, status={}", 
+                log.warn("Ticket not in ACTIVE status: ticketId={}, status={}",
                         ticket.getId(), ticket.getStatus());
                 throw new AppException(ErrorCode.TICKET_NOT_ACTIVE);
             }
@@ -106,7 +106,7 @@ public class AdminTicketService {
         ticket.setCheckedInAt(checkInTime);
         ticket = ticketRepository.save(ticket);
 
-        log.info("Ticket checked in successfully: ticketId={}, checkedInAt={}", 
+        log.info("Ticket checked in successfully: ticketId={}, checkedInAt={}",
                 ticket.getId(), checkInTime);
 
         // 5. Build response with ticket details

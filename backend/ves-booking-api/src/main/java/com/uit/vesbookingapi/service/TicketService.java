@@ -5,7 +5,6 @@ import com.uit.vesbookingapi.dto.response.CancellationResponse;
 import com.uit.vesbookingapi.dto.response.TicketDetailResponse;
 import com.uit.vesbookingapi.dto.response.TicketResponse;
 import com.uit.vesbookingapi.entity.Ticket;
-import com.uit.vesbookingapi.entity.TicketType;
 import com.uit.vesbookingapi.enums.RefundStatus;
 import com.uit.vesbookingapi.enums.TicketStatus;
 import com.uit.vesbookingapi.exception.AppException;
